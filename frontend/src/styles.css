@@ -1,1 +1,86 @@
-/* You can add global styles to this file, and also import other style files */
+/* 1. IMPORTAÇÃO DA TIPOGRAFIA OFICIAL
+   Importa a família de fontes 'Inter' do Google Fonts com os pesos definidos no projeto:
+   - 400: Inter Regular (Corpo de texto)
+   - 500: Inter Medium (Botões e etiquetas)
+   - 600: Inter SemiBold (Subtítulos e destaques)
+   - 700: Inter Bold (Títulos principais) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* 2. VARIÁVEIS GLOBAIS DE TEMA (DESIGN TOKENS)
+   Centralizadas no :root para que qualquer componente do Angular possa reutilizar via var(--...) */
+:root {
+  /* --- PALETA PRIMÁRIA E MARCA --- */
+  --primary-color: #00B8A9;        /* Turquesa Primário: cor da marca FAB e ações principais */
+  --primary-hover: #009e91;        /* Tom ligeiramente mais escuro para o efeito hover */
+  --primary-light: #EAF2FF;        /* Azul Claro: fundos suaves e realces secundários */
+
+  /* --- CORES NEUTRAS E SUPERFÍCIES --- */
+  --bg-light: #F5F7FA;             /* Fundo Neutro: background principal das páginas */
+  --bg-white: #FFFFFF;             /* Branco: cartões, modais e fundos de formulários */
+  --border-color: #E5E7EB;         /* Bordas: divisores e contorno de caixas/inputs */
+
+  /* --- TIPOGRAFIA E TEXTOS --- */
+  --text-primary: #1F2937;         /* Texto Principal: alta legibilidade para títulos e parágrafos */
+  --text-secondary: #6B7280;       /* Texto Secundário: rótulos auxiliares e placeholders */
+
+  /* --- ESTADOS DO BADGE DE STATUS (Sprint 3) --- */
+  --status-disponivel: #10B981;    /* Verde para itens disponíveis */
+  --status-emprestado: #3B82F6;    /* Azul para itens emprestados */
+  --status-manutencao: #F59E0B;    /* Laranja/Amarelo para itens avariados ou em reparo */
+  --status-atrasado: #EF4444;      /* Vermelho para pendências e devoluções em atraso */
+
+  /* --- ESCALA DE ESPAÇAMENTOS (Baseada na grelha de 8px) --- */
+  --spacing-xs: 8px;               /* 8px: espaçamentos mínimos e gaps internos */
+  --spacing-sm: 16px;              /* 16px: padding comum de botões e cartões compactos */
+  --spacing-md: 24px;              /* 24px: margens entre elementos e seções */
+  --spacing-lg: 32px;              /* 32px: respiro entre blocos de conteúdo */
+  --spacing-xl: 40px;              /* 40px: cabeçalhos e afastamentos estruturais */
+
+  /* --- RAIOS DE ARREDONDAMENTO (Border Radius) --- */
+  --radius-sm: 8px;                /* Bordas arredondadas padrão (cards, tabelas) */
+  --radius-md: 16px;               /* Bordas médias (painéis e modais) */
+  --radius-pill: 9999px;           /* Efeito cápsula arredondada (botões e inputs do protótipo) */
+}
+
+/* 3. RESET VISUAL E BOX MODEL
+   Garante consistência eliminando margens e preenchimentos padrão dos navegadores */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box; /* Inclui padding e border no cálculo do tamanho total do elemento */
+}
+
+/* 4. REGRAS BASE DO DOCUMENTO
+   Define a tipografia Inter em toda a árvore DOM e o background neutro padrão */
+html, body {
+  height: 100%;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg-light);
+  color: var(--text-primary);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased; /* Suavização de fontes em telas de alta densidade */
+}
+
+/* 5. PADRONIZAÇÃO DE ELEMENTOS INTERATIVOS
+   Garante que campos de formulários e botões herdem a fonte e o comportamento correto */
+input,
+button,
+textarea,
+select {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
