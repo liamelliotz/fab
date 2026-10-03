@@ -35,5 +35,20 @@ export const ADMIN_ROUTES: Routes = [
     path: '',
     redirectTo: 'emprestimos',
     pathMatch: 'full'
-  }
+  },
+
+  {
+  path: 'usuarios',
+  loadComponent: () =>
+    import('./usuarios/admin-usuarios')
+      .then(m => m.AdminUsuarios)
+},
+
+{
+  path: 'relatorios',
+  loadComponent: () =>
+    import('./relatorios/admin-relatorios')
+      .then(m => m.AdminRelatorios)
+},
+
 ];
