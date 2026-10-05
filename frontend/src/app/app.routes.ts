@@ -1,60 +1,18 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './core/guards/auth.guard';
+import { adminGuard } from './core/guards/admin.guard';
 
 export const routes: Routes = [
+  {
+    path: 'login',
+    title: 'Entrar | FAB',
+    loadComponent: () => import('./features/auth/login/login').then((m) => m.Login),
+  },
   {
     path: 'admin',
-    loadChildren: () =>
-      import('./features/admin/admin.routes')
-        .then(m => m.ADMIN_ROUTES)
+    canActivate: [authGuard, adminGuard],
+    loadChildren: () => import('./features/admin/admin.routes').then((m) => m.ADMIN_ROUTES),
   },
-
-  {
-    path: '',
-    redirectTo: 'admin/emprestimos',
-    pathMatch: 'full'
-  },
-
-  {
-    path: '**',
-    redirectTo: 'admin/emprestimos'
-  }
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  { path: '**', redirectTo: 'login' },
 ];
-
-
-
-
-
-/* 
-// src/app/app.routes.ts
-import { Routes } from '@angular/router';
-import { authGuard } from './core/guard/auth.guard';
-import { adminGuard } from './core/guard/admin.guard';
-
-export const routes: Routes = [
-    // Rotas públicas (sem guard)
-  { path: 'login', loadComponent: () => import('./features/auth/login/login.component').then(m => m.LoginComponent) },
-  { path: 'cadastro', loadComponent: () => import('./features/auth/cadastro/cadastro.component').then(m => m.CadastroComponent) },
-
-    // Rotas de utilizador comum (exigem apenas login)
-  { 
-    path: 'dashboard', 
-    canActivate: [authGuard], 
-    loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent) 
-  },
-
-    // Rotas restritas da administração/coordenação
-  { 
-    path: 'admin', 
-    canActivate: [authGuard, adminGuard], 
-    loadChildren: () => import('./features/admin/admin.routes').then(m => m.ADMIN_ROUTES) 
-  },
-////rota do admin emprestimos
-  {
-  path: 'admin',
-  canActivate: [authGuard, adminGuard],
-  loadChildren: () =>
-    import('./features/admin/admin.routes').then(m => m.ADMIN_ROUTES)
-},
-
-  { path: '', redirectTo: 'login', pathMatch: 'full' }
-]; */
