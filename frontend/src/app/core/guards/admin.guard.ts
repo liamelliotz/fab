@@ -1,36 +1,34 @@
-import { inject } from '@angular/core';
+import { PLATFORM_ID, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { CanActivateFn, Router } from '@angular/router';
 
 /**
- * ADMIN GUARD:
- * Serve para controle de níveis de acesso (RBAC - Role-Based Access Control).
- * Garante que apenas gestores/coordenadores acessem o painel administrativo da FAB,
- * impedindo que alunos ou usuários comuns acessem rotas de cadastro ou relatórios gerais.
+ * ADMIN GUARD: só deixa entrar no painel administrativo quem tem o perfil 'Admin'.
  */
+export const adminGuard: CanActivateFn = () => {
+  const router = inject(Router);
+  const platformId = inject(PLATFORM_ID);
 
-export const adminGuard: CanActivateFn = (route, state) => {
-    const router = inject(Router);
+  // No servidor (SSR) não existe localStorage. Deixa passar e o navegador valida depois.
+  if (!isPlatformBrowser(platformId)) {
+    return true;
+  }
 
-    // Pega o token para confirmar se está autenticado
-    const token = localStorage.getItem('fab_token');
+  const token = localStorage.getItem('fab_token');
+  const role = localStorage.getItem('fab_role');
 
-    // Pega o tipo de cargo/perfil salvo no login (ex: 'ADMIN', 'ALUNO', 'PROFESSOR')
-    const role = localStorage.getItem('fab_role');
+  // Logado e com perfil Admin: libera
+  if (token && role === 'Admin') {
+    return true;
+  }
 
-//** REGRA 1: Está logado E possui o perfil de 'Admin'?*/
-    if (token && role === 'Admin') {
-    // Permite a entrada na rota restrita de administração
-        return true;
-    }
-
-//** REGRA 2: O usuário está logado, mas NÃO é administrador (ex: é um aluno comum) */
-    if (token) {
-    // Não deixamos ele no admin, mandamos ele para o painel principal comum
-        router.navigate(['/dashboard']);
-        return false;
-    }
-
-//** REGRA 3: Se nem logado ele estiver, manda de volta ao início */
-    router.navigate(['/login']);
+  // Logado, mas não é Admin: manda para o painel comum
+  if (token) {
+    router.navigate(['/dashboard']);
     return false;
+  }
+
+  // Não logado: manda para o login
+  router.navigate(['/login']);
+  return false;
 };
