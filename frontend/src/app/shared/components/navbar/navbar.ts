@@ -27,12 +27,12 @@ export class Navbar {
     },
     {
       label: 'Empréstimos',
-      route: '/emprestimos',
+      route: '/admin/emprestimos',
       icon: 'M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z',
     },
     {
       label: 'Relatórios',
-      route: '/relatorios',
+      route: '/admin/relatorios',
       icon: 'M5 9.2h3V19H5V9.2zM10.6 5h2.8v14h-2.8V5zm5.6 8H19v6h-2.8v-6z',
     },
     {
