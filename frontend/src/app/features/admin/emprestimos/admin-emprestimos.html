@@ -1,0 +1,93 @@
+<div class="pagina-emprestimos">
+
+  <header class="cabecalho">
+    <div>
+      <h1>Controle de Empréstimos</h1>
+      <p>Acompanhe as devoluções ativas e os atrasos de entrega.</p>
+    </div>
+  </header>
+
+  <section class="resumo">
+
+    <div class="card">
+      <p>Empréstimos ativos</p>
+      <strong>{{ totalAtivos }}</strong>
+    </div>
+
+    <div class="card card-atrasado">
+      <p>Devoluções atrasadas</p>
+      <strong>{{ totalAtrasados }}</strong>
+    </div>
+
+    <div class="card card-devolvido">
+      <p>Itens devolvidos</p>
+      <strong>{{ totalDevolvidos }}</strong>
+    </div>
+
+  </section>
+
+  <section class="painel">
+
+    <div class="titulo-painel">
+      <div>
+        <h2>Empréstimos</h2>
+        <p>Lista de empréstimos e situação das devoluções.</p>
+      </div>
+    </div>
+
+    <div class="tabela-container">
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Item</th>
+            <th>Responsável</th>
+            <th>Data do empréstimo</th>
+            <th>Devolução prevista</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          <tr *ngFor="let emprestimo of emprestimos">
+
+            <td>#{{ emprestimo.id }}</td>
+
+            <td>
+              <strong>{{ emprestimo.item }}</strong>
+            </td>
+
+            <td>{{ emprestimo.responsavel }}</td>
+
+            <td>{{ emprestimo.dataEmprestimo }}</td>
+
+            <td>{{ emprestimo.dataPrevistaDevolucao }}</td>
+
+            <td>
+
+              <span
+                class="status"
+                [class.ativo]="emprestimo.status === 'Ativo'"
+                [class.atrasado]="emprestimo.status === 'Atrasado'"
+                [class.devolvido]="emprestimo.status === 'Devolvido'">
+
+                {{ emprestimo.status }}
+
+              </span>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </section>
+
+</div>

@@ -1,0 +1,29 @@
+<!-- Contêiner do campo: empilha label, input e mensagem -->
+<div class="field">
+  <!-- Só mostra a etiqueta se o pai tiver passado um texto. [for] liga o label ao input -->
+  @if (label()) {
+    <label class="field__label" [for]="id">{{ label() }}</label>
+  }
+
+  <!-- Campo de digitação.
+       [class.field__input--error] adiciona a borda vermelha quando há mensagem de erro.
+       (input) dispara a cada digitação e (blur) ao sair do campo. -->
+  <input
+    class="field__input"
+    [class.field__input--error]="!!error()"
+    [id]="id"
+    [type]="type()"
+    [placeholder]="placeholder()"
+    [value]="value()"
+    [disabled]="isDisabled()"
+    (input)="handleInput($event)"
+    (blur)="handleBlur()"
+  />
+
+  <!-- Mensagem abaixo do campo: o erro tem prioridade sobre o texto de contexto -->
+  @if (error()) {
+    <small class="field__error">{{ error() }}</small>
+  } @else if (hint()) {
+    <small class="field__hint">{{ hint() }}</small>
+  }
+</div>

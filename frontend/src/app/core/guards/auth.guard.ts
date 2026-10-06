@@ -1,30 +1,26 @@
-// - inject: permite injetar dependências (como serviços e rotas) sem precisar de construtor
-// - CanActivateFn: tipo oficial do Angular para funções que protegem rotas
-// - Router: serviço responsável pela navegação entre páginas
- import { inject } from '@angular/core';
- import { CanActivateFn, Router} from '@angular/router'
+import { PLATFORM_ID, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { CanActivateFn, Router } from '@angular/router';
 
 /**
- * AUTH GUARD:
- * Serve como um porteiro geral da aplicação.
- * Impede que pessoas que não fizeram login acessem páginas privadas (Dashboard, Solicitações, etc.).
+ * AUTH GUARD: impede que quem não fez login acesse páginas privadas.
  */
-export const authGuard: CanActivateFn = (route, state) => {
-    // Injeta o roteador para conseguirmos redirecionar o usuário se necessário
+export const authGuard: CanActivateFn = () => {
   const router = inject(Router);
+  const platformId = inject(PLATFORM_ID);
 
-    // Busca a chave de autenticação (token) gravada no navegador após o login
+  // No servidor (SSR) não existe localStorage. Deixa passar e o navegador valida depois.
+  if (!isPlatformBrowser(platformId)) {
+    return true;
+  }
+
+  // Token gravado no navegador após o login
   const token = localStorage.getItem('fab_token');
 
-//** REGRA 1: O usuário tem o token salvo? */
   if (token) {
-    // Retorna 'true': a porta se abre e o Angular carrega a página solicitada
-    return true; 
+    return true; // logado: libera a página
   }
-//** REGRA 2: Se não existe token, ele é um intruso ou deslogou*/
-    // Redireciona imediatamente para a tela de login
-    router.navigate(['/login']);
 
-    // Retorna 'false': cancela a tentativa de navegação na rota protegida
-    return false;
+  router.navigate(['/login']); // não logado: vai para o login
+  return false;
 };
