@@ -1,0 +1,215 @@
+<div class="pagina-manutencao">
+
+  <header class="cabecalho">
+    <div>
+      <h1>Manutenção de Equipamentos</h1>
+      <p>
+        Registre e acompanhe itens avariados ou enviados
+        para assistência técnica.
+      </p>
+    </div>
+
+    <button class="botao-novo" (click)="abrirFormulario()">
+      + Registrar ocorrência
+    </button>
+  </header>
+
+  <!-- CARDS DE RESUMO -->
+
+  <section class="resumo">
+
+    <div class="card card-avariado">
+      <p>Itens avariados</p>
+      <strong>{{ totalAvariados }}</strong>
+    </div>
+
+    <div class="card card-assistencia">
+      <p>Em assistência</p>
+      <strong>{{ totalAssistencia }}</strong>
+    </div>
+
+    <div class="card card-concluido">
+      <p>Concluídos</p>
+      <strong>{{ totalConcluidos }}</strong>
+    </div>
+
+  </section>
+
+  <!-- FORMULÁRIO -->
+
+  <section class="formulario" *ngIf="mostrarFormulario">
+
+    <div class="formulario-cabecalho">
+      <div>
+        <h2>Registrar ocorrência</h2>
+        <p>Informe os dados do equipamento avariado.</p>
+      </div>
+
+      <button class="fechar" (click)="cancelar()">×</button>
+    </div>
+
+    <div class="campos">
+
+      <div class="campo">
+        <label>Equipamento</label>
+
+        <input
+          type="text"
+          [(ngModel)]="novoRegistro.item"
+          placeholder="Ex.: Notebook Dell">
+      </div>
+
+      <div class="campo">
+        <label>Patrimônio</label>
+
+        <input
+          type="text"
+          [(ngModel)]="novoRegistro.patrimonio"
+          placeholder="Ex.: PAT-004">
+      </div>
+
+      <div class="campo campo-grande">
+        <label>Problema / avaria</label>
+
+        <input
+          type="text"
+          [(ngModel)]="novoRegistro.problema"
+          placeholder="Descreva o problema">
+      </div>
+
+      <div class="campo">
+        <label>Data do registro</label>
+
+        <input
+          type="date"
+          [(ngModel)]="novoRegistro.dataRegistro">
+      </div>
+
+      <div class="campo">
+        <label>Assistência técnica</label>
+
+        <input
+          type="text"
+          [(ngModel)]="novoRegistro.assistencia"
+          placeholder="Nome da assistência">
+      </div>
+
+      <div class="campo">
+        <label>Status</label>
+
+        <select [(ngModel)]="novoRegistro.status">
+          <option value="Avariado">Avariado</option>
+          <option value="Em assistência">Em assistência</option>
+          <option value="Concluído">Concluído</option>
+        </select>
+      </div>
+
+    </div>
+
+    <div class="acoes-formulario">
+
+      <button class="botao-cancelar" (click)="cancelar()">
+        Cancelar
+      </button>
+
+      <button class="botao-salvar" (click)="cadastrar()">
+        Salvar ocorrência
+      </button>
+
+    </div>
+
+  </section>
+
+  <!-- TABELA -->
+
+  <section class="painel">
+
+    <div class="titulo-painel">
+      <h2>Acompanhamento de manutenção</h2>
+
+      <p>
+        Situação atual dos equipamentos registrados.
+      </p>
+    </div>
+
+    <div class="tabela-container">
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Equipamento</th>
+            <th>Patrimônio</th>
+            <th>Problema</th>
+            <th>Data</th>
+            <th>Assistência</th>
+            <th>Status</th>
+            <th>Ação</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          <tr *ngFor="let manutencao of manutencoes">
+
+            <td>#{{ manutencao.id }}</td>
+
+            <td>
+              <strong>{{ manutencao.item }}</strong>
+            </td>
+
+            <td>{{ manutencao.patrimonio }}</td>
+
+            <td>{{ manutencao.problema }}</td>
+
+            <td>{{ manutencao.dataRegistro }}</td>
+
+            <td>{{ manutencao.assistencia }}</td>
+
+            <td>
+
+              <span
+                class="status"
+                [class.avariado]="manutencao.status === 'Avariado'"
+                [class.assistencia]="manutencao.status === 'Em assistência'"
+                [class.concluido]="manutencao.status === 'Concluído'">
+
+                {{ manutencao.status }}
+
+              </span>
+
+            </td>
+
+            <td>
+
+              <button
+                *ngIf="manutencao.status !== 'Concluído'"
+                class="botao-acao"
+                (click)="avancarStatus(manutencao)">
+
+                Avançar status
+
+              </button>
+
+              <span
+                class="finalizado"
+                *ngIf="manutencao.status === 'Concluído'">
+
+                Finalizado
+
+              </span>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </section>
+
+</div>

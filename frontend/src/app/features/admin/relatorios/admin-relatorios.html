@@ -1,0 +1,233 @@
+<div class="pagina-relatorios">
+
+  <header class="cabecalho">
+
+    <div>
+      <h1>Relatórios Gerais</h1>
+
+      <p>
+        Consulte a utilização dos materiais por período
+        e exporte os resultados.
+      </p>
+    </div>
+
+  </header>
+
+
+  <!-- FILTRO -->
+
+  <section class="filtros">
+
+    <div class="titulo-filtro">
+      <h2>Período do relatório</h2>
+
+      <p>
+        Selecione o intervalo que deseja consultar.
+      </p>
+    </div>
+
+    <div class="campos-filtro">
+
+      <div class="campo">
+
+        <label for="dataInicial">
+          Data inicial
+        </label>
+
+        <input
+          id="dataInicial"
+          type="date"
+          [(ngModel)]="dataInicial">
+
+      </div>
+
+
+      <div class="campo">
+
+        <label for="dataFinal">
+          Data final
+        </label>
+
+        <input
+          id="dataFinal"
+          type="date"
+          [(ngModel)]="dataFinal">
+
+      </div>
+
+
+      <button
+        class="botao-gerar"
+        (click)="gerarRelatorio()">
+
+        Gerar relatório
+
+      </button>
+
+
+      <button
+        class="botao-limpar"
+        (click)="limparRelatorio()">
+
+        Limpar
+
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- RESULTADO -->
+
+  <ng-container *ngIf="relatorioGerado">
+
+    <section class="resumo">
+
+      <div class="card">
+
+        <p>Registros encontrados</p>
+
+        <strong>
+          {{ totalRegistros }}
+        </strong>
+
+      </div>
+
+
+      <div class="card card-material">
+
+        <p>Materiais diferentes</p>
+
+        <strong>
+          {{ materiaisDiferentes }}
+        </strong>
+
+      </div>
+
+
+      <div class="card card-quantidade">
+
+        <p>Quantidade utilizada</p>
+
+        <strong>
+          {{ totalQuantidade }}
+        </strong>
+
+      </div>
+
+    </section>
+
+
+    <section class="painel">
+
+      <div class="topo-painel">
+
+        <div>
+
+          <h2>
+            Utilização dos materiais
+          </h2>
+
+          <p>
+            {{ dataInicial }}
+            até
+            {{ dataFinal }}
+          </p>
+
+        </div>
+
+
+        <button
+          class="botao-exportar"
+          (click)="exportarCSV()"
+          [disabled]="resultados.length === 0">
+
+          Exportar CSV
+
+        </button>
+
+      </div>
+
+
+      <div
+        class="tabela-container"
+        *ngIf="resultados.length > 0">
+
+        <table>
+
+          <thead>
+
+            <tr>
+              <th>ID</th>
+              <th>Material</th>
+              <th>Responsável</th>
+              <th>Data</th>
+              <th>Quantidade</th>
+              <th>Tipo</th>
+            </tr>
+
+          </thead>
+
+
+          <tbody>
+
+            <tr *ngFor="let item of resultados">
+
+              <td>
+                #{{ item.id }}
+              </td>
+
+              <td>
+                <strong>
+                  {{ item.material }}
+                </strong>
+              </td>
+
+              <td>
+                {{ item.responsavel }}
+              </td>
+
+              <td>
+                {{ item.data }}
+              </td>
+
+              <td>
+                {{ item.quantidade }}
+              </td>
+
+              <td>
+
+                <span class="tipo">
+                  {{ item.tipo }}
+                </span>
+
+              </td>
+
+            </tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+
+      <div
+        class="sem-resultados"
+        *ngIf="resultados.length === 0">
+
+        <h3>Nenhum registro encontrado</h3>
+
+        <p>
+          Não existem utilizações de materiais
+          no período selecionado.
+        </p>
+
+      </div>
+
+    </section>
+
+  </ng-container>
+
+</div>

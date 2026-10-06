@@ -1,0 +1,57 @@
+<!-- Layout de duas áreas lado a lado: painel verde (esquerda) e formulário (direita) -->
+<main class="login">
+  <!-- PAINEL ESQUERDO: identidade visual do FAB -->
+  <section class="login__brand">
+    <div class="login__brand-content">
+      <h1 class="login__logo">FAB</h1>
+      <p class="login__slogan">Aprender, Organizar e Evoluir</p>
+      <p class="login__description">
+        Gestão e controle do empréstimo de materiais e equipamentos escolares.
+      </p>
+    </div>
+  </section>
+
+  <!-- PAINEL DIREITO: formulário de login em fundo branco -->
+  <section class="login__panel">
+    <!-- [formGroup] liga o formulário do TypeScript ao HTML; (ngSubmit) chama onSubmit() ao enviar -->
+    <form class="login__form" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+      <h2 class="login__title">Entrar</h2>
+      <p class="login__subtitle">Acesse sua conta para continuar</p>
+
+      <!-- formControlName liga este campo ao controle "email" do formulário.
+           [error] recebe a mensagem de validação (vazia = sem erro). -->
+      <app-input
+        formControlName="email"
+        label="E-mail"
+        type="email"
+        placeholder="voce@email.com"
+        [error]="getError('email')"
+      />
+
+      <app-input
+        formControlName="senha"
+        label="Senha"
+        type="password"
+        placeholder="Digite sua senha"
+        [error]="getError('senha')"
+      />
+
+      <!-- type="submit" dispara o (ngSubmit) do formulário -->
+      <app-button type="submit" [fullWidth]="true">Entrar</app-button>
+
+      <!-- Separador visual entre o login normal e o login com Google -->
+      <div class="login__divider"><span>ou</span></div>
+
+      <!-- type="button" evita que este botão envie o formulário -->
+      <app-button variant="google" type="button" [fullWidth]="true" (click)="onGoogleLogin()">
+        Fazer login com o Google
+      </app-button>
+
+      <!-- Link para a tela de registro (rota definida em app.routes.ts) -->
+      <p class="login__register">
+        Não tem conta?
+        <a routerLink="/cadastro">Cadastre-se</a>
+      </p>
+    </form>
+  </section>
+</main>

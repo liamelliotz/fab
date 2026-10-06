@@ -1,0 +1,26 @@
+/* Organiza label, input e mensagem em coluna, com espaço entre eles */
+.field { display: flex; flex-direction: column; gap: 6px; }
+
+/* Etiqueta de identificação */
+.field__label { font-weight: 600; font-size: 0.9rem; }
+
+/* Campo de digitação */
+.field__input {
+  padding: 12px 16px;
+  border: 1px solid #c4c4c4;
+  border-radius: 12px;  /* cantos arredondados (confira o valor no Figma) */
+  font-size: 1rem;
+  outline: none;        /* remove o contorno padrão do navegador (substituído no :focus) */
+}
+
+/* Ao focar: borda verde e leve brilho (o "33" no final do hex é a transparência) */
+.field__input:focus { border-color: #2e7d32; box-shadow: 0 0 0 3px #2e7d3233; }
+
+/* Estado de erro/validação: borda vermelha */
+.field__input--error { border-color: #d32f2f; }
+
+/* Texto de contexto em cinza */
+.field__hint { color: #666; }
+
+/* Mensagem de erro em vermelho */
+.field__error { color: #d32f2f; }
