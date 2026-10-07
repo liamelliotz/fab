@@ -1,0 +1,33 @@
+:host {
+  display: inline-block;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.badge--disponivel {
+  background: #e8f5e9;
+  color: #1b5e20;
+}
+
+.badge--emprestado {
+  background: #e3f2fd;
+  color: #0d47a1;
+}
+
+.badge--em_manutencao {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.badge--pendente {
+  background: #fffde7;
+  color: #8a6d00;
+}
