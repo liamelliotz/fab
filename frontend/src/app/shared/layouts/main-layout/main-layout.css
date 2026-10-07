@@ -1,0 +1,12 @@
+.layout {
+  display: flex;
+  gap: 16px;
+  height: 100vh;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.content {
+  flex: 1;
+  overflow: auto;
+}
