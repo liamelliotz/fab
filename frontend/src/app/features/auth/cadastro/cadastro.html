@@ -56,8 +56,15 @@
         [error]="getError('telefone')"
       />
 
-      <!-- type="submit" dispara o (ngSubmit) do formulário -->
-      <app-button type="submit" [fullWidth]="true">Criar Conta</app-button>
+      <!-- Mensagem de erro da API (ex.: e-mail já cadastrado) -->
+      @if (erroApi()) {
+        <p class="cadastro__error" role="alert">{{ erroApi() }}</p>
+      }
+
+      <!-- type="submit" dispara o (ngSubmit) do formulário; fica desabilitado enquanto envia -->
+      <app-button type="submit" [fullWidth]="true" [disabled]="carregando()">
+        {{ carregando() ? 'Criando conta...' : 'Criar Conta' }}
+      </app-button>
 
       <!-- Link de volta para o login -->
       <p class="cadastro__login">
