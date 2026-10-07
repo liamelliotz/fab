@@ -1,0 +1,109 @@
+.alert {
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+  padding: 14px 16px;
+
+  border-radius: 8px;
+
+  width: 100%;
+
+  box-sizing: border-box;
+}
+
+
+/* Ícone redondo */
+.alert__icon {
+  width: 24px;
+  height: 24px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  font-weight: bold;
+}
+
+
+/* A mensagem ocupa o espaço disponível */
+.alert__message {
+  flex: 1;
+}
+
+
+/* Botão X */
+.alert__close {
+  border: none;
+
+  background: transparent;
+
+  font-size: 22px;
+
+  cursor: pointer;
+}
+
+
+/* ========================= */
+/* SUCESSO */
+/* ========================= */
+
+.alert--success {
+  background: #f0fdf4;
+
+  color: #166534;
+
+  border: 1px solid #86efac;
+}
+
+
+.alert--success .alert__icon {
+  background: #22c55e;
+
+  color: white;
+}
+
+
+/* ========================= */
+/* AVISO */
+/* ========================= */
+
+.alert--warning {
+  background: #fffbeb;
+
+  color: #92400e;
+
+  border: 1px solid #fcd34d;
+}
+
+
+.alert--warning .alert__icon {
+  background: #f59e0b;
+
+  color: white;
+}
+
+
+/* ========================= */
+/* ERRO */
+/* ========================= */
+
+.alert--error {
+  background: #fef2f2;
+
+  color: #991b1b;
+
+  border: 1px solid #fca5a5;
+}
+
+
+.alert--error .alert__icon {
+  background: #ef4444;
+
+  color: white;
+}
