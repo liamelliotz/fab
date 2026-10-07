@@ -1,0 +1,106 @@
+<!--
+  Só existe na tela quando open = true.
+-->
+<div
+  *ngIf="open"
+
+  class="modal"
+
+  (click)="onBackdropClick()"
+>
+
+  <!--
+    Essa é a caixinha branca.
+
+    stopPropagation impede que o clique
+    aqui seja interpretado como clique
+    no fundo.
+  -->
+  <div
+    class="modal__dialog"
+
+    [class.modal__dialog--danger]="danger"
+
+    role="dialog"
+
+    aria-modal="true"
+
+    (click)="$event.stopPropagation()"
+  >
+
+    <!-- ================= -->
+    <!-- CABEÇALHO -->
+    <!-- ================= -->
+
+    <header class="modal__header">
+
+      <h2 class="modal__title">
+        {{ title }}
+      </h2>
+
+
+      <!-- Botão X -->
+      <button
+        type="button"
+
+        class="modal__close"
+
+        (click)="cancel()"
+      >
+        ×
+      </button>
+
+    </header>
+
+
+    <!-- ================= -->
+    <!-- CORPO -->
+    <!-- ================= -->
+
+    <div class="modal__body">
+
+      <p>
+        {{ message }}
+      </p>
+
+    </div>
+
+
+    <!-- ================= -->
+    <!-- BOTÕES -->
+    <!-- ================= -->
+
+    <footer class="modal__footer">
+
+      <!-- CANCELAR -->
+      <button
+        type="button"
+
+        class="modal__button modal__button--secondary"
+
+        (click)="cancel()"
+      >
+        {{ cancelText }}
+      </button>
+
+
+      <!-- CONFIRMAR -->
+      <button
+        type="button"
+
+        class="modal__button"
+
+        [class.modal__button--danger]="danger"
+
+        [class.modal__button--primary]="!danger"
+
+        (click)="confirm()"
+      >
+        {{ confirmText }}
+      </button>
+
+    </footer>
+
+  </div>
+
+</div>
