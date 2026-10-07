@@ -1,0 +1,69 @@
+<!-- Fundo verde ocupando a tela toda, com o cartão centralizado -->
+<main class="cadastro">
+  <!-- Cartão branco centralizado -->
+  <section class="cadastro__card">
+    <h1 class="cadastro__title">Criar conta</h1>
+    <p class="cadastro__subtitle">Preencha seus dados para se cadastrar no FAB</p>
+
+    <!-- [formGroup] liga ao formulário do TypeScript; (ngSubmit) chama onSubmit() ao enviar -->
+    <form class="cadastro__form" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+      <!-- formControlName liga cada campo ao controle de mesmo nome; [error] mostra a validação -->
+      <app-input
+        formControlName="nome"
+        label="Nome completo"
+        placeholder="Seu nome completo"
+        [error]="getError('nome')"
+      />
+
+      <app-input
+        formControlName="email"
+        label="E-mail"
+        type="email"
+        placeholder="voce@email.com"
+        [error]="getError('email')"
+      />
+
+      <!-- A máscara 000.000.000-00 é aplicada pelo TypeScript enquanto a pessoa digita -->
+      <app-input
+        formControlName="cpf"
+        label="CPF"
+        placeholder="000.000.000-00"
+        [error]="getError('cpf')"
+      />
+
+      <!-- Senha e confirmação lado a lado (empilham em tela pequena) -->
+      <div class="cadastro__row">
+        <app-input
+          formControlName="senha"
+          label="Palavra-passe"
+          type="password"
+          placeholder="Mínimo 6 caracteres"
+          [error]="getError('senha')"
+        />
+        <app-input
+          formControlName="confirmarSenha"
+          label="Confirmação da palavra-passe"
+          type="password"
+          placeholder="Repita a senha"
+          [error]="getError('confirmarSenha')"
+        />
+      </div>
+
+      <app-input
+        formControlName="telefone"
+        label="Telefone"
+        placeholder="(00) 00000-0000"
+        [error]="getError('telefone')"
+      />
+
+      <!-- type="submit" dispara o (ngSubmit) do formulário -->
+      <app-button type="submit" [fullWidth]="true">Criar Conta</app-button>
+
+      <!-- Link de volta para o login -->
+      <p class="cadastro__login">
+        Já tem conta?
+        <a routerLink="/login">Entrar</a>
+      </p>
+    </form>
+  </section>
+</main>

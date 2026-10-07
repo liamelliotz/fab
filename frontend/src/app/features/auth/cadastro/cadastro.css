@@ -1,0 +1,44 @@
+/* Fundo verde da tela inteira, com o cartão centralizado */
+.cadastro {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;      /* centraliza na vertical */
+  justify-content: center;  /* centraliza na horizontal */
+  padding: 24px;
+  /* Verde da identidade FAB: troque pelas cores exatas do protótipo do Figma */
+  background: linear-gradient(160deg, #2e7d32 0%, #1b5e20 100%);
+}
+
+/* Cartão branco que integra os campos */
+.cadastro__card {
+  width: 100%;
+  max-width: 520px;
+  padding: 32px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+}
+
+.cadastro__title { font-size: 1.8rem; margin: 0; }
+.cadastro__subtitle { color: #666; margin: 4px 0 24px; }
+
+/* Campos empilhados com espaço entre eles */
+.cadastro__form { display: flex; flex-direction: column; gap: 16px; }
+
+/* Senha e confirmação: duas colunas de mesma largura */
+.cadastro__row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+/* Texto com link para o login */
+.cadastro__login { text-align: center; color: #555; margin: 4px 0 0; }
+.cadastro__login a { color: #2e7d32; font-weight: 600; text-decoration: none; }
+.cadastro__login a:hover { text-decoration: underline; }
+
+/* Em telas pequenas: senha e confirmação ficam uma embaixo da outra, e o cartão usa menos espaço */
+@media (max-width: 520px) {
+  .cadastro__row { grid-template-columns: 1fr; }
+  .cadastro__card { padding: 24px 16px; }
+}
