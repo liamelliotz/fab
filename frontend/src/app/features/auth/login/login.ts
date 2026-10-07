@@ -1,12 +1,16 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
+// HttpErrorResponse: tipo do erro que o HttpClient devolve (traz o status, ex.: 401)
+import { HttpErrorResponse } from '@angular/common/http';
 // ReactiveFormsModule: habilita formulário reativo (formGroup, formControlName)
 // FormBuilder: facilita criar o formulário; Validators: regras de validação
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 // RouterLink: permite usar [routerLink] no template (link de navegação sem recarregar a página)
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 // Componentes reutilizáveis criados no Card 5
 import { Button } from '../../../shared/components/button/button';
 import { Input } from '../../../shared/components/input/input';
+// Serviço de autenticação (Card 8)
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-login', // tag: <app-login>
@@ -20,6 +24,13 @@ import { Input } from '../../../shared/components/input/input';
 export class Login {
   // inject() entrega o FormBuilder sem precisar de construtor
   private fb = inject(FormBuilder);
+  private auth = inject(AuthService);
+  private router = inject(Router);
+
+  // Mensagem de erro vinda da API (ex.: senha incorreta). '' = sem erro
+  erroApi = signal('');
+  // true enquanto a requisição está em andamento (desabilita o botão)
+  carregando = signal(false);
 
   // Formulário reativo com dois campos e suas regras de validação
   form = this.fb.nonNullable.group({
@@ -50,8 +61,28 @@ export class Login {
       this.form.markAllAsTouched();
       return;
     }
-    // TODO: integrar com o backend (NestJS) quando a API de autenticação existir
-    console.log('Login enviado:', this.form.getRawValue());
+    if (this.carregando()) return; // evita enviar duas vezes
+
+    this.erroApi.set('');
+    this.carregando.set(true);
+
+    // O AuthService chama a API e, se der certo, guarda o token e o perfil no localStorage
+    this.auth.login(this.form.getRawValue()).subscribe({
+      next: () => {
+        this.carregando.set(false);
+        // Admin vai para o painel administrativo; os demais para o dashboard
+        const ehAdmin = this.auth.obterPerfil()?.toLowerCase() === 'admin';
+        this.router.navigate([ehAdmin ? '/admin/emprestimos' : '/dashboard']);
+      },
+      error: (erro: HttpErrorResponse) => {
+        this.carregando.set(false);
+        this.erroApi.set(
+          erro.status === 401
+            ? 'E-mail ou senha incorretos'
+            : 'Não foi possível entrar. Tente novamente em instantes.',
+        );
+      },
+    });
   }
 
   // Chamado ao clicar em "Fazer login com o Google"

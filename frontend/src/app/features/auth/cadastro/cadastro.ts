@@ -1,4 +1,6 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
+// HttpErrorResponse: tipo do erro que o HttpClient devolve (traz o status, ex.: 409)
+import { HttpErrorResponse } from '@angular/common/http';
 // takeUntilDestroyed: cancela a "escuta" do campo quando o componente é destruído (evita vazamento de memória)
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
@@ -9,10 +11,12 @@ import {
   ValidatorFn,
   Validators,
 } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 // Componentes reutilizáveis criados no Card 5
 import { Button } from '../../../shared/components/button/button';
 import { Input } from '../../../shared/components/input/input';
+// Serviço de autenticação (Card 8)
+import { AuthService } from '../../../core/services/auth.service';
 
 // Nomes dos campos do formulário (usado para tipar o getError)
 type Campo = 'nome' | 'email' | 'cpf' | 'senha' | 'confirmarSenha' | 'telefone';
@@ -82,6 +86,13 @@ const senhasIguais: ValidatorFn = (group: AbstractControl): ValidationErrors | n
 // Se o seu Angular gerou o nome "CadastroComponent", use esse nome aqui
 export class Cadastro {
   private fb = inject(FormBuilder);
+  private auth = inject(AuthService);
+  private router = inject(Router);
+
+  // Mensagem de erro vinda da API (ex.: e-mail já cadastrado). '' = sem erro
+  erroApi = signal('');
+  // true enquanto a requisição está em andamento (desabilita o botão)
+  carregando = signal(false);
 
   // Formulário reativo com todos os campos e suas regras
   form = this.fb.nonNullable.group(
@@ -153,7 +164,25 @@ export class Cadastro {
     const { nome, email, cpf, senha, telefone } = this.form.getRawValue();
     // Envia CPF e telefone só com números (sem máscara). Não envia a confirmação da senha.
     const dados = { nome, email, cpf: somenteNumeros(cpf), senha, telefone: somenteNumeros(telefone) };
-    // TODO: integrar com o backend (NestJS) quando a API de cadastro existir
-    console.log('Cadastro enviado:', { ...dados, senha: '***' });
+    if (this.carregando()) return; // evita enviar duas vezes
+
+    this.erroApi.set('');
+    this.carregando.set(true);
+
+    this.auth.cadastrar(dados).subscribe({
+      next: () => {
+        this.carregando.set(false);
+        // Conta criada: leva o usuário para o login
+        this.router.navigate(['/login']);
+      },
+      error: (erro: HttpErrorResponse) => {
+        this.carregando.set(false);
+        this.erroApi.set(
+          erro.status === 409
+            ? 'Já existe uma conta com este e-mail ou CPF'
+            : 'Não foi possível criar a conta. Tente novamente em instantes.',
+        );
+      },
+    });
   }
 }
