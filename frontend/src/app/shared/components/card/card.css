@@ -1,8 +1,10 @@
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
 }
 
 .card {
+  flex: 1;
   box-sizing: border-box;
   padding: 24px;
   background: #ffffff;
