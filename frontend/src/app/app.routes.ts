@@ -23,7 +23,7 @@ export const routes: Routes = [
 
   // Internas (com navbar, exigem login)
   {
-    path: '',
+        path: '',
     component: MainLayout,
     canActivate: [authGuard],
     children: [
@@ -32,15 +32,18 @@ export const routes: Routes = [
         canActivate: [adminGuard],
         loadChildren: () => import('./features/admin/admin.routes').then((m) => m.ADMIN_ROUTES),
       },
+      {
+        path: 'dashboard',
+        title: 'Dashboard | FAB',
+        loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.Dashboard),
+      },
 
       // PLACEHOLDERS TEMPORÁRIOS: telas ainda não criadas.
       // Trocar por loadComponent/loadChildren quando existirem.
-      { path: 'dashboard', children: [] },
       { path: 'solicitacoes', children: [] },
       { path: 'materiais', children: [] },
       { path: 'configuracoes', children: [] },
     ],
   },
-
   { path: '**', redirectTo: 'login' },
 ];
