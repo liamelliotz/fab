@@ -1,0 +1,31 @@
+<!-- Div principal do Alert -->
+<div
+  class="alert"
+  [class.alert--success]="type === 'success'"
+  [class.alert--warning]="type === 'warning'"
+  [class.alert--error]="type === 'error'"
+  role="alert"
+>
+
+  <!-- Ícone do alerta -->
+  <span class="alert__icon">
+    {{ icon }}
+  </span>
+
+  <!-- Mensagem do alerta -->
+  <span class="alert__message">
+    {{ message }}
+  </span>
+
+  <!-- Botão para fechar -->
+  <button
+    *ngIf="dismissible"
+    type="button"
+    class="alert__close"
+    aria-label="Fechar mensagem"
+    (click)="close()"
+  >
+    ×
+  </button>
+
+</div>
