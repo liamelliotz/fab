@@ -10,6 +10,15 @@ export const routes: Routes = [
     title: 'Entrar | FAB',
     loadComponent: () => import('./features/auth/login/login').then((m) => m.Login),
   },
+  {
+    // Tela de cadastro (Card 7): o link "Cadastre-se" do login aponta para /cadastro
+    path: 'cadastro',
+    title: 'Cadastro | FAB',
+    loadComponent: () => import('./features/auth/cadastro/cadastro').then((m) => m.Cadastro),
+  },
+  // O error.interceptor redireciona para /auth/login quando a sessão expira.
+  // Este redirecionamento leva para o login real (os parâmetros da URL são mantidos).
+  { path: 'auth/login', redirectTo: 'login' },
   { path: '', redirectTo: 'login', pathMatch: 'full' },
 
   // Internas (com navbar, exigem login)
