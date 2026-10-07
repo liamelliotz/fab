@@ -1,0 +1,74 @@
+:host {
+  display: block;
+}
+
+.dashboard {
+  --dashboard-verde: var(--color-primary, #2e7d32);
+  --dashboard-texto: var(--color-text, #212529);
+  --dashboard-borda: var(--color-border, #d0d5dd);
+
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 8px;
+}
+
+.dashboard__topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.dashboard__titulo {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--dashboard-texto);
+}
+
+.dashboard__busca {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 420px;
+  padding: 10px 16px;
+  box-sizing: border-box;
+  background: #ffffff;
+  border: 1px solid var(--dashboard-borda);
+  border-radius: 999px;
+}
+
+.dashboard__busca:focus-within {
+  border-color: var(--dashboard-verde);
+  box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.15);
+}
+
+.dashboard__busca-icone {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  fill: #667085;
+}
+
+.dashboard__busca-campo {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  color: var(--dashboard-texto);
+}
+
+.dashboard__grelha {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.dashboard__cartao {
+  min-height: 140px;
+}

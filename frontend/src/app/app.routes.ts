@@ -1,13 +1,10 @@
 import { Routes } from '@angular/router';
 
 import { authGuard } from './core/guards/auth.guard';
-
 import { adminGuard } from './core/guards/admin.guard';
-
 import { MainLayout } from './shared/layouts/main-layout/main-layout';
 
 export const routes: Routes = [
-
   // =========================
   // ROTAS PÚBLICAS
   // =========================
@@ -20,15 +17,13 @@ export const routes: Routes = [
   },
 
   {
-    // Tela de cadastro
     path: 'cadastro',
     title: 'Cadastro | FAB',
     loadComponent: () =>
       import('./features/auth/cadastro/cadastro').then((m) => m.Cadastro),
   },
 
-  // O error.interceptor redireciona para /auth/login
-  // quando a sessão expira.
+  // Redirecionamento utilizado quando a sessão expira.
   { path: 'auth/login', redirectTo: 'login' },
 
   // =========================
@@ -52,9 +47,12 @@ export const routes: Routes = [
     canActivate: [authGuard],
 
     children: [
-
-      // Placeholder temporário
-      { path: 'dashboard', children: [] },
+      {
+        path: 'dashboard',
+        title: 'Dashboard | FAB',
+        loadComponent: () =>
+          import('./features/dashboard/dashboard').then((m) => m.Dashboard),
+      },
 
       // Placeholder temporário
       { path: 'solicitacoes', children: [] },
@@ -75,5 +73,4 @@ export const routes: Routes = [
 
   // Qualquer rota inexistente volta para o login
   { path: '**', redirectTo: 'login' },
-
 ];
