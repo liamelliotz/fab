@@ -1,0 +1,21 @@
+<!-- Div principal do Loading -->
+<div
+  class="loading"
+  [class.loading--overlay]="overlay"
+  role="status"
+>
+
+  <!-- Conteúdo do Loading -->
+  <div class="loading__content">
+
+    <!-- Bolinha que gira -->
+    <span class="loading__spinner"></span>
+
+    <!-- Mensagem -->
+    <span class="loading__message">
+      {{ message }}
+    </span>
+
+  </div>
+
+</div>
