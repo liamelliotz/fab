@@ -6,21 +6,41 @@
 }
 
 /* ---------- Painel esquerdo (identidade FAB) ---------- */
+
 .login__brand {
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 48px;
   color: #fff;
-  /* Degradê de verde: troque pelas cores exatas do protótipo do Figma */
   background: linear-gradient(160deg, #2e7d32 0%, #1b5e20 100%);
 }
-.login__brand-content { max-width: 380px; }
-.login__logo { font-size: 4rem; font-weight: 800; margin: 0 0 8px; }
-.login__slogan { font-size: 1.4rem; font-weight: 600; margin: 0 0 16px; }
-.login__description { font-size: 1rem; line-height: 1.5; opacity: 0.9; margin: 0; }
+
+.login__brand-content {
+  max-width: 380px;
+}
+
+.login__logo {
+  font-size: 4rem;
+  font-weight: 800;
+  margin: 0 0 8px;
+}
+
+.login__slogan {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin: 0 0 16px;
+}
+
+.login__description {
+  font-size: 1rem;
+  line-height: 1.5;
+  opacity: 0.9;
+  margin: 0;
+}
 
 /* ---------- Painel direito (formulário) ---------- */
+
 .login__panel {
   display: flex;
   align-items: center;
@@ -30,6 +50,7 @@
 }
 
 /* Formulário: campos empilhados, com espaço entre eles */
+
 .login__form {
   width: 100%;
   max-width: 380px;
@@ -37,10 +58,19 @@
   flex-direction: column;
   gap: 16px;
 }
-.login__title { font-size: 1.8rem; margin: 0; }
-.login__subtitle { color: #666; margin: 0 0 8px; }
+
+.login__title {
+  font-size: 1.8rem;
+  margin: 0;
+}
+
+.login__subtitle {
+  color: #666;
+  margin: 0 0 8px;
+}
 
 /* Separador "ou": duas linhas com o texto no meio */
+
 .login__divider {
   display: flex;
   align-items: center;
@@ -48,21 +78,52 @@
   color: #888;
   font-size: 0.9rem;
 }
+
 .login__divider::before,
 .login__divider::after {
   content: '';
-  flex: 1;           /* cada linha ocupa metade do espaço restante */
+  flex: 1;
   height: 1px;
   background: #ddd;
 }
 
+/* Mensagem de erro vinda da API */
+
+.login__error {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fdecea;
+  color: #b71c1c;
+  font-size: 0.9rem;
+}
+
 /* Texto com link para o registro */
-.login__register { text-align: center; color: #555; margin: 8px 0 0; }
-.login__register a { color: #2e7d32; font-weight: 600; text-decoration: none; }
-.login__register a:hover { text-decoration: underline; }
+
+.login__register {
+  text-align: center;
+  color: #555;
+  margin: 8px 0 0;
+}
+
+.login__register a {
+  color: #2e7d32;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.login__register a:hover {
+  text-decoration: underline;
+}
 
 /* ---------- Responsivo: em telas pequenas, esconde o painel verde ---------- */
+
 @media (max-width: 768px) {
-  .login { grid-template-columns: 1fr; }
-  .login__brand { display: none; }
+  .login {
+    grid-template-columns: 1fr;
+  }
+
+  .login__brand {
+    display: none;
+  }
 }
