@@ -56,6 +56,16 @@
   background: #ddd;
 }
 
+/* Mensagem de erro vinda da API */
+.login__error {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fdecea;
+  color: #b71c1c;
+  font-size: 0.9rem;
+}
+
 /* Texto com link para o registro */
 .login__register { text-align: center; color: #555; margin: 8px 0 0; }
 .login__register a { color: #2e7d32; font-weight: 600; text-decoration: none; }

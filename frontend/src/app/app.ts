@@ -55,6 +55,7 @@ export class App {
   protected readonly title = signal('frontend');
 
 
+
   // Controla se o Modal está aberto.
   //
   // false = fechado
