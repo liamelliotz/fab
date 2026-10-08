@@ -1,0 +1,103 @@
+<!-- Container principal do comprovantede detalhes -->
+ <div class="detalhes-container">
+
+<!-- CABEÇALHO DO COMPROVANTE -->
+ <header class="'detalhes-header">
+
+    <div class="titulo-area">
+<h2>Comprovante de requisição de empréstimo</h2>
+<p class="codigo-requisicao">Código: <strong>{{ emprestimo.id }}</strong></p>
+    </div>
+
+<!-- Badge de status geral -->
+ <span class="badge-status">{{ emprestimo.statusGeral }}</span>
+ </header>
+
+<div class="divisor"></div>
+
+<!-- SEÇÃO 1: DADOS DO REQUERENTE -->
+ <section class="secao-detalhe">
+<h3 class="titulo-secao">1. Dados do requerente</h3>
+<div class="grid-requerente">
+
+    <div class="campo-info">
+<span class="rotulo">Nome completo:</span>
+<span class="valor">{{ emprestimo.requerente.nome }}</span>
+    </div>
+
+    <div class="campo-info">
+<span class="rotulo">Matrícula funcional:</span>
+<span class="valor">{{ emprestimo.requerente.matricula }}</span>
+    </div>
+    <div class="campo-info">
+        <span class="rotulo">Cargo / Função:</span>
+        <span class="valor">{{ emprestimo.requerente.cargo }}</span>
+    </div>
+    <div class="campo-info">
+        <span class="rotulo">Setor / Disciplina:</span>
+        <span class="valor">{{ emprestimo.requerente.setorOuDisciplina }}</span>
+    </div>
+    <div class="campo-info">
+        <span class="rotulo">E-mail institucional:</span>
+        <span class="valor">{{ emprestimo.requerente.email }}</span>
+    </div>
+</div>
+ </section>
+
+ <!-- SEÇÃO 2: CRONOGRAMA DE DATAS -->
+  <section class="secao-detalhe">
+<h3 class="titulo-secao">2. Cronograma do empréstimo</h3>
+<div class="cards-cronograma">
+<div class="card-data">
+    <span class="rotulo-data">Data de solicitação</span>
+    <strong class="valor-data">{{ emprestimo.cronograma.dataPrevistaDevolucao }}</strong> 
+</div>
+<div class="card-data">
+    <span class="rotulo-data">Previsão de retirada:</span>
+    <strong class="valor-data">{{ emprestimo.cronograma.dataPrevistaRetirada }}</strong>
+</div>
+<div class="card-data">
+     <span class="rotulo-data">Previsão de devolução:</span>
+     <strong class="valor-data">{{ emprestimo.cronograma.dataPrevistaDevolucao }}</strong>
+</div>
+</div>
+  </section>
+
+  <!-- SEÇÃO 3: TERMOS DE RESPONSABILIDADE -->
+   <section class="secao-detalhe">
+<h3 class="tituli-secao">3. Termo de responsabilidade</h3>
+<ul class="lista-temos">
+    <!-- Loop sobre a lista de termos -->
+     <li *ngFor="let termo of emprestimo.termos" class="item-termo">
+<span class="icone-check">joia</span>
+<div class="conteudo-termo">
+<strong>{{ termo.titulo }}</strong> <small>({{ termo.versao }})</small>
+<p class="data-aceite">Aceito digitalmente em: {{ termo.aceitoEm }}</p>
+</div>
+     </li>
+</ul>
+   </section>
+
+   <!-- SEÇÃO 4: LINHA DO TEMPO (TIMELINE DE EVENTOS)-->
+    <section class="secao-detalhe">
+<h3 class="titulo-secao">4. Linha do tempo do pedido</h3>
+<div class="timeline">
+    <!-- Loop sobre os eventos da timeline com classe dinâmica para o status -->
+     <div
+     *ngFor="let evento of emprestimo.linhaDoTempo"
+     class="item-timeline"
+     [ngClass]="evento.status"
+     >
+<!-- Marcador circular da timeline -->
+ <div class="ponto-timeline"></div>
+
+    <!-- Conteúdo descritivo do evento -->
+     <div class="conteudo-timeline">
+        <span class="data-evento">{{ evento.dataHora }}</span>
+        <h4 class="titulo-evento">{{ evento.titulo }}</h4>
+        <p class="descricao-evento">{{ evento.descricao }}</p>
+     </div>
+    </div>
+</div>
+    </section>
+ </div>
