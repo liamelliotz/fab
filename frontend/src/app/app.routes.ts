@@ -13,6 +13,13 @@ export const routes: Routes = [
     canActivate: [authGuard, adminGuard],
     loadChildren: () => import('./features/admin/admin.routes').then((m) => m.ADMIN_ROUTES),
   },
+  {
+    path: 'emprestimo/detalhes',
+    loadComponent: () =>
+      import('./features/emprestimos/detalhes/emprestimo-detalhes').then(
+        (m) => m.EmprestimoDetalhesComponent
+      )
+  },
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: '**', redirectTo: 'login' },
 ];
