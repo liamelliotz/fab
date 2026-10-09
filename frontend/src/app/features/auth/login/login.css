@@ -56,8 +56,6 @@
   background: #ddd;
 }
 
-<<<<<<< HEAD
-=======
 /* Mensagem de erro vinda da API */
 .login__error {
   margin: 0;
@@ -68,7 +66,6 @@
   font-size: 0.9rem;
 }
 
->>>>>>> e8fd26ed5c3028f8a14892a85a399b66cdf8a8f2
 /* Texto com link para o registro */
 .login__register { text-align: center; color: #555; margin: 8px 0 0; }
 .login__register a { color: #2e7d32; font-weight: 600; text-decoration: none; }

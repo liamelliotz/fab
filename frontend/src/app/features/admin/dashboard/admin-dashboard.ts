@@ -36,7 +36,7 @@ metrics: DashboardMetrics = {
 };
 
 // LISTA DE SOLICITAÇÕES DE PROFESSORES/SERVIDORES PARA ALIMENTAR A TABELA
-solicitacoesRecentes: solicitacaoRecente [] = [];
+solicitacoesRecentes: SolicitacaoRecente[] = [];
 
 //  FLAG DE CONTROLE PARA ESTADO DE CARREGAMENTO (LOADING)
 isLoading = true;

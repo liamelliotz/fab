@@ -1,35 +1,14 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { adminGuard } from './core/guards/admin.guard';
-<<<<<<< HEAD
-
-export const routes: Routes = [
-=======
 import { MainLayout } from './shared/layouts/main-layout/main-layout';
 
 export const routes: Routes = [
   // Públicas (sem navbar)
->>>>>>> e8fd26ed5c3028f8a14892a85a399b66cdf8a8f2
   {
     path: 'login',
     title: 'Entrar | FAB',
     loadComponent: () => import('./features/auth/login/login').then((m) => m.Login),
-<<<<<<< HEAD
-  },
-  {
-    path: 'admin',
-    canActivate: [authGuard, adminGuard],
-    loadChildren: () => import('./features/admin/admin.routes').then((m) => m.ADMIN_ROUTES),
-  },
-  {
-    path: 'emprestimo/detalhes',
-    loadComponent: () =>
-      import('./features/emprestimos/detalhes/emprestimo-detalhes').then(
-        (m) => m.EmprestimoDetalhesComponent
-      )
-  },
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
-=======
   },
   {
     // Tela de cadastro (Card 7): o link "Cadastre-se" do login aponta para /cadastro
@@ -63,6 +42,5 @@ export const routes: Routes = [
     ],
   },
 
->>>>>>> e8fd26ed5c3028f8a14892a85a399b66cdf8a8f2
   { path: '**', redirectTo: 'login' },
 ];
