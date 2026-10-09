@@ -58,23 +58,13 @@
         [error]="getError('senha')"
       />
 
-      <!-- Mensagem de erro da API -->
+      <!-- Mensagem de erro da API (ex.: senha incorreta) -->
       @if (erroApi()) {
-        <p
-          class="login__error"
-          role="alert"
-        >
-          {{ erroApi() }}
-        </p>
+        <p class="login__error" role="alert">{{ erroApi() }}</p>
       }
 
-      <!-- Botão de login -->
-      <!-- Fica desabilitado enquanto o login está sendo processado -->
-      <app-button
-        type="submit"
-        [fullWidth]="true"
-        [disabled]="carregando()"
-      >
+      <!-- type="submit" dispara o (ngSubmit) do formulário; fica desabilitado enquanto envia -->
+      <app-button type="submit" [fullWidth]="true" [disabled]="carregando()">
         {{ carregando() ? 'Entrando...' : 'Entrar' }}
       </app-button>
 

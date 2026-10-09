@@ -1,21 +1,16 @@
 import { Component, inject, signal } from '@angular/core';
+// HttpErrorResponse: tipo do erro que o HttpClient devolve (traz o status, ex.: 401)
 import { HttpErrorResponse } from '@angular/common/http';
-
-// ReactiveFormsModule: habilita formulário reativo
-// FormBuilder: facilita criar o formulário
-// Validators: regras de validação
-import {
-  FormBuilder,
-  ReactiveFormsModule,
-  Validators
-} from '@angular/forms';
-
-// Router e RouterLink: navegação entre páginas
+// ReactiveFormsModule: habilita formulário reativo (formGroup, formControlName)
+// FormBuilder: facilita criar o formulário; Validators: regras de validação
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+// RouterLink: permite usar [routerLink] no template (link de navegação sem recarregar a página)
 import { Router, RouterLink } from '@angular/router';
-
-// Componentes reutilizáveis
+// Componentes reutilizáveis criados no Card 5
 import { Button } from '../../../shared/components/button/button';
 import { Input } from '../../../shared/components/input/input';
+// Serviço de autenticação (Card 8)
+import { AuthService } from '../../../core/services/auth.service';
 
 // Serviço de autenticação
 import { AuthService } from '../../../core/services/auth.service';
@@ -38,6 +33,13 @@ export class Login {
 
   // Injeta o FormBuilder.
   private fb = inject(FormBuilder);
+  private auth = inject(AuthService);
+  private router = inject(Router);
+
+  // Mensagem de erro vinda da API (ex.: senha incorreta). '' = sem erro
+  erroApi = signal('');
+  // true enquanto a requisição está em andamento (desabilita o botão)
+  carregando = signal(false);
 
   // Serviço de autenticação.
   private auth = inject(AuthService);
@@ -109,52 +111,27 @@ export class Login {
       this.form.markAllAsTouched();
       return;
     }
+    if (this.carregando()) return; // evita enviar duas vezes
 
-    // Evita enviar o formulário duas vezes.
-    if (this.carregando()) {
-      return;
-    }
-
-    // Limpa mensagens anteriores.
     this.erroApi.set('');
-
-    // Ativa o estado de carregamento.
     this.carregando.set(true);
 
-    // Realiza o login através do AuthService.
+    // O AuthService chama a API e, se der certo, guarda o token e o perfil no localStorage
     this.auth.login(this.form.getRawValue()).subscribe({
-
-      // Login realizado com sucesso.
       next: () => {
-
         this.carregando.set(false);
-
-        // Obtém o perfil do usuário.
-        const ehAdmin =
-          this.auth.obterPerfil()?.toLowerCase() === 'admin';
-
-        // Administrador vai para o painel administrativo.
-        // Usuário comum vai para o dashboard.
-        this.router.navigate([
-          ehAdmin
-            ? '/admin/emprestimos'
-            : '/dashboard'
-        ]);
+        // Admin vai para o painel administrativo; os demais para o dashboard
+        const ehAdmin = this.auth.obterPerfil()?.toLowerCase() === 'admin';
+        this.router.navigate([ehAdmin ? '/admin/emprestimos' : '/dashboard']);
       },
-
-      // Erro durante o login.
       error: (erro: HttpErrorResponse) => {
-
         this.carregando.set(false);
-
-        // Mensagem específica para credenciais inválidas.
         this.erroApi.set(
           erro.status === 401
             ? 'E-mail ou senha incorretos'
-            : 'Não foi possível entrar. Tente novamente em instantes.'
+            : 'Não foi possível entrar. Tente novamente em instantes.',
         );
       },
-
     });
   }
 
