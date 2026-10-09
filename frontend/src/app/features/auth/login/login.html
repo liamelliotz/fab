@@ -36,8 +36,20 @@
         [error]="getError('senha')"
       />
 
+<<<<<<< HEAD
       <!-- type="submit" dispara o (ngSubmit) do formulário -->
       <app-button type="submit" [fullWidth]="true">Entrar</app-button>
+=======
+      <!-- Mensagem de erro da API (ex.: senha incorreta) -->
+      @if (erroApi()) {
+        <p class="login__error" role="alert">{{ erroApi() }}</p>
+      }
+
+      <!-- type="submit" dispara o (ngSubmit) do formulário; fica desabilitado enquanto envia -->
+      <app-button type="submit" [fullWidth]="true" [disabled]="carregando()">
+        {{ carregando() ? 'Entrando...' : 'Entrar' }}
+      </app-button>
+>>>>>>> e8fd26ed5c3028f8a14892a85a399b66cdf8a8f2
 
       <!-- Separador visual entre o login normal e o login com Google -->
       <div class="login__divider"><span>ou</span></div>
