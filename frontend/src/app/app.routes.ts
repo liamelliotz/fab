@@ -1,76 +1,49 @@
 import { Routes } from '@angular/router';
-
 import { authGuard } from './core/guards/auth.guard';
 import { adminGuard } from './core/guards/admin.guard';
 import { MainLayout } from './shared/layouts/main-layout/main-layout';
 
 export const routes: Routes = [
-  // =========================
-  // ROTAS PÚBLICAS
-  // =========================
-
+  // Públicas (sem navbar)
   {
     path: 'login',
     title: 'Entrar | FAB',
-    loadComponent: () =>
-      import('./features/auth/login/login').then((m) => m.Login),
+    loadComponent: () => import('./features/auth/login/login').then((m) => m.Login),
   },
-
   {
+    // Tela de cadastro (Card 7): o link "Cadastre-se" do login aponta para /cadastro
     path: 'cadastro',
     title: 'Cadastro | FAB',
-    loadComponent: () =>
-      import('./features/auth/cadastro/cadastro').then((m) => m.Cadastro),
+    loadComponent: () => import('./features/auth/cadastro/cadastro').then((m) => m.Cadastro),
   },
-
-  // Redirecionamento utilizado quando a sessão expira.
+  // O error.interceptor redireciona para /auth/login quando a sessão expira.
+  // Este redirecionamento leva para o login real (os parâmetros da URL são mantidos).
   { path: 'auth/login', redirectTo: 'login' },
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
 
-  // =========================
-  // ADMIN
-  // =========================
-
+  // Internas (com navbar, exigem login)
   {
-    path: 'admin',
-    canActivate: [authGuard, adminGuard],
-    loadChildren: () =>
-      import('./features/admin/admin.routes').then((m) => m.ADMIN_ROUTES),
-  },
-
-  // =========================
-  // ROTAS INTERNAS
-  // =========================
-
-  {
-    path: '',
+        path: '',
     component: MainLayout,
     canActivate: [authGuard],
-
     children: [
+      {
+        path: 'admin',
+        canActivate: [adminGuard],
+        loadChildren: () => import('./features/admin/admin.routes').then((m) => m.ADMIN_ROUTES),
+      },
       {
         path: 'dashboard',
         title: 'Dashboard | FAB',
-        loadComponent: () =>
-          import('./features/dashboard/dashboard').then((m) => m.Dashboard),
+        loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.Dashboard),
       },
 
-      // Placeholder temporário
+      // PLACEHOLDERS TEMPORÁRIOS: telas ainda não criadas.
+      // Trocar por loadComponent/loadChildren quando existirem.
       { path: 'solicitacoes', children: [] },
-
-      // Placeholder temporário
       { path: 'materiais', children: [] },
-
-      // Placeholder temporário
       { path: 'configuracoes', children: [] },
     ],
   },
-
-  // =========================
-  // ROTA PADRÃO
-  // =========================
-
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
-
-  // Qualquer rota inexistente volta para o login
   { path: '**', redirectTo: 'login' },
 ];
