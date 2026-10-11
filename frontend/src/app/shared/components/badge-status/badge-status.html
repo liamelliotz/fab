@@ -1,0 +1,9 @@
+<span
+  class="badge"
+  [class.disponivel]="status === 'Disponível'"
+  [class.emprestado]="status === 'Emprestado'"
+  [class.manutencao]="status === 'Manutenção'"
+  [class.pendente]="status === 'Pendente'"
+>
+  {{ status }}
+</span>

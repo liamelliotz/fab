@@ -1,0 +1,35 @@
+:host {
+  display: inline-block;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.disponivel {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.emprestado {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+}
+
+.manutencao {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.pendente {
+  background-color: #f3e8ff;
+  color: #6b21a8;
+}
