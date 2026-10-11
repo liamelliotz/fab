@@ -48,7 +48,14 @@ export const routes: Routes = [
 
       // Placeholders temporários: telas ainda não implementadas
       { path: 'solicitacoes', children: [] },
-      { path: 'materiais', children: [] },
+           {
+        path: 'materiais',
+        title: 'Materiais | FAB',
+        loadComponent: () =>
+          import('./features/equipamentos/lista/equipamento-lista').then(
+            (m) => m.EquipamentoLista,
+          ),
+      },
       { path: 'configuracoes', children: [] },
     ],
   },

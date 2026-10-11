@@ -1,0 +1,18 @@
+<section class="lista">
+  <header class="lista__cabecalho">
+    <h1>Materiais</h1>
+    <p>Consulte os equipamentos e materiais disponíveis no laboratório.</p>
+  </header>
+
+  <app-equipamento-filtros (filtrosChange)="filtros.set($event)" />
+
+  @if (equipamentos().length > 0) {
+    <div class="lista__grade">
+      @for (e of equipamentos(); track e.id) {
+        <app-equipamento-card [equipamento]="e" />
+      }
+    </div>
+  } @else {
+    <p class="lista__vazio">Nenhum equipamento encontrado para os filtros escolhidos.</p>
+  }
+</section>

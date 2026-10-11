@@ -1,0 +1,53 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.equip {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.equip__foto {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #eef3f0;
+}
+
+.equip__foto--vazia {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.equip__topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.equip__nome {
+  margin: 0;
+  color: #172b24;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.equip__info {
+  margin: 0;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.equip__aviso {
+  margin: 0;
+  color: #b45309;
+  font-size: 12px;
+  font-weight: 600;
+}

@@ -1,0 +1,25 @@
+<app-card>
+  <article class="equip">
+    @if (equipamento.fotoUrl) {
+      <img class="equip__foto" [src]="equipamento.fotoUrl" [alt]="equipamento.nome" />
+    } @else {
+      <div class="equip__foto equip__foto--vazia" aria-hidden="true">Sem foto</div>
+    }
+
+    <div class="equip__topo">
+      <h3 class="equip__nome">{{ equipamento.nome }}</h3>
+      <app-badge-status [status]="statusBadge" />
+    </div>
+
+    <p class="equip__info">Categoria: {{ nomeCategoria }}</p>
+    <p class="equip__info">Patrimônio: {{ equipamento.codigoPatrimonio }}</p>
+    <p class="equip__info">Local: {{ equipamento.localizacao }}</p>
+    <p class="equip__info">
+      Disponíveis: {{ equipamento.quantidadeDisponivel }} de {{ equipamento.quantidadeTotal }}
+    </p>
+
+    @if (equipamento.requerTreinamento) {
+      <p class="equip__aviso">Requer treinamento</p>
+    }
+  </article>
+</app-card>

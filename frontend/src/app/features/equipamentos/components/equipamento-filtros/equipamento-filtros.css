@@ -1,0 +1,15 @@
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.filtros__campo {
+  flex: 1 1 200px;
+  padding: 10px 12px;
+  border: 1px solid #d5ddd9;
+  border-radius: 8px;
+  background: #fff;
+  color: #172b24;
+  font-size: 14px;
+}

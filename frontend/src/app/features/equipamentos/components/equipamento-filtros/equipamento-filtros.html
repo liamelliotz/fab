@@ -1,0 +1,23 @@
+<div class="filtros">
+  <input
+    class="filtros__campo"
+    type="search"
+    placeholder="Buscar por nome ou patrimônio"
+    aria-label="Buscar equipamento"
+    (input)="alterar('busca', $event)"
+  />
+
+  <select class="filtros__campo" aria-label="Categoria" (change)="alterar('categoria', $event)">
+    <option value="">Todas as categorias</option>
+    @for (c of categorias; track c.valor) {
+      <option [value]="c.valor">{{ c.nome }}</option>
+    }
+  </select>
+
+  <select class="filtros__campo" aria-label="Status" (change)="alterar('status', $event)">
+    <option value="">Todos os status</option>
+    @for (s of statuses; track s.valor) {
+      <option [value]="s.valor">{{ s.nome }}</option>
+    }
+  </select>
+</div>
