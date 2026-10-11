@@ -4,24 +4,26 @@ import { adminGuard } from './core/guards/admin.guard';
 import { MainLayout } from './shared/layouts/main-layout/main-layout';
 
 export const routes: Routes = [
-  // Públicas (sem navbar)
+  // Rotas públicas (sem navbar)
   {
     path: 'login',
     title: 'Entrar | FAB',
-    loadComponent: () => import('./features/auth/login/login').then((m) => m.Login),
+    loadComponent: () =>
+      import('./features/auth/login/login').then((m) => m.Login),
   },
   {
-    // Tela de cadastro (Card 7): o link "Cadastre-se" do login aponta para /cadastro
+    // Tela de cadastro
     path: 'cadastro',
     title: 'Cadastro | FAB',
-    loadComponent: () => import('./features/auth/cadastro/cadastro').then((m) => m.Cadastro),
+    loadComponent: () =>
+      import('./features/auth/cadastro/cadastro').then((m) => m.Cadastro),
   },
-  // O error.interceptor redireciona para /auth/login quando a sessão expira.
-  // Este redirecionamento leva para o login real (os parâmetros da URL são mantidos).
+
+  // Redirecionamento para o login quando necessário
   { path: 'auth/login', redirectTo: 'login' },
   { path: '', redirectTo: 'login', pathMatch: 'full' },
 
-  // Internas (com navbar, exigem login)
+  // Rotas internas (com navbar, exigem login)
   {
     path: '',
     component: MainLayout,
@@ -30,17 +32,27 @@ export const routes: Routes = [
       {
         path: 'admin',
         canActivate: [adminGuard],
-        loadChildren: () => import('./features/admin/admin.routes').then((m) => m.ADMIN_ROUTES),
+        loadChildren: () =>
+          import('./features/admin/admin.routes').then(
+            (m) => m.ADMIN_ROUTES,
+          ),
+      },
+      {
+        path: 'dashboard',
+        title: 'Dashboard | FAB',
+        loadComponent: () =>
+          import('./features/dashboard/dashboard').then(
+            (m) => m.Dashboard,
+          ),
       },
 
-      // PLACEHOLDERS TEMPORÁRIOS: telas ainda não criadas.
-      // Trocar por loadComponent/loadChildren quando existirem.
-      { path: 'dashboard', children: [] },
+      // Placeholders temporários: telas ainda não implementadas
       { path: 'solicitacoes', children: [] },
       { path: 'materiais', children: [] },
       { path: 'configuracoes', children: [] },
     ],
   },
 
+  // Redireciona endereços desconhecidos para o login
   { path: '**', redirectTo: 'login' },
 ];
