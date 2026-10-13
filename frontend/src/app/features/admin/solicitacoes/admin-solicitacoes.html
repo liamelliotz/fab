@@ -17,6 +17,8 @@
       <option value="pendente">Pendente</option>
       <option value="aprovado">Aprovado</option>
       <option value="rejeitado">Reprovado</option>
+      <option value="devolvido">Devolvido</option>
+      <option value="cancelado">Cancelado</option>
     </select>
   </div>
 
@@ -29,13 +31,13 @@
               <h3 class="sol__protocolo">{{ s.protocolo }}</h3>
               <p class="sol__info">{{ s.solicitante.nome }} · {{ s.solicitante.departamento }}</p>
             </div>
-            <span class="sol__status sol__status--{{ s.status }}">{{ nomeStatus(s.status) }}</span>
+            <span class="chip chip--{{ s.status }}">{{ nomeStatus(s.status) }}</span>
           </div>
 
-          <p class="sol__info">Itens: {{ total(s) }} unidade(s)</p>
+          <p class="sol__info">Itens: {{ itens(s) }}</p>
           <p class="sol__info">Justificativa do pedido: {{ s.justificativa }}</p>
           <p class="sol__info">
-            Retirada: {{ s.dataPrevistaRetirada }} · Devolução: {{ s.dataPrevistaDevolucao }}
+            Retirada: {{ data(s.dataPrevistaRetirada) }} · Devolução: {{ data(s.dataPrevistaDevolucao) }}
           </p>
 
           @if (s.motivoRejeicao) {
@@ -65,11 +67,11 @@
         <h2>
           {{ decisao() === 'aprovar' ? 'Aprovar' : 'Reprovar' }} {{ alvo.protocolo }}
         </h2>
-        <label for="justificativa">Justificativa</label>
+        <label for="justificativa">{{ decisao() === 'reprovar' ? 'Motivo da reprovação' : 'Observação (opcional)' }}</label>
         <textarea
           id="justificativa"
           rows="4"
-          placeholder="Explique a decisão"
+          [attr.placeholder]="decisao() === 'reprovar' ? 'Explique o motivo' : 'Alguma orientação para a retirada?'"
           (input)="atualizarJustificativa($event)"
         ></textarea>
         @if (erro()) {

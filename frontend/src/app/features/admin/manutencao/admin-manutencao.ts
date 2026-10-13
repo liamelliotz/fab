@@ -25,7 +25,7 @@ export class AdminManutencao {
     {
       id: 1,
       item: 'Notebook Dell',
-      patrimonio: 'PAT-001',
+      patrimonio: 'PAT-0001',
       problema: 'Tela não liga',
       dataRegistro: '01/10/2026',
       assistencia: 'Tech Assistência',
@@ -34,7 +34,7 @@ export class AdminManutencao {
     {
       id: 2,
       item: 'Projetor Epson',
-      patrimonio: 'PAT-002',
+      patrimonio: 'PAT-0002',
       problema: 'Imagem com falhas',
       dataRegistro: '02/10/2026',
       assistencia: 'Não enviada',
@@ -43,7 +43,7 @@ export class AdminManutencao {
     {
       id: 3,
       item: 'Notebook Lenovo',
-      patrimonio: 'PAT-003',
+      patrimonio: 'PAT-0003',
       problema: 'Problema no carregador',
       dataRegistro: '20/09/2026',
       assistencia: 'InfoTech',

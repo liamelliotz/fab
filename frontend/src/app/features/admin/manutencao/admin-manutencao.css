@@ -1,8 +1,5 @@
 .pagina-manutencao {
-  padding: 32px;
-  background: #f5f6f8;
-  min-height: 100vh;
-  font-family: Arial, sans-serif;
+  padding: 8px;
 }
 
 .cabecalho {
@@ -27,7 +24,7 @@
 .botao-novo,
 .botao-salvar {
   border: none;
-  background: #2563eb;
+  background: #24845c;
   color: white;
   padding: 11px 18px;
   border-radius: 7px;
@@ -209,9 +206,9 @@ td {
 }
 
 .botao-acao {
-  border: 1px solid #2563eb;
+  border: 1px solid #24845c;
   background: white;
-  color: #2563eb;
+  color: #24845c;
   padding: 7px 10px;
   border-radius: 6px;
   cursor: pointer;
@@ -219,7 +216,7 @@ td {
 }
 
 .botao-acao:hover {
-  background: #2563eb;
+  background: #24845c;
   color: white;
 }
 
