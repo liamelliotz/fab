@@ -1,0 +1,160 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.pagina {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 8px;
+}
+
+.cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.cabecalho h1 {
+  margin: 0 0 6px;
+  color: #172b24;
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.cabecalho p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.formulario {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  max-width: 760px;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid #e5ebe8;
+  border-radius: 12px;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #172b24;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.campo--largo {
+  grid-column: 1 / -1;
+}
+
+.campo input,
+.campo select,
+.campo textarea {
+  padding: 10px 12px;
+  border: 1px solid #d5ddd9;
+  border-radius: 8px;
+  background: #fff;
+  color: #172b24;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.campo input:focus,
+.campo select:focus,
+.campo textarea:focus {
+  outline: none;
+  border-color: #24845c;
+  box-shadow: 0 0 0 3px rgb(36 132 92 / 12%);
+}
+
+.campo textarea {
+  resize: vertical;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #f1f7f4;
+  color: #4b5563;
+  font-size: 13px;
+}
+
+.info-item strong {
+  color: #172b24;
+}
+
+.aviso {
+  margin-top: 4px;
+  color: #b45309;
+  font-weight: 600;
+}
+
+.erro {
+  color: #b91c1c;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.erro-geral {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fee2e2;
+  color: #991b1b;
+  font-size: 13px;
+}
+
+.rodape {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.btn-principal {
+  padding: 11px 18px;
+  border: none;
+  border-radius: 10px;
+  background: #24845c;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-principal:hover {
+  background: #1d6e4d;
+}
+
+.btn-secundario {
+  display: inline-block;
+  padding: 10px 16px;
+  border: 1px solid #d5ddd9;
+  border-radius: 10px;
+  background: #fff;
+  color: #172b24;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+@media (max-width: 640px) {
+  .formulario {
+    grid-template-columns: 1fr;
+  }
+
+  .campo:empty {
+    display: none;
+  }
+}

@@ -1,0 +1,86 @@
+<section class="pagina">
+  <header class="cabecalho">
+    <div>
+      <h1>Nova solicitação</h1>
+      <p>Peça um material informando as datas de retirada e devolução.</p>
+    </div>
+    <a class="btn-secundario" routerLink="/meus-emprestimos">Voltar</a>
+  </header>
+
+  <form class="formulario" [formGroup]="form" (ngSubmit)="enviar()" novalidate>
+    <label class="campo campo--largo">
+      <span>Material</span>
+      <select formControlName="equipamentoId">
+        <option value="">Selecione um material</option>
+        @for (e of disponiveis(); track e.id) {
+          <option [value]="e.id">{{ e.nome }} ({{ e.quantidadeDisponivel }} disponível(is))</option>
+        }
+      </select>
+      @if (getError('equipamentoId')) {
+        <small class="erro">{{ getError('equipamentoId') }}</small>
+      }
+    </label>
+
+    @if (selecionado(); as item) {
+      <div class="info-item campo--largo">
+        <strong>{{ item.nome }}</strong>
+        <span>{{ item.descricao }}</span>
+        <span>Local: {{ item.localizacao }} · Patrimônio: {{ item.codigoPatrimonio }}</span>
+        @if (item.requerTreinamento) {
+          <span class="aviso">
+            Este equipamento requer treinamento prévio. Procure a coordenação antes de retirá-lo.
+          </span>
+        }
+      </div>
+    }
+
+    <label class="campo">
+      <span>Quantidade</span>
+      <input
+        type="number"
+        min="1"
+        [max]="selecionado()?.quantidadeDisponivel ?? null"
+        formControlName="quantidade"
+      />
+      @if (getError('quantidade')) {
+        <small class="erro">{{ getError('quantidade') }}</small>
+      }
+    </label>
+
+    <div class="campo"></div>
+
+    <label class="campo">
+      <span>Data de retirada</span>
+      <input type="date" [min]="hoje" formControlName="dataPrevistaRetirada" />
+    </label>
+
+    <label class="campo">
+      <span>Data de devolução</span>
+      <input type="date" [min]="hoje" formControlName="dataPrevistaDevolucao" />
+      @if (getError('dataPrevistaDevolucao')) {
+        <small class="erro">{{ getError('dataPrevistaDevolucao') }}</small>
+      }
+    </label>
+
+    <label class="campo campo--largo">
+      <span>Justificativa</span>
+      <textarea
+        rows="3"
+        placeholder="Ex.: Aula prática de lógica de programação com a turma do 2º módulo."
+        formControlName="justificativa"
+      ></textarea>
+      @if (getError('justificativa')) {
+        <small class="erro">{{ getError('justificativa') }}</small>
+      }
+    </label>
+
+    @if (erro()) {
+      <p class="erro-geral campo--largo" role="alert">{{ erro() }}</p>
+    }
+
+    <div class="rodape campo--largo">
+      <a class="btn-secundario" routerLink="/meus-emprestimos">Cancelar</a>
+      <button type="submit" class="btn-principal">Enviar solicitação</button>
+    </div>
+  </form>
+</section>

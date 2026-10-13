@@ -1,0 +1,58 @@
+<section class="pagina">
+  <header class="cabecalho">
+    <div>
+      <h1>Meus pedidos</h1>
+      <p>Acompanhe suas solicitações e os prazos de devolução.</p>
+    </div>
+    <a class="btn-principal" routerLink="/meus-emprestimos/nova">+ Nova solicitação</a>
+  </header>
+
+  @if (enviado) {
+    <p class="aviso-ok" role="status">
+      Solicitação enviada! Ela ficará pendente até a análise da coordenação.
+    </p>
+  }
+
+  @if (meus().length > 0) {
+    <div class="lista">
+      @for (s of meus(); track s.id) {
+        <article class="item">
+          <div class="item__topo">
+            <div>
+              <h3 class="item__protocolo">{{ s.protocolo }}</h3>
+              <p class="item__info">Enviada em {{ data(s.dataSolicitacao) }}</p>
+            </div>
+            <span class="chip chip--{{ s.status }}">{{ nomeStatus[s.status] }}</span>
+          </div>
+
+          <p class="item__info"><strong>Itens:</strong> {{ itens(s) }}</p>
+          <p class="item__info"><strong>Justificativa:</strong> {{ s.justificativa }}</p>
+          <p class="item__info">
+            <strong>Retirada:</strong> {{ data(s.dataPrevistaRetirada) }} ·
+            <strong>Devolução:</strong> {{ data(s.dataPrevistaDevolucao) }}
+          </p>
+
+          @if (atrasado(s)) {
+            <p class="item__alerta">Prazo de devolução vencido. Devolva o material o quanto antes.</p>
+          }
+          @if (s.motivoRejeicao) {
+            <p class="item__alerta">Motivo da reprovação: {{ s.motivoRejeicao }}</p>
+          }
+
+          @if (s.status === 'pendente') {
+            <div class="item__acoes">
+              <button type="button" class="btn-secundario" (click)="cancelar(s)">
+                Cancelar pedido
+              </button>
+            </div>
+          }
+        </article>
+      }
+    </div>
+  } @else {
+    <div class="vazio">
+      <p>Você ainda não fez nenhuma solicitação.</p>
+      <a class="btn-principal" routerLink="/materiais">Ver materiais disponíveis</a>
+    </div>
+  }
+</section>
