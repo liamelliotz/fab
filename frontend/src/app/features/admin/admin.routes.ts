@@ -50,10 +50,28 @@ export const ADMIN_ROUTES: Routes = [
     import('./relatorios/admin-relatorios')
       .then(m => m.AdminRelatorios)
 },
-  {
+   {
     path: 'solicitacoes',
     loadComponent: () =>
       import('./solicitacoes/admin-solicitacoes')
         .then(m => m.AdminSolicitacoes)
+  },
+  {
+    path: 'equipamentos',
+    loadComponent: () =>
+      import('./equipamentos/admin-equipamentos-lista')
+        .then(m => m.AdminEquipamentosLista)
+  },
+  {
+    path: 'equipamentos/novo',
+    loadComponent: () =>
+      import('./equipamentos/admin-equipamentos-form')
+        .then(m => m.AdminEquipamentosForm)
+  },
+  {
+    path: 'equipamentos/:id/editar',
+    loadComponent: () =>
+      import('./equipamentos/admin-equipamentos-form')
+        .then(m => m.AdminEquipamentosForm)
   },
 ];

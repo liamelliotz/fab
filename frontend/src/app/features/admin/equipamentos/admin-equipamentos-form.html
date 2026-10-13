@@ -1,0 +1,69 @@
+<section class="pagina">
+  <header class="cabecalho">
+    <h1>{{ editando ? 'Editar equipamento' : 'Novo equipamento' }}</h1>
+    <a class="botao botao-secundario" routerLink="/admin/equipamentos">Voltar</a>
+  </header>
+
+  <form class="formulario" [formGroup]="form" (ngSubmit)="salvar()">
+    <label class="campo">
+      <span>Nome</span>
+      <input type="text" formControlName="nome" />
+      @if (form.controls.nome.touched && form.controls.nome.invalid) {
+        <small class="erro">Informe o nome do equipamento.</small>
+      }
+    </label>
+
+    <label class="campo">
+      <span>Código patrimonial</span>
+      <input type="text" formControlName="codigoPatrimonio" />
+      @if (form.controls.codigoPatrimonio.touched && form.controls.codigoPatrimonio.invalid) {
+        <small class="erro">Informe o código patrimonial.</small>
+      }
+      @if (erroCodigo()) {
+        <small class="erro">{{ erroCodigo() }}</small>
+      }
+    </label>
+
+    <label class="campo">
+      <span>Categoria</span>
+      <select formControlName="categoria">
+        @for (c of categorias; track c.valor) {
+          <option [value]="c.valor">{{ c.nome }}</option>
+        }
+      </select>
+    </label>
+
+    <label class="campo">
+      <span>Localização</span>
+      <input type="text" formControlName="localizacao" />
+      @if (form.controls.localizacao.touched && form.controls.localizacao.invalid) {
+        <small class="erro">Informe onde o item fica guardado.</small>
+      }
+    </label>
+
+    <label class="campo">
+      <span>Quantidade total</span>
+      <input type="number" min="1" formControlName="quantidadeTotal" />
+      @if (form.controls.quantidadeTotal.touched && form.controls.quantidadeTotal.invalid) {
+        <small class="erro">A quantidade deve ser no mínimo 1.</small>
+      }
+    </label>
+
+    <label class="campo campo-largo">
+      <span>Descrição</span>
+      <textarea rows="3" formControlName="descricao"></textarea>
+    </label>
+
+    <label class="campo-check campo-largo">
+      <input type="checkbox" formControlName="requerTreinamento" />
+      <span>Requer treinamento prévio para solicitar</span>
+    </label>
+
+    <div class="rodape campo-largo">
+      <a class="botao botao-secundario" routerLink="/admin/equipamentos">Cancelar</a>
+      <button type="submit" class="botao botao-primario">
+        {{ editando ? 'Salvar alterações' : 'Cadastrar' }}
+      </button>
+    </div>
+  </form>
+</section>
