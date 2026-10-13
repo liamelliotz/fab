@@ -1,0 +1,41 @@
+<section class="pagina">
+  <header class="cabecalho">
+    <h1>Configurações</h1>
+    <p>Informações da sua conta e do sistema.</p>
+  </header>
+
+  <app-card>
+    <h2 class="titulo">Minha conta</h2>
+    <dl class="dados">
+      <div>
+        <dt>Nome</dt>
+        <dd>{{ nome() }}</dd>
+      </div>
+      <div>
+        <dt>E-mail</dt>
+        <dd>{{ email() }}</dd>
+      </div>
+      <div>
+        <dt>Perfil</dt>
+        <dd>{{ perfil() }}</dd>
+      </div>
+    </dl>
+    <button type="button" class="btn-sair" (click)="sair()">Sair da conta</button>
+  </app-card>
+
+  <app-card>
+    <h2 class="titulo">Sobre o FAB</h2>
+    <p class="texto">
+      <strong>FAB — Aprender, Organizar e Evoluir.</strong> Sistema digital para controle e gestão
+      de empréstimos de materiais e equipamentos escolares, com consulta de disponibilidade,
+      solicitação e acompanhamento de empréstimos, controle de prazos de devolução e atrasos.
+    </p>
+    <p class="texto texto--suave">
+      Projeto Integrador · Qualificação Profissional em Programador Full-Stack · SENAI Macapá · 2026
+    </p>
+    <p class="texto texto--suave">
+      Equipe: Alvaro Ronaldy Santos, Ana Jolly Garcia da Silva, Arthur Costa, Jamilly Barbosa da
+      Costa, Leonardo Picanço Fontinele e Liam Elliot Silva da Costa.
+    </p>
+  </app-card>
+</section>
