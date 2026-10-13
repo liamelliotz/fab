@@ -47,7 +47,15 @@ export const routes: Routes = [
       },
 
       // Placeholders temporários: telas ainda não implementadas
-      { path: 'solicitacoes', children: [] },
+            {
+        path: 'solicitacoes',
+        title: 'Solicitações | FAB',
+        canActivate: [adminGuard],
+        loadComponent: () =>
+          import('./features/admin/solicitacoes/admin-solicitacoes').then(
+            (m) => m.AdminSolicitacoes,
+          ),
+      },
            {
         path: 'materiais',
         title: 'Materiais | FAB',

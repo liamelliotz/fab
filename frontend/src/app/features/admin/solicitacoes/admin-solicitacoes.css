@@ -1,0 +1,185 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.sol {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 8px;
+}
+
+.sol__cabecalho h1 {
+  margin: 0 0 6px;
+  color: #172b24;
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.sol__cabecalho p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.sol__filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.sol__campo {
+  flex: 1 1 220px;
+  padding: 10px 12px;
+  border: 1px solid #d5ddd9;
+  border-radius: 8px;
+  background: #fff;
+  color: #172b24;
+  font-size: 14px;
+}
+
+.sol__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sol__item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid #e5ebe8;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.sol__topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sol__protocolo {
+  margin: 0;
+  color: #172b24;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.sol__info {
+  margin: 0;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.sol__motivo {
+  margin: 0;
+  color: #b91c1c;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.sol__status {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.sol__status--aprovado {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.sol__status--rejeitado {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.sol__acoes {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.sol__btn {
+  padding: 8px 16px;
+  border: 1px solid #d5ddd9;
+  border-radius: 8px;
+  background: #fff;
+  color: #172b24;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sol__btn--aprovar {
+  background: #24845c;
+  border-color: #24845c;
+  color: #fff;
+}
+
+.sol__btn--reprovar {
+  background: #b91c1c;
+  border-color: #b91c1c;
+  color: #fff;
+}
+
+.sol__vazio {
+  color: #6b7280;
+  text-align: center;
+  padding: 32px 0;
+}
+
+.sol__fundo {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+}
+
+.sol__painel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(480px, 92vw);
+  padding: 20px;
+  background: #fff;
+  border-radius: 12px;
+}
+
+.sol__painel h2 {
+  margin: 0;
+  color: #172b24;
+  font-size: 18px;
+}
+
+.sol__painel label {
+  color: #172b24;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.sol__painel textarea {
+  padding: 10px 12px;
+  border: 1px solid #d5ddd9;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 14px;
+  resize: vertical;
+}
+
+.sol__erro {
+  margin: 0;
+  color: #b91c1c;
+  font-size: 13px;
+}

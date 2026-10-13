@@ -1,0 +1,93 @@
+<section class="sol">
+  <header class="sol__cabecalho">
+    <h1>Solicitações</h1>
+    <p>Analise os pedidos de empréstimo enviados pelos usuários.</p>
+  </header>
+
+  <div class="sol__filtros">
+    <input
+      class="sol__campo"
+      type="search"
+      placeholder="Buscar por protocolo ou solicitante"
+      aria-label="Buscar solicitação"
+      (input)="atualizarBusca($event)"
+    />
+    <select class="sol__campo" aria-label="Status" (change)="atualizarStatus($event)">
+      <option value="">Todos os status</option>
+      <option value="pendente">Pendente</option>
+      <option value="aprovado">Aprovado</option>
+      <option value="rejeitado">Reprovado</option>
+    </select>
+  </div>
+
+  @if (solicitacoes().length > 0) {
+    <div class="sol__lista">
+      @for (s of solicitacoes(); track s.id) {
+        <article class="sol__item">
+          <div class="sol__topo">
+            <div>
+              <h3 class="sol__protocolo">{{ s.protocolo }}</h3>
+              <p class="sol__info">{{ s.solicitante.nome }} · {{ s.solicitante.departamento }}</p>
+            </div>
+            <span class="sol__status sol__status--{{ s.status }}">{{ nomeStatus(s.status) }}</span>
+          </div>
+
+          <p class="sol__info">Itens: {{ total(s) }} unidade(s)</p>
+          <p class="sol__info">Justificativa do pedido: {{ s.justificativa }}</p>
+          <p class="sol__info">
+            Retirada: {{ s.dataPrevistaRetirada }} · Devolução: {{ s.dataPrevistaDevolucao }}
+          </p>
+
+          @if (s.motivoRejeicao) {
+            <p class="sol__motivo">Motivo da reprovação: {{ s.motivoRejeicao }}</p>
+          }
+
+          @if (s.status === 'pendente') {
+            <div class="sol__acoes">
+              <button class="sol__btn sol__btn--aprovar" type="button" (click)="iniciar(s, 'aprovar')">
+                Aprovar
+              </button>
+              <button class="sol__btn sol__btn--reprovar" type="button" (click)="iniciar(s, 'reprovar')">
+                Reprovar
+              </button>
+            </div>
+          }
+        </article>
+      }
+    </div>
+  } @else {
+    <p class="sol__vazio">Nenhuma solicitação encontrada.</p>
+  }
+
+  @if (selecionada(); as alvo) {
+    <div class="sol__fundo">
+      <div class="sol__painel" role="dialog" aria-modal="true" aria-label="Registrar decisão">
+        <h2>
+          {{ decisao() === 'aprovar' ? 'Aprovar' : 'Reprovar' }} {{ alvo.protocolo }}
+        </h2>
+        <label for="justificativa">Justificativa</label>
+        <textarea
+          id="justificativa"
+          rows="4"
+          placeholder="Explique a decisão"
+          (input)="atualizarJustificativa($event)"
+        ></textarea>
+        @if (erro()) {
+          <p class="sol__erro">{{ erro() }}</p>
+        }
+        <div class="sol__acoes">
+          <button class="sol__btn" type="button" (click)="cancelar()">Cancelar</button>
+          <button
+            class="sol__btn"
+            [class.sol__btn--aprovar]="decisao() === 'aprovar'"
+            [class.sol__btn--reprovar]="decisao() === 'reprovar'"
+            type="button"
+            (click)="confirmar()"
+          >
+            Confirmar
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</section>
