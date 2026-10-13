@@ -8,18 +8,15 @@ export const routes: Routes = [
   {
     path: 'login',
     title: 'Entrar | FAB',
-    loadComponent: () =>
-      import('./features/auth/login/login').then((m) => m.Login),
+    loadComponent: () => import('./features/auth/login/login').then((m) => m.Login),
   },
   {
-    // Tela de cadastro
     path: 'cadastro',
     title: 'Cadastro | FAB',
-    loadComponent: () =>
-      import('./features/auth/cadastro/cadastro').then((m) => m.Cadastro),
+    loadComponent: () => import('./features/auth/cadastro/cadastro').then((m) => m.Cadastro),
   },
 
-  // Redirecionamento para o login quando necessário
+  // O error.interceptor redireciona para /auth/login quando a sessão expira
   { path: 'auth/login', redirectTo: 'login' },
   { path: '', redirectTo: 'login', pathMatch: 'full' },
 
@@ -29,42 +26,51 @@ export const routes: Routes = [
     component: MainLayout,
     canActivate: [authGuard],
     children: [
+      // Área administrativa: /admin/solicitacoes, /admin/emprestimos, /admin/equipamentos,
+      // /admin/manutencao, /admin/usuarios e /admin/relatorios
       {
         path: 'admin',
         canActivate: [adminGuard],
-        loadChildren: () =>
-          import('./features/admin/admin.routes').then(
-            (m) => m.ADMIN_ROUTES,
-          ),
+        loadChildren: () => import('./features/admin/admin.routes').then((m) => m.ADMIN_ROUTES),
       },
+
+      // Todos os perfis
       {
         path: 'dashboard',
         title: 'Dashboard | FAB',
-        loadComponent: () =>
-          import('./features/dashboard/dashboard').then(
-            (m) => m.Dashboard,
-          ),
+        loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.Dashboard),
       },
-
-      // Placeholders temporários: telas ainda não implementadas
-            {
-        path: 'solicitacoes',
-        title: 'Solicitações | FAB',
-        canActivate: [adminGuard],
-        loadComponent: () =>
-          import('./features/admin/solicitacoes/admin-solicitacoes').then(
-            (m) => m.AdminSolicitacoes,
-          ),
-      },
-           {
+      {
         path: 'materiais',
         title: 'Materiais | FAB',
         loadComponent: () =>
-          import('./features/equipamentos/lista/equipamento-lista').then(
-            (m) => m.EquipamentoLista,
+          import('./features/equipamentos/lista/equipamento-lista').then((m) => m.EquipamentoLista),
+      },
+      {
+        path: 'meus-emprestimos',
+        title: 'Meus pedidos | FAB',
+        loadComponent: () =>
+          import('./features/emprestimos/meus-emprestimos/meus-emprestimos').then(
+            (m) => m.MeusEmprestimos,
           ),
       },
-      { path: 'configuracoes', children: [] },
+      {
+        path: 'meus-emprestimos/nova',
+        title: 'Nova solicitação | FAB',
+        loadComponent: () =>
+          import('./features/emprestimos/solicitar/emprestimo-solicitar').then(
+            (m) => m.EmprestimoSolicitar,
+          ),
+      },
+      {
+        path: 'configuracoes',
+        title: 'Configurações | FAB',
+        loadComponent: () =>
+          import('./features/configuracoes/configuracoes').then((m) => m.Configuracoes),
+      },
+
+      // Atalho antigo: a tela de solicitações agora fica em /admin/solicitacoes
+      { path: 'solicitacoes', redirectTo: 'admin/solicitacoes', pathMatch: 'full' },
     ],
   },
 
