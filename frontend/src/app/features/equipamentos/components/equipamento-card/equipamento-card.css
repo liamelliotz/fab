@@ -22,7 +22,7 @@
   align-items: center;
   justify-content: center;
   color: #6b7280;
-  font-size: 13px;
+  font-size: 42px;
 }
 
 .equip__topo {
@@ -50,4 +50,21 @@
   color: #b45309;
   font-size: 12px;
   font-weight: 600;
+}
+.equip__btn {
+  display: block;
+  margin-top: 4px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  background: #24845c;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  transition: background-color 0.15s ease;
+}
+
+.equip__btn:hover {
+  background: #1d6e4d;
 }

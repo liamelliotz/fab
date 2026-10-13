@@ -3,7 +3,7 @@
     @if (equipamento.fotoUrl) {
       <img class="equip__foto" [src]="equipamento.fotoUrl" [alt]="equipamento.nome" />
     } @else {
-      <div class="equip__foto equip__foto--vazia" aria-hidden="true">Sem foto</div>
+      <div class="equip__foto equip__foto--vazia" aria-hidden="true">{{ icone }}</div>
     }
 
     <div class="equip__topo">
@@ -20,6 +20,15 @@
 
     @if (equipamento.requerTreinamento) {
       <p class="equip__aviso">Requer treinamento</p>
+    }
+    @if (podeSolicitar) {
+      <a
+        class="equip__btn"
+        routerLink="/meus-emprestimos/nova"
+        [queryParams]="{ equipamento: equipamento.id }"
+      >
+        Solicitar empréstimo
+      </a>
     }
   </article>
 </app-card>

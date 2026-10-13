@@ -1,4 +1,5 @@
 import { Component, Input } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { Card } from '../../../../shared/components/card/card';
 import {
   BadgeStatus,
@@ -27,10 +28,19 @@ const NOME_CATEGORIA: Record<CategoriaEquipamento, string> = {
   outros: 'Outros',
 };
 
+const ICONE_CATEGORIA: Record<CategoriaEquipamento, string> = {
+  ferramenta: '🔧',
+  eletronico: '💻',
+  impressora_3d: '🖨️',
+  corte_laser: '✂️',
+  consumivel: '📦',
+  outros: '🧰',
+};
+
 @Component({
   selector: 'app-equipamento-card',
   standalone: true,
-  imports: [Card, BadgeStatus],
+  imports: [Card, BadgeStatus, RouterLink],
   templateUrl: './equipamento-card.html',
   styleUrl: './equipamento-card.css',
 })
@@ -43,5 +53,14 @@ export class EquipamentoCard {
 
   get nomeCategoria(): string {
     return NOME_CATEGORIA[this.equipamento.categoria];
+  }
+
+  get icone(): string {
+    return ICONE_CATEGORIA[this.equipamento.categoria];
+  }
+
+  /** Só dá para solicitar quando há unidades livres. */
+  get podeSolicitar(): boolean {
+    return this.equipamento.status === 'disponivel' && this.equipamento.quantidadeDisponivel > 0;
   }
 }
