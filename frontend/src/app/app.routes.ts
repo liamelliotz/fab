@@ -64,6 +64,14 @@ export const routes: Routes = [
             (m) => m.EquipamentoLista,
           ),
       },
+      {
+        path: 'admin-dashboard',
+        title: 'Dashboard Administrador | FAB',
+        canActivate: [adminGuard],
+        loadComponent: () =>
+          import('./features/admin/dashboard/admin-dashboard').then((m) => m.AdminDashboardComponent
+      ),
+      },
       { path: 'configuracoes', children: [] },
     ],
   },
