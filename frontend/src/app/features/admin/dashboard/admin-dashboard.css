@@ -1,0 +1,250 @@
+/* ==========================================================================
+   CONFIGURAÇÕES GERAIS E LAYOUT
+   ========================================================================== */
+:host {
+  display: block;
+  background-color: #eef2f5;
+  min-height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #1a1a1a;
+}
+
+/* Container flexível dividindo Sidebar e Conteúdo Principal */
+.page-layout {
+  display: flex;
+  gap: 24px;
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* ==========================================================================
+   SIDEBAR (MENU LATERAL)
+   Verde escuro (#437637) extraído da imagem do formulário
+   ========================================================================== */
+.sidebar {
+  width: 220px;
+  background-color: #437637; 
+  border-radius: 20px;
+  padding: 40px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: calc(100vh - 80px);
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+/* Botões pílula do menu */
+.nav-btn {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 20px;
+  border: none;
+  background-color: #ffffff;
+  color: #2b4c23;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+/* Estado ativo do menu (verde claro suave) */
+.nav-btn.active {
+  background-color: #d2e8cc;
+  color: #1b3515;
+}
+
+.nav-btn:hover:not(.active) {
+  background-color: #f0f7ef;
+}
+
+/* ==========================================================================
+   ÁREA PRINCIPAL DO DASHBOARD
+   ========================================================================== */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Topbar / Selo de identificação do Administrador */
+.topbar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.user-badge {
+  background-color: #437637;
+  color: #ffffff;
+  padding: 8px 24px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* Container verde principal que engloba tabela e cartões */
+.dashboard-panel {
+  background-color: #437637;
+  border-radius: 20px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ==========================================================================
+   BARRA DE PESQUISA E FILTROS
+   ========================================================================== */
+.search-filter-bar {
+  display: flex;
+  gap: 12px;
+}
+
+.search-input {
+  flex: 1;
+  background-color: #d2e8cc;
+  border: none;
+  border-radius: 20px;
+  padding: 10px 18px;
+  font-size: 0.95rem;
+  color: #1b3515;
+  outline: none;
+}
+
+.search-input::placeholder {
+  color: #436939;
+}
+
+.filter-btn {
+  background-color: #d2e8cc;
+  border: none;
+  border-radius: 20px;
+  padding: 10px 20px;
+  font-weight: 600;
+  color: #1b3515;
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   TABELA DE SOLICITAÇÕES
+   ========================================================================== */
+.table-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.table-header {
+  background-color: #d2e8cc;
+  border-radius: 20px;
+  padding: 10px 20px;
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 2fr 1.5fr;
+  font-weight: 600;
+  color: #1b3515;
+}
+
+.table-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.table-row {
+  background-color: #ffffff;
+  border-radius: 20px;
+  padding: 10px 20px;
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 2fr 1.5fr;
+  align-items: center;
+  font-size: 0.9rem;
+  color: #262626;
+}
+
+.col-solicitante {
+  font-weight: 500;
+}
+
+.col-status {
+  text-align: right;
+  font-weight: 500;
+}
+
+/* Títulos de Seção Internos */
+.section-title {
+  text-align: center;
+  color: #ffffff;
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 8px 0;
+}
+
+/* ==========================================================================
+   GRID DE CARTÕES ANALÍTICOS (TRELLO)
+   ========================================================================== */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+/* Cartão individual de métrica */
+.metric-card {
+  background-color: #d2e8cc;
+  border-radius: 16px;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.metric-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #12280d;
+}
+
+.metric-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #2b4c23;
+  margin-top: 4px;
+}
+
+/* ==========================================================================
+   RESPONSIVIDADE (DISPOSITIVOS MÓVEIS E TABLETS)
+   ========================================================================== */
+@media (max-width: 900px) {
+  .page-layout {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    min-height: auto;
+  }
+
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .search-filter-bar {
+    flex-direction: column;
+  }
+}
