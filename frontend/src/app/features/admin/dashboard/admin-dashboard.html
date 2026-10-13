@@ -1,0 +1,96 @@
+<div class="page-layout">
+  
+  <!-- ========================================== -->
+  <!-- NAV LATERAL / SIDEBAR DE NAVEGAÇÃO        -->
+  <!-- ========================================== -->
+  <aside class="sidebar">
+    <nav class="sidebar-nav">
+      <!-- Botões de navegação estilizados em pílulas arredondadas -->
+      <button class="nav-btn active">Dashboard</button>
+      <button class="nav-btn">Solicitações</button>
+      <button class="nav-btn">Relatório</button>
+      <button class="nav-btn">Usuários</button>
+    </nav>
+  </aside>
+
+  <!-- ========================================== -->
+  <!-- CONTEÚDO PRINCIPAL DO DASHBOARD           -->
+  <!-- ========================================== -->
+  <main class="main-content">
+    
+    <!-- Cabeçalho / Perfil de Administrador -->
+    <header class="topbar">
+      <div class="user-badge">Administrador</div>
+    </header>
+
+    <!-- Container Principal do Painel -->
+    <section class="dashboard-panel">
+      
+      <!-- BARRA DE FILTROS E PESQUISA -->
+      <div class="search-filter-bar">
+        <input type="text" placeholder="Pesquisar solicitação" class="search-input" />
+        <button class="filter-btn">Status</button>
+        <button class="filter-btn">Data</button>
+        <button class="filter-btn">Categoria</button>
+      </div>
+
+      <!-- TABELA DE SOLICITAÇÕES RECENTES -->
+      <div class="table-container">
+        <!-- Cabeçalho das colunas (Coluna 'Solicitante' atualizada) -->
+        <div class="table-header">
+          <span>Solicitante</span>
+          <span>Data</span>
+          <span>Disciplina</span>
+          <span>Status</span>
+        </div>
+        
+        <!-- Linhas da Tabela obtidas via ngFor -->
+        <div class="table-body">
+          <div *ngFor="let item of solicitacoesRecentes" class="table-row">
+            <span class="col-solicitante">{{ item.solicitante }}</span>
+            <span class="col-data">{{ item.data }}</span>
+            <span class="col-disciplina">{{ item.setorOuDisciplina }}</span>
+            <span class="col-status" [class]="item.status.toLowerCase().replace(' ', '-')">
+              {{ item.status }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Título Intermediário conforme protótipo -->
+      <h2 class="section-title">Solicitações recentes</h2>
+
+      <!-- =================================================== -->
+      <!-- BLOCO DE CARTÕES ANALÍTICOS (VISÃO GERAL - TRELLO)  -->
+      <!-- =================================================== -->
+      <h2 class="section-title">Visão Geral</h2>
+      <div class="metrics-grid">
+        
+        <!-- Métrica 1: Total de materiais emprestados -->
+        <div class="metric-card">
+          <span class="metric-value">{{ metrics.totalEmprestados }}</span>
+          <span class="metric-label">Materiais Emprestados</span>
+        </div>
+
+        <!-- Métrica 2: Pedidos pendentes de avaliação -->
+        <div class="metric-card">
+          <span class="metric-value">{{ metrics.pedidosPendentes }}</span>
+          <span class="metric-label">Pendentes de Avaliação</span>
+        </div>
+
+        <!-- Métrica 3: Itens em atraso -->
+        <div class="metric-card">
+          <span class="metric-value">{{ metrics.itensEmAtraso }}</span>
+          <span class="metric-label">Itens em Atraso</span>
+        </div>
+
+        <!-- Métrica 4: Taxa de ocupação dos recursos escolares -->
+        <div class="metric-card">
+          <span class="metric-value">{{ metrics.taxaOcupacaoRecursos }}%</span>
+          <span class="metric-label">Taxa de Ocupação</span>
+        </div>
+
+      </div>
+    </section>
+  </main>
+</div>
