@@ -1,7 +1,7 @@
 <nav class="navbar" aria-label="Navegação principal">
   <ul class="navbar__list">
     @for (item of itensVisiveis(); track item.route) {
-      <li class="navbar__item">
+      <li class="navbar__item" [class.navbar__item--grupo]="item.novoGrupo && ehAdmin()">
         <a
           class="navbar__link"
           [routerLink]="item.route"
@@ -9,9 +9,7 @@
           [attr.aria-label]="item.label"
           [title]="item.label"
         >
-          <svg class="navbar__icon" viewBox="0 0 24 24" aria-hidden="true">
-            <path [attr.d]="item.icon" />
-          </svg>
+          <i class="navbar__icon" [class]="item.icon" aria-hidden="true"></i>
           <span class="navbar__label">{{ item.label }}</span>
         </a>
       </li>
@@ -20,9 +18,7 @@
 
   <!-- Botão Sair, fixo no rodapé da barra -->
   <button type="button" class="navbar__sair" (click)="sair()" aria-label="Sair" title="Sair">
-    <svg class="navbar__icon" viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5-5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" />
-    </svg>
+    <i class="navbar__icon fa-solid fa-right-from-bracket" aria-hidden="true"></i>
     <span class="navbar__label">Sair</span>
   </button>
 </nav>

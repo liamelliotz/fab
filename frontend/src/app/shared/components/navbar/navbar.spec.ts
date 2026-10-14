@@ -33,12 +33,15 @@ describe('Navbar', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('should render the 6 navigation links in the expected order for admin', () => {
+  it('should render the admin navigation links in the expected order', () => {
     const { element } = criarNavbar('admin');
     expect(rotulos(element)).toEqual([
       'Dashboard',
       'Solicitações',
       'Empréstimos',
+      'Equipamentos',
+      'Manutenção',
+      'Usuários',
       'Relatórios',
       'Materiais',
       'Configurações',
@@ -47,7 +50,7 @@ describe('Navbar', () => {
 
   it('should hide admin-only links for regular users', () => {
     const { element } = criarNavbar('usuario');
-    expect(rotulos(element)).toEqual(['Dashboard', 'Materiais', 'Configurações']);
+    expect(rotulos(element)).toEqual(['Dashboard', 'Materiais', 'Meus pedidos', 'Configurações']);
   });
 
   it('should render the logout button', () => {
