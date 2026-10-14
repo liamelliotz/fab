@@ -47,9 +47,11 @@
           @if (s.status === 'pendente') {
             <div class="sol__acoes">
               <button class="sol__btn sol__btn--aprovar" type="button" (click)="iniciar(s, 'aprovar')">
+                <i class="fa-solid fa-check" aria-hidden="true"></i>
                 Aprovar
               </button>
               <button class="sol__btn sol__btn--reprovar" type="button" (click)="iniciar(s, 'reprovar')">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
                 Reprovar
               </button>
             </div>

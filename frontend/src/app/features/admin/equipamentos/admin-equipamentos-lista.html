@@ -4,7 +4,10 @@
       <h1>Equipamentos</h1>
       <p class="subtitulo">Cadastre, edite e desative itens do catálogo geral.</p>
     </div>
-    <a class="botao botao-primario" routerLink="/admin/equipamentos/novo">Novo equipamento</a>
+    <a class="botao botao-primario" routerLink="/admin/equipamentos/novo">
+      <i class="fa-solid fa-plus" aria-hidden="true"></i>
+      Novo equipamento
+    </a>
   </header>
 
   <div class="filtros">
@@ -52,13 +55,24 @@
               <td>
                 <span class="status status-{{ e.status }}">{{ nomeStatus(e.status) }}</span>
               </td>
-              <td class="acoes">
-                <a class="botao botao-secundario" [routerLink]="['/admin/equipamentos', e.id, 'editar']">Editar</a>
-                @if (e.status === 'inativo') {
-                  <button type="button" class="botao botao-aprovar" (click)="alternarAtivo(e)">Reativar</button>
-                } @else if (e.status !== 'emprestado') {
-                  <button type="button" class="botao botao-perigo" (click)="alternarAtivo(e)">Desativar</button>
-                }
+              <td>
+                <div class="acoes">
+                  <a class="botao botao-secundario" [routerLink]="['/admin/equipamentos', e.id, 'editar']">
+                    <i class="fa-solid fa-pen" aria-hidden="true"></i>
+                    Editar
+                  </a>
+                  @if (e.status === 'inativo') {
+                    <button type="button" class="botao botao-aprovar" (click)="alternarAtivo(e)">
+                      <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
+                      Reativar
+                    </button>
+                  } @else if (e.status !== 'emprestado') {
+                    <button type="button" class="botao botao-perigo" (click)="alternarAtivo(e)">
+                      <i class="fa-solid fa-ban" aria-hidden="true"></i>
+                      Desativar
+                    </button>
+                  }
+                </div>
               </td>
             </tr>
           }

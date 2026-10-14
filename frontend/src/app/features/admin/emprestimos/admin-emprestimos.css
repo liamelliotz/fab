@@ -1,3 +1,8 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
 .pagina-emprestimos {
   padding: 8px;
 }
@@ -7,14 +12,16 @@
 }
 
 .cabecalho h1 {
-  margin: 0;
-  font-size: 28px;
-  color: #202124;
+  margin: 0 0 6px;
+  color: #172b24;
+  font-size: 30px;
+  font-weight: 700;
 }
 
 .cabecalho p {
-  margin-top: 8px;
+  margin: 0;
   color: #6b7280;
+  font-size: 14px;
 }
 
 .resumo {

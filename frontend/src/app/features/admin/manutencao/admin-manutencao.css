@@ -1,3 +1,8 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
 .pagina-manutencao {
   padding: 8px;
 }
@@ -11,14 +16,16 @@
 }
 
 .cabecalho h1 {
-  margin: 0;
-  color: #202124;
-  font-size: 28px;
+  margin: 0 0 6px;
+  color: #172b24;
+  font-size: 30px;
+  font-weight: 700;
 }
 
 .cabecalho p {
-  margin: 8px 0 0;
+  margin: 0;
   color: #6b7280;
+  font-size: 14px;
 }
 
 .botao-novo,
@@ -91,10 +98,21 @@
 }
 
 .fechar {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
   border: none;
+  border-radius: 8px;
   background: transparent;
-  font-size: 28px;
+  color: #6b7280;
+  font-size: 20px;
   cursor: pointer;
+}
+
+.fechar:hover {
+  background: #f3f4f6;
+  color: #172b24;
 }
 
 .campos {

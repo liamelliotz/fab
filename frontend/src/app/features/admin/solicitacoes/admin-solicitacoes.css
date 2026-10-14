@@ -109,6 +109,9 @@
 }
 
 .sol__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   padding: 8px 16px;
   border: 1px solid #d5ddd9;
   border-radius: 8px;

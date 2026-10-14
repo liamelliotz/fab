@@ -1,7 +1,10 @@
 <section class="pagina">
   <header class="cabecalho">
     <h1>{{ editando ? 'Editar equipamento' : 'Novo equipamento' }}</h1>
-    <a class="botao botao-secundario" routerLink="/admin/equipamentos">Voltar</a>
+    <a class="botao botao-secundario" routerLink="/admin/equipamentos">
+      <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+      Voltar
+    </a>
   </header>
 
   <form class="formulario" [formGroup]="form" (ngSubmit)="salvar()">
