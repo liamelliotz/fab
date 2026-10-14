@@ -6,9 +6,15 @@
       <p>Acompanhe as informações e atividades do FAB.</p>
     </div>
     @if (ehAdmin()) {
-      <a class="btn-principal" routerLink="/admin/solicitacoes">Analisar solicitações</a>
+      <a class="btn-principal" routerLink="/admin/solicitacoes">
+        <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i>
+        Analisar solicitações
+      </a>
     } @else {
-      <a class="btn-principal" routerLink="/meus-emprestimos/nova">+ Nova solicitação</a>
+      <a class="btn-principal" routerLink="/meus-emprestimos/nova">
+        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+        Nova solicitação
+      </a>
     }
   </header>
 
@@ -86,7 +92,7 @@
       <a class="action-link" routerLink="/materiais">
         <app-card>
           <div class="action-card">
-            <span class="action-icon" aria-hidden="true">⌕</span>
+            <span class="action-icon" aria-hidden="true"><i class="fa-solid fa-magnifying-glass"></i></span>
             <h3>Consultar materiais</h3>
             <p>Veja a disponibilidade dos equipamentos do catálogo.</p>
           </div>
@@ -97,7 +103,7 @@
         <a class="action-link" routerLink="/admin/solicitacoes">
           <app-card>
             <div class="action-card">
-              <span class="action-icon" aria-hidden="true">✓</span>
+              <span class="action-icon" aria-hidden="true"><i class="fa-solid fa-clipboard-check"></i></span>
               <h3>Gerir solicitações</h3>
               <p>Aprove ou reprove os pedidos de empréstimo enviados.</p>
             </div>
@@ -106,7 +112,7 @@
         <a class="action-link" routerLink="/admin/equipamentos">
           <app-card>
             <div class="action-card">
-              <span class="action-icon" aria-hidden="true">＋</span>
+              <span class="action-icon" aria-hidden="true"><i class="fa-solid fa-laptop-medical"></i></span>
               <h3>Cadastrar equipamento</h3>
               <p>Inclua novos itens e controle o patrimônio.</p>
             </div>
@@ -116,7 +122,7 @@
         <a class="action-link" routerLink="/meus-emprestimos/nova">
           <app-card>
             <div class="action-card">
-              <span class="action-icon" aria-hidden="true">＋</span>
+              <span class="action-icon" aria-hidden="true"><i class="fa-solid fa-paper-plane"></i></span>
               <h3>Solicitar empréstimo</h3>
               <p>Peça um material informando as datas de retirada e devolução.</p>
             </div>
@@ -125,7 +131,7 @@
         <a class="action-link" routerLink="/meus-emprestimos">
           <app-card>
             <div class="action-card">
-              <span class="action-icon" aria-hidden="true">✓</span>
+              <span class="action-icon" aria-hidden="true"><i class="fa-solid fa-list-check"></i></span>
               <h3>Acompanhar pedidos</h3>
               <p>Consulte o andamento e os prazos de devolução.</p>
             </div>
@@ -159,6 +165,7 @@
         </ul>
         <a class="ver-todos" [routerLink]="ehAdmin() ? '/admin/solicitacoes' : '/meus-emprestimos'">
           Ver todos
+          <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
         </a>
       } @else {
         <p class="recent-vazio">Nenhum pedido registrado ainda.</p>

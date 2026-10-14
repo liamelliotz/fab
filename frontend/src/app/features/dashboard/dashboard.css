@@ -42,7 +42,9 @@
 }
 
 .btn-principal {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   padding: 11px 18px;
   border-radius: 10px;
   background: #24845c;
@@ -72,6 +74,7 @@
 
 .metrics-grid {
   display: grid;
+  align-items: stretch;
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 18px;
 }
@@ -102,12 +105,14 @@
 
 .actions-grid {
   display: grid;
+  align-items: stretch;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 18px;
 }
 
 .action-link {
   display: block;
+  height: 100%;
   border-radius: 16px;
   text-decoration: none;
   transition: transform 0.15s ease;
@@ -133,7 +138,7 @@
   border-radius: 10px;
   background: #e7f4ec;
   color: #21764f;
-  font-size: 23px;
+  font-size: 16px;
 }
 
 .action-card h3 {
@@ -197,7 +202,9 @@
 }
 
 .ver-todos {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   margin-top: 12px;
   color: #24845c;
   font-size: 13px;
