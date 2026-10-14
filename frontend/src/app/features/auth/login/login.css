@@ -40,22 +40,6 @@
 .login__title { font-size: 1.8rem; margin: 0; }
 .login__subtitle { color: #666; margin: 0 0 8px; }
 
-/* Separador "ou": duas linhas com o texto no meio */
-.login__divider {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: #888;
-  font-size: 0.9rem;
-}
-.login__divider::before,
-.login__divider::after {
-  content: '';
-  flex: 1;           /* cada linha ocupa metade do espaço restante */
-  height: 1px;
-  background: #ddd;
-}
-
 /* Mensagem de erro vinda da API */
 .login__error {
   margin: 0;

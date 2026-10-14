@@ -3,7 +3,7 @@ import { Component, input } from '@angular/core';
 
 // Tipo que limita as variantes visuais aceitas pelo botão.
 // Se alguém passar outro valor, o TypeScript acusa erro.
-export type ButtonVariant = 'primary' | 'secondary' | 'google';
+export type ButtonVariant = 'primary' | 'secondary';
 
 @Component({
   // Nome da tag usada nos templates: <app-button>
@@ -16,7 +16,7 @@ export type ButtonVariant = 'primary' | 'secondary' | 'google';
 })
 // Se o seu Angular gerou o nome "ButtonComponent", use esse nome aqui
 export class Button {
-  // Variante visual: principal (verde), secundária ou Google. Padrão: 'primary'
+  // Variante visual: principal (verde) ou secundária. Padrão: 'primary'
   variant = input<ButtonVariant>('primary');
 
   // Tipo HTML do botão. Use 'submit' dentro de formulários. Padrão: 'button'

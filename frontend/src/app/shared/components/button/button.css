@@ -26,7 +26,3 @@
 /* SECUNDÁRIO: fundo transparente, borda e texto verdes */
 .btn--secondary { background: transparent; color: #2e7d32; border-color: #2e7d32; }
 .btn--secondary:hover:not(:disabled) { background: #e8f5e9; } /* verde bem claro */
-
-/* GOOGLE: fundo branco, borda cinza (padrão visual do botão do Google) */
-.btn--google { background: #fff; color: #3c4043; border-color: #dadce0; }
-.btn--google:hover:not(:disabled) { background: #f7f8f8; }

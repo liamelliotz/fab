@@ -70,9 +70,8 @@ export class Login {
     this.auth.login(this.form.getRawValue()).subscribe({
       next: () => {
         this.carregando.set(false);
-        // Admin vai para o painel administrativo; os demais para o dashboard
-        const ehAdmin = this.auth.obterPerfil()?.toLowerCase() === 'admin';
-        this.router.navigate([ehAdmin ? '/admin/emprestimos' : '/dashboard']);
+        // Admin vai para a área administrativa; os demais para o dashboard
+        this.router.navigate([this.auth.rotaInicial()]);
       },
       error: (erro: HttpErrorResponse) => {
         this.carregando.set(false);
@@ -83,11 +82,5 @@ export class Login {
         );
       },
     });
-  }
-
-  // Chamado ao clicar em "Fazer login com o Google"
-  onGoogleLogin(): void {
-    // TODO: implementar login com Google na etapa de integração
-    console.log('Login com Google');
   }
 }

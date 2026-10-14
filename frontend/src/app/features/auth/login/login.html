@@ -46,14 +46,6 @@
         {{ carregando() ? 'Entrando...' : 'Entrar' }}
       </app-button>
 
-      <!-- Separador visual entre o login normal e o login com Google -->
-      <div class="login__divider"><span>ou</span></div>
-
-      <!-- type="button" evita que este botão envie o formulário -->
-      <app-button variant="google" type="button" [fullWidth]="true" (click)="onGoogleLogin()">
-        Fazer login com o Google
-      </app-button>
-
       <!-- Link para a tela de registro (rota definida em app.routes.ts) -->
       <p class="login__register">
         Não tem conta?
