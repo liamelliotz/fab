@@ -169,11 +169,12 @@ export class Cadastro {
     this.erroApi.set('');
     this.carregando.set(true);
 
-    this.auth.cadastrar(dados).subscribe({
+    // Cria a conta e já faz o login (a sessão fica salva no localStorage)
+    this.auth.cadastrarELogar(dados).subscribe({
       next: () => {
         this.carregando.set(false);
-        // Conta criada: leva o usuário para o login
-        this.router.navigate(['/login']);
+        // Conta criada e usuário logado: segue para o dashboard (ou área admin, se for Admin)
+        this.router.navigate([this.auth.rotaInicial()]);
       },
       error: (erro: HttpErrorResponse) => {
         this.carregando.set(false);

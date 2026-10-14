@@ -3,7 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { CanActivateFn, Router } from '@angular/router';
 
 /**
- * ADMIN GUARD: só deixa entrar no painel administrativo quem tem o perfil 'Admin'.
+ * ADMIN GUARD: só deixa entrar no painel administrativo quem tem o perfil admin.
  */
 export const adminGuard: CanActivateFn = () => {
   const router = inject(Router);
@@ -15,10 +15,11 @@ export const adminGuard: CanActivateFn = () => {
   }
 
   const token = localStorage.getItem('fab_token');
-  const role = localStorage.getItem('fab_role');
+  // toLowerCase: aceita 'admin', 'Admin' ou 'ADMIN' (o modelo de dados usa minúsculas)
+  const role = localStorage.getItem('fab_role')?.toLowerCase();
 
-  // Logado e com perfil Admin: libera
-  if (token && role === 'Admin') {
+  // Logado e com perfil admin: libera
+  if (token && role === 'admin') {
     return true;
   }
 
