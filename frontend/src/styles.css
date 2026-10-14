@@ -6,6 +6,10 @@
    - 700: Inter Bold (Títulos principais) */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
+/* Ícones Font Awesome (pacote npm @fortawesome/fontawesome-free).
+   O builder do Angular resolve o caminho em node_modules e copia as fontes (webfonts) sozinho. */
+@import '@fortawesome/fontawesome-free/css/all.min.css';
+
 /* 2. VARIÁVEIS GLOBAIS DE TEMA (DESIGN TOKENS)
    Centralizadas no :root para que qualquer componente do Angular possa reutilizar via var(--...) */
 :root {

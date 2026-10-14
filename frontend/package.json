@@ -20,12 +20,13 @@
     "@angular/platform-server": "^22.0.0",
     "@angular/router": "^22.0.0",
     "@angular/ssr": "^22.0.4",
+    "@fortawesome/fontawesome-free": "^7.3.1",
     "express": "^5.1.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },
   "devDependencies": {
-    "@angular/build": "^22.0.4",
+    "@angular/build": "^22.2.2",
     "@angular/cli": "^22.0.4",
     "@angular/compiler-cli": "^22.0.0",
     "@types/express": "^5.0.1",
