@@ -1,15 +1,23 @@
 :host {
   display: block;
   min-width: 0;
+  height: 100%;
+}
+
+app-card,
+.equip {
+  height: 100%;
 }
 
 .equip {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
 .equip__foto {
+  display: block;
+  flex: none;
   width: 100%;
   height: 140px;
   object-fit: cover;
@@ -30,6 +38,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
+  min-height: 40px; /* reserva 2 linhas de nome: os blocos abaixo ficam na mesma altura */
 }
 
 .equip__nome {
@@ -37,24 +46,65 @@
   color: #172b24;
   font-size: 15px;
   font-weight: 700;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
-.equip__info {
+.equip__dados {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.equip__dados li {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
   color: #6b7280;
   font-size: 13px;
+  line-height: 1.4;
+}
+
+.equip__dados i {
+  color: #24845c;
+  font-size: 12px;
+  text-align: center;
+}
+
+.equip__dados span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.equip__rodape {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 4px;
 }
 
 .equip__aviso {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   margin: 0;
   color: #b45309;
   font-size: 12px;
   font-weight: 600;
 }
+
 .equip__btn {
-  display: block;
-  margin-top: 4px;
-  padding: 9px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 12px;
   border-radius: 8px;
   background: #24845c;
   color: #fff;
@@ -67,4 +117,16 @@
 
 .equip__btn:hover {
   background: #1d6e4d;
+}
+
+.equip__btn:focus-visible {
+  outline: 2px solid #1d6e4d;
+  outline-offset: 2px;
+}
+
+.equip__btn--off,
+.equip__btn--off:hover {
+  background: #eef1ef;
+  color: #8a948e;
+  cursor: not-allowed;
 }

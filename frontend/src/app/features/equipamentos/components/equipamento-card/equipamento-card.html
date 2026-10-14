@@ -3,7 +3,9 @@
     @if (equipamento.fotoUrl) {
       <img class="equip__foto" [src]="equipamento.fotoUrl" [alt]="equipamento.nome" />
     } @else {
-      <div class="equip__foto equip__foto--vazia" aria-hidden="true">{{ icone }}</div>
+      <div class="equip__foto equip__foto--vazia" aria-hidden="true">
+        <i class="fa-solid {{ icone }}"></i>
+      </div>
     }
 
     <div class="equip__topo">
@@ -11,24 +13,50 @@
       <app-badge-status [status]="statusBadge" />
     </div>
 
-    <p class="equip__info">Categoria: {{ nomeCategoria }}</p>
-    <p class="equip__info">Patrimônio: {{ equipamento.codigoPatrimonio }}</p>
-    <p class="equip__info">Local: {{ equipamento.localizacao }}</p>
-    <p class="equip__info">
-      Disponíveis: {{ equipamento.quantidadeDisponivel }} de {{ equipamento.quantidadeTotal }}
-    </p>
+    <ul class="equip__dados">
+      <li>
+        <i class="fa-solid fa-tag" aria-hidden="true"></i>
+        <span>Categoria: {{ nomeCategoria }}</span>
+      </li>
+      <li>
+        <i class="fa-solid fa-barcode" aria-hidden="true"></i>
+        <span>Patrimônio: {{ equipamento.codigoPatrimonio }}</span>
+      </li>
+      <li>
+        <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+        <span [title]="equipamento.localizacao">Local: {{ equipamento.localizacao }}</span>
+      </li>
+      <li>
+        <i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i>
+        <span>
+          Disponíveis: {{ equipamento.quantidadeDisponivel }} de {{ equipamento.quantidadeTotal }}
+        </span>
+      </li>
+    </ul>
 
-    @if (equipamento.requerTreinamento) {
-      <p class="equip__aviso">Requer treinamento</p>
-    }
-    @if (podeSolicitar) {
-      <a
-        class="equip__btn"
-        routerLink="/meus-emprestimos/nova"
-        [queryParams]="{ equipamento: equipamento.id }"
-      >
-        Solicitar empréstimo
-      </a>
-    }
+    <!-- Rodapé sempre colado embaixo: todos os cards terminam alinhados -->
+    <div class="equip__rodape">
+      @if (equipamento.requerTreinamento) {
+        <p class="equip__aviso">
+          <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+          Requer treinamento
+        </p>
+      }
+      @if (podeSolicitar) {
+        <a
+          class="equip__btn"
+          routerLink="/meus-emprestimos/nova"
+          [queryParams]="{ equipamento: equipamento.id }"
+        >
+          <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+          Solicitar empréstimo
+        </a>
+      } @else {
+        <span class="equip__btn equip__btn--off" aria-disabled="true">
+          <i class="fa-solid fa-ban" aria-hidden="true"></i>
+          Indisponível
+        </span>
+      }
+    </div>
   </article>
 </app-card>

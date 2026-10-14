@@ -28,13 +28,14 @@ const NOME_CATEGORIA: Record<CategoriaEquipamento, string> = {
   outros: 'Outros',
 };
 
+// Classes do Font Awesome para cada categoria
 const ICONE_CATEGORIA: Record<CategoriaEquipamento, string> = {
-  ferramenta: '🔧',
-  eletronico: '💻',
-  impressora_3d: '🖨️',
-  corte_laser: '✂️',
-  consumivel: '📦',
-  outros: '🧰',
+  ferramenta: 'fa-wrench',
+  eletronico: 'fa-laptop',
+  impressora_3d: 'fa-cube',
+  corte_laser: 'fa-scissors',
+  consumivel: 'fa-box',
+  outros: 'fa-toolbox',
 };
 
 @Component({
