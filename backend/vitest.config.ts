@@ -9,5 +9,7 @@ export default defineConfig({
     globals: true,
     root: './',
     include: ['**/*.spec.ts'],
+    // Ainda não há testes unitários (entram no Card 31): não falhar por isso.
+    passWithNoTests: true,
   },
 });
