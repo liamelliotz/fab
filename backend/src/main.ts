@@ -4,8 +4,24 @@ import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module.js';
 
-// Única origem liberada no CORS: o front-end Angular em desenvolvimento.
-const ORIGEM_FRONTEND = 'http://localhost:4200';
+// Origem liberada no CORS por padrão: o front-end Angular em desenvolvimento (ng serve).
+// Para liberar outras (ex.: o build com SSR em http://localhost:4000), use CORS_ORIGINS no .env.
+const ORIGEM_PADRAO = 'http://localhost:4200';
+
+/** Lê CORS_ORIGINS (endereços separados por vírgula). Recusa "*": nunca liberar todas as origens. */
+function lerOrigensPermitidas(valor: string | undefined): string[] {
+  const origens = (valor ?? ORIGEM_PADRAO)
+    .split(',')
+    .map((origem) => origem.trim())
+    .filter(Boolean);
+
+  if (origens.length === 0 || origens.includes('*')) {
+    throw new Error(
+      'CORS_ORIGINS deve listar endereços do front-end e não pode conter "*".',
+    );
+  }
+  return origens;
+}
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -14,9 +30,9 @@ async function bootstrap() {
   // Todas as rotas começam com /api (o front aponta para http://localhost:3000/api).
   app.setGlobalPrefix('api');
 
-  // CORS: só o front-end local pode chamar a API pelo navegador.
+  // CORS: só o(s) front-end(s) listados podem chamar a API pelo navegador.
   app.enableCors({
-    origin: ORIGEM_FRONTEND,
+    origin: lerOrigensPermitidas(config.get<string>('CORS_ORIGINS')),
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
