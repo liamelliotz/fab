@@ -4,6 +4,9 @@ export * from './emprestimo.model';
 export * from './api-response.model';
 export * from './pagination.model';
 export * from './auth.model';
+export * from './manutencao.model';
+export * from './relatorio.model';
+export * from './dashboard.model';
 
 /**
  * ONDE IMPORTAR ESSES CONTRATOS:
