@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module.js';
+import { aplicarPadraoDeResposta } from './common/aplicar-padrao-resposta.js';
 
 // Origem liberada no CORS por padrão: o front-end Angular em desenvolvimento (ng serve).
 // Para liberar outras (ex.: o build com SSR em http://localhost:4000), use CORS_ORIGINS no .env.
@@ -41,6 +42,10 @@ async function bootstrap() {
   // - whitelist: descarta campos que não existem no DTO;
   // - transform: converte o corpo da requisição para a classe do DTO.
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+
+  // Padrão de resposta (Card 2): envelope { sucesso, mensagem, dados, erros, timestamp } em
+  // toda resposta, inclusive nos erros (400, 401, 403, 404, 409 e 500).
+  aplicarPadraoDeResposta(app);
 
   // Swagger em /api/docs, com botão "Authorize" para colar o token Bearer (JWT).
   const documento = SwaggerModule.createDocument(
