@@ -5,6 +5,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, defer, delay, map, of, switchMap, tap, throwError } from 'rxjs';
 // Contratos de dados criados no Card 3
 import { ApiResponse } from '../models/api-response.model';
+import { API_URL, ENDPOINTS } from '../constants/api.constants';
 import { AuthResponse, JwtPayload, LoginCredenciaisDTO } from '../models/auth.model';
 import { PerfilUsuario, UsuarioResumo } from '../models/usuario.model';
 
@@ -14,14 +15,11 @@ const CHAVE_PERFIL = 'fab_role';
 const CHAVE_NOME = 'fab_nome';
 const CHAVE_CONTAS_DEMO = 'fab_demo_contas';
 
-// TODO: trocar pelo endereço real da API (ex.: valor em core/constants ou environments)
-const API_URL = 'http://localhost:3000/api';
-
 /**
  * MODO DEMONSTRAÇÃO
  * true  = não precisa de backend: o login usa as contas de teste abaixo e os cadastros
  *         ficam salvos só neste navegador (localStorage). Serve para apresentar o protótipo.
- * false = usa a API real (API_URL).
+ * false = usa a API real (API_URL, definida em environments/).
  * ATENÇÃO: no modo demonstração as senhas ficam em texto puro no navegador. Nunca use em produção.
  */
 const MODO_DEMO: boolean = true;
@@ -87,7 +85,7 @@ export class AuthService {
     const resposta$ = MODO_DEMO
       ? this.loginDemo(credenciais)
       : this.http
-          .post<ApiResponse<AuthResponse>>(`${API_URL}/auth/login`, credenciais)
+          .post<ApiResponse<AuthResponse>>(`${API_URL}${ENDPOINTS.auth.login}`, credenciais)
           .pipe(map((resposta) => resposta.dados)); // tira o "envelope" da API
 
     // Persiste token, perfil e nome
@@ -99,7 +97,7 @@ export class AuthService {
     if (MODO_DEMO) {
       return this.cadastrarDemo(dados);
     }
-    return this.http.post<ApiResponse<unknown>>(`${API_URL}/auth/cadastro`, dados);
+    return this.http.post<ApiResponse<unknown>>(`${API_URL}${ENDPOINTS.auth.cadastro}`, dados);
   }
 
   /**

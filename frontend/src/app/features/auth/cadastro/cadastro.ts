@@ -100,7 +100,7 @@ export class Cadastro {
       nome: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],
       cpf: ['', [Validators.required, cpfValido]],
-      senha: ['', [Validators.required, Validators.minLength(6)]],
+      senha: ['', [Validators.required, Validators.minLength(8)]], // mínimo 8, igual ao backend
       confirmarSenha: ['', [Validators.required]],
       telefone: ['', [Validators.required, telefoneValido]],
     },
@@ -143,7 +143,7 @@ export class Cadastro {
     if (control.hasError('minlength')) {
       return campo === 'nome'
         ? 'O nome deve ter ao menos 3 caracteres'
-        : 'A senha deve ter ao menos 6 caracteres';
+        : 'A senha deve ter ao menos 8 caracteres';
     }
     if (control.hasError('email')) return 'E-mail inválido';
     if (control.hasError('cpfInvalido')) return 'CPF inválido';
