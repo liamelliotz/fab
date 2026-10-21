@@ -1,0 +1,34 @@
+
+<div class="alert-container">
+  @for (notificacao of notificationService.notificacoes(); track notificacao.id) {
+    <div
+      class="alert"
+      [class.alert--sucesso]="notificacao.tipo === 'sucesso'"
+      [class.alert--erro]="notificacao.tipo === 'erro'"
+      [class.alert--aviso]="notificacao.tipo === 'aviso'"
+      [class.alert--info]="notificacao.tipo === 'info'"
+      [attr.role]="notificacao.tipo === 'erro' ? 'alert' : 'status'"
+      [attr.aria-live]="notificacao.tipo === 'erro' ? 'assertive' : 'polite'"
+    >
+      <span class="alert__icon" aria-hidden="true">
+        @switch (notificacao.tipo) {
+          @case ('sucesso') { ✓ }
+          @case ('erro') { ✕ }
+          @case ('aviso') { ! }
+          @case ('info') { i }
+        }
+      </span>
+
+      <p class="alert__message">{{ notificacao.mensagem }}</p>
+
+      <button
+        type="button"
+        class="alert__close"
+        aria-label="Fechar notificação"
+        (click)="fechar(notificacao.id)"
+      >
+        ×
+      </button>
+    </div>
+  }
+</div>
