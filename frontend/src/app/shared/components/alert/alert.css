@@ -1,0 +1,132 @@
+
+:host {
+  display: contents;
+}
+
+.alert-container {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(400px, calc(100vw - 32px));
+  pointer-events: none;
+}
+
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-left: 5px solid;
+  border-radius: var(--radius-sm, 8px);
+  background: var(--bg-white, #fff);
+  color: var(--text-primary, #1f2937);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 12%);
+  pointer-events: auto;
+  overflow-wrap: anywhere;
+  animation: alert-entrada 180ms ease-out;
+}
+
+.alert--sucesso {
+  border-left-color: #10b981;
+}
+
+.alert--erro {
+  border-left-color: #ef4444;
+}
+
+.alert--aviso {
+  border-left-color: #f59e0b;
+}
+
+.alert--info {
+  border-left-color: #3b82f6;
+}
+
+.alert__icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-weight: 700;
+}
+
+.alert--sucesso .alert__icon {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.alert--erro .alert__icon {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.alert--aviso .alert__icon {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.alert--info .alert__icon {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.alert__message {
+  flex: 1;
+  margin: 2px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.alert__close {
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  margin: -4px -6px 0 0;
+  border-radius: 6px;
+  color: var(--text-secondary, #6b7280);
+  font-size: 23px;
+  line-height: 1;
+}
+
+.alert__close:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.alert__close:focus-visible {
+  outline: 2px solid var(--primary-color, #00b8a9);
+  outline-offset: 2px;
+}
+
+@keyframes alert-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 480px) {
+  .alert-container {
+    top: 12px;
+    right: 12px;
+    width: calc(100vw - 24px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .alert {
+    animation: none;
+  }
+}
