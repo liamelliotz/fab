@@ -63,6 +63,12 @@ export interface Equipamento {
    */
   requerTreinamento: boolean;
 
+  /**
+   * Prazo máximo de empréstimo deste material, em dias (da retirada até a devolução).
+   * Impede que alguém fique com o item o ano todo. Definido pela coordenação.
+   */
+  prazoMaximoDias: number;
+
   /** Quantidade física pronta para ser cedida no presente momento */
   quantidadeDisponivel: number;
 
@@ -88,6 +94,7 @@ export interface CriarEquipamentoDTO {
   fotoUrl?: string;
   requerTreinamento: boolean;
   quantidadeTotal: number;
+  prazoMaximoDias: number;
 }
 
 /**
@@ -102,6 +109,7 @@ export interface AtualizarEquipamentoDTO {
   fotoUrl?: string;
   requerTreinamento?: boolean;
   quantidadeTotal?: number;
+  prazoMaximoDias?: number;
 }
 
 /**

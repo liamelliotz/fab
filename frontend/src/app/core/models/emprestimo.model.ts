@@ -42,6 +42,45 @@ export interface ItemEmprestimo {
 }
 
 /**
+ * Tipos de acontecimento que entram na linha do tempo (auditoria) de um pedido.
+ * Cada um registra quem fez e quando.
+ */
+export type TipoEventoEmprestimo =
+  | 'solicitado'
+  | 'aprovado'
+  | 'rejeitado'
+  | 'cancelado'
+  | 'retirado'
+  | 'transferencia_solicitada'
+  | 'transferencia_aceita'
+  | 'transferencia_recusada'
+  | 'transferencia_cancelada'
+  | 'devolvido';
+
+/** Um registro da linha do tempo. Nunca é apagado nem alterado depois de criado. */
+export interface EventoEmprestimo {
+  id: string;
+  tipo: TipoEventoEmprestimo;
+  /** Momento do acontecimento (ISO 8601 completo). */
+  em: string;
+  /** Quem executou a ação. */
+  por: UsuarioResumo;
+  /** Texto livre: motivo, observação, para quem foi transferido etc. */
+  detalhe?: string;
+}
+
+/**
+ * Pedido de realocação: o responsável atual quer passar o equipamento a outro professor
+ * sem devolvê-lo ao laboratório. Até o destinatário aceitar, o responsável continua sendo `de`.
+ */
+export interface TransferenciaEmprestimo {
+  de: UsuarioResumo;
+  para: UsuarioResumo;
+  motivo: string;
+  solicitadaEm: string;
+}
+
+/**
  * Representação completa do registro de Empréstimo na aplicação.
  */
 export interface Emprestimo {
@@ -51,8 +90,29 @@ export interface Emprestimo {
   /** Código alfanumérico amigável de rastreio para o solicitante (ex.: "EMP-2026-0042") */
   protocolo: string;
 
-  /** Dados resumidos do usuário solicitante responsável */
+  /** Quem abriu o pedido originalmente (nunca muda). */
   solicitante: UsuarioResumo;
+
+  /**
+   * Quem está com o equipamento agora e responde por ele. Começa igual ao solicitante e muda
+   * a cada transferência aceita. Só o responsável atual pode pedir uma nova transferência.
+   */
+  responsavel: UsuarioResumo;
+
+  /** Linha do tempo do pedido, do mais antigo para o mais recente. */
+  historico: EventoEmprestimo[];
+
+  /** Código que o responsável mostra (ou lê o QR) na retirada. Existe só entre a aprovação e a retirada. */
+  codigoRetirada?: string;
+
+  /** Código da devolução. Existe só enquanto o pedido está em andamento; muda a cada transferência. */
+  codigoDevolucao?: string;
+
+  /** Transferência aguardando a resposta do destinatário (no máximo uma por vez). */
+  transferenciaPendente?: TransferenciaEmprestimo;
+
+  /** Dia em que o equipamento saiu do laboratório (YYYY-MM-DD). */
+  dataRetiradaEfetiva?: string;
 
   /** Lista contendo um ou mais equipamentos requeridos no mesmo pedido */
   itens: ItemEmprestimo[];

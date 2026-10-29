@@ -48,6 +48,13 @@ export interface Usuario {
   /** Setor, laboratório de origem ou curso ao qual o usuário está vinculado */
   departamento?: string;
 
+  /**
+   * Ids dos equipamentos "que exigem treinamento" que este usuário está habilitado a usar.
+   * Definido pela coordenação na tela de Usuários. Sem habilitação, o pedido é bloqueado
+   * (e a transferência de um pedido para este usuário também).
+   */
+  habilitacoes?: string[];
+
   /** Nível de autorização atribuído na plataforma */
   perfil: PerfilUsuario;
 
@@ -74,6 +81,7 @@ export interface CriarUsuarioDTO {
   matricula?: string;
   departamento?: string;
   perfil?: PerfilUsuario;
+  habilitacoes?: string[];
 }
 
 /**

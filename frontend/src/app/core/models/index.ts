@@ -7,6 +7,7 @@ export * from './auth.model';
 export * from './manutencao.model';
 export * from './relatorio.model';
 export * from './dashboard.model';
+export * from './resultado.model';
 
 /**
  * ONDE IMPORTAR ESSES CONTRATOS:
