@@ -38,6 +38,7 @@ describe('Navbar', () => {
     expect(rotulos(element)).toEqual([
       'Dashboard',
       'Solicitações',
+      'Balcão',
       'Empréstimos',
       'Equipamentos',
       'Manutenção',

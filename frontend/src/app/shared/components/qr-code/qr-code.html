@@ -1,0 +1,12 @@
+<svg
+  class="qr"
+  [attr.width]="tamanho()"
+  [attr.height]="tamanho()"
+  [attr.viewBox]="'0 0 ' + desenho().lado + ' ' + desenho().lado"
+  shape-rendering="crispEdges"
+  role="img"
+  [attr.aria-label]="rotulo()"
+>
+  <rect [attr.width]="desenho().lado" [attr.height]="desenho().lado" fill="#ffffff" />
+  <path [attr.d]="desenho().caminho" fill="#111827" />
+</svg>

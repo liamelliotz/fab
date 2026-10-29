@@ -1,0 +1,30 @@
+<ol class="tl" aria-label="Linha do tempo do pedido">
+  @for (e of eventos(); track e.id) {
+    <li class="tl__item tom-{{ tom(e.tipo) }}">
+      <span class="tl__ponto" aria-hidden="true">
+        <i class="fa-solid {{ icone(e.tipo) }}"></i>
+      </span>
+      <div class="tl__corpo">
+        <strong class="tl__titulo">{{ rotulo(e.tipo) }}</strong>
+        <span class="tl__quem">{{ e.por.nome }} · {{ dataHora(e.em) }}</span>
+        @if (e.detalhe) {
+          <p class="tl__detalhe">{{ e.detalhe }}</p>
+        }
+      </div>
+    </li>
+  }
+
+  @for (f of futuros(); track f.titulo) {
+    <li class="tl__item tl__item--futuro" [class.tl__item--alerta]="f.alerta">
+      <span class="tl__ponto" aria-hidden="true">
+        <i class="fa-regular fa-clock"></i>
+      </span>
+      <div class="tl__corpo">
+        <strong class="tl__titulo">{{ f.titulo }}</strong>
+        @if (f.detalhe) {
+          <span class="tl__quem">{{ f.detalhe }}</span>
+        }
+      </div>
+    </li>
+  }
+</ol>

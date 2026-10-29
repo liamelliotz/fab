@@ -1,0 +1,100 @@
+:host {
+  display: block;
+}
+
+.tl {
+  --tl-cor: #6b7280;
+  --tl-fundo: #f3f4f6;
+
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tl__item {
+  position: relative;
+  display: flex;
+  gap: 14px;
+  padding-bottom: 18px;
+}
+
+/* Linha vertical ligando os pontos */
+.tl__item:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  top: 34px;
+  bottom: 0;
+  left: 15px;
+  width: 2px;
+  background: #e5e7eb;
+}
+
+.tl__ponto {
+  z-index: 1;
+  display: grid;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--tl-fundo);
+  color: var(--tl-cor);
+  font-size: 14px;
+}
+
+.tl__corpo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding-top: 4px;
+}
+
+.tl__titulo {
+  color: #172b24;
+  font-size: 14px;
+}
+
+.tl__quem {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.tl__detalhe {
+  margin: 4px 0 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #f9fafb;
+  color: #374151;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.tom-ok { --tl-cor: #166534; --tl-fundo: #dcfce7; }
+.tom-erro { --tl-cor: #991b1b; --tl-fundo: #fee2e2; }
+.tom-info { --tl-cor: #1d4ed8; --tl-fundo: #dbeafe; }
+.tom-aviso { --tl-cor: #92400e; --tl-fundo: #fef3c7; }
+
+/* Etapas que ainda vão acontecer */
+.tl__item--futuro .tl__ponto {
+  border: 2px dashed #cbd5d1;
+  background: #fff;
+  color: #9ca3af;
+}
+
+.tl__item--futuro .tl__titulo {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.tl__item--alerta .tl__ponto {
+  border-color: #fca5a5;
+  color: #b91c1c;
+}
+
+.tl__item--alerta .tl__titulo,
+.tl__item--alerta .tl__quem {
+  color: #b91c1c;
+}

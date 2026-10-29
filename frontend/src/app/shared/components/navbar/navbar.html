@@ -10,6 +10,9 @@
           [title]="item.label"
         >
           <i class="navbar__icon" [class]="item.icon" aria-hidden="true"></i>
+          @if (item.badge && item.badge() > 0) {
+            <span class="navbar__badge" aria-label="{{ item.badge() }} novidade(s)">{{ item.badge() }}</span>
+          }
           <span class="navbar__label">{{ item.label }}</span>
         </a>
       </li>
