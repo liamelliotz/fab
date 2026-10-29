@@ -86,6 +86,22 @@ export class AuthService {
     };
   }
 
+  /** true quando o app roda no modo demonstração (sem backend). A barra amarela de demonstração só aparece assim. */
+  readonly modoDemo: boolean = MODO_DEMO;
+
+  /**
+   * Modo demonstração: entra como uma das contas do UsuarioService sem digitar senha
+   * (usado pela barra de demonstração para mostrar os dois lados de um fluxo).
+   * Devolve false se a conta não existe, está inativa ou se o modo demonstração está desligado.
+   */
+  entrarComoDemo(id: string): boolean {
+    if (!MODO_DEMO) return false;
+    const conta = this.usuarios.buscarPorId(id);
+    if (!conta || conta.status !== 'ativo') return false;
+    this.salvarSessao(this.gerarTokenDemo(conta), conta.nome);
+    return true;
+  }
+
   /** Encerra a sessão: apaga token, perfil e nome (memória e localStorage). */
   logout(): void {
     this.limparSessao();

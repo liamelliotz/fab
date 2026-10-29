@@ -448,7 +448,7 @@ export class EmprestimoService {
   }
 
   // ===========================================================================================
-  // Balcão: retirada e devolução (com código ou manualmente)
+  // Balcão: retirada e devolução (sempre com o código)
   // ===========================================================================================
 
   /** Pedido aprovado que tem este código de retirada (sem alterar nada). Aceita texto digitado ou conteúdo do QR. */
@@ -493,18 +493,18 @@ export class EmprestimoService {
           : 'Código não encontrado. Confira se o pedido foi aprovado e se o código é o de retirada.',
       );
     }
-    return this.registrarRetirada(alvo.id, false);
+    return this.registrarRetirada(alvo.id);
   }
 
-  /** Registra a saída do material. `manual` = sem código (exceção, fica anotado na linha do tempo). */
-  registrarRetirada(id: string, manual: boolean): Resultado<Emprestimo> {
+  /** Registra a saída do material. Privado de propósito: só se chega aqui depois de conferir o código. */
+  private registrarRetirada(id: string): Resultado<Emprestimo> {
     const alvo = this.buscarPorId(id);
     if (!alvo || alvo.status !== 'aprovado') return falha('Este pedido não está aguardando retirada.');
     if (alvo.dataPrevistaDevolucao < hojeISO()) {
       return falha('O prazo de devolução deste pedido já passou. Cancele o pedido e peça um novo.');
     }
     const admin = this.ator();
-    const detalhe = `Entregue a ${alvo.responsavel.nome}${manual ? ' · registro manual, sem código' : ' · código conferido'}`;
+    const detalhe = `Entregue a ${alvo.responsavel.nome} · código conferido`;
     const atualizado: Emprestimo = {
       ...alvo,
       status: 'em_andamento',
@@ -530,11 +530,11 @@ export class EmprestimoService {
           : 'Código não encontrado. Confira se o material foi retirado e se o código é o de devolução.',
       );
     }
-    return this.registrarDevolucao(alvo.id, opcoes, false);
+    return this.registrarDevolucao(alvo.id, opcoes);
   }
 
-  /** Registra a volta do material ao laboratório e devolve as unidades ao estoque. */
-  registrarDevolucao(id: string, opcoes: OpcoesDevolucao, manual: boolean): Resultado<Emprestimo> {
+  /** Registra a volta do material e devolve as unidades ao estoque. Privado: só depois de conferir o código. */
+  private registrarDevolucao(id: string, opcoes: OpcoesDevolucao): Resultado<Emprestimo> {
     const alvo = this.buscarPorId(id);
     if (!alvo || alvo.status !== 'em_andamento') return falha('Este pedido não está em andamento.');
 
@@ -544,7 +544,7 @@ export class EmprestimoService {
       opcoes.houveAvaria ? 'Devolvido COM AVARIA' : 'Devolvido em ordem',
       diasAtraso > 0 ? `${diasAtraso} dia(s) de atraso` : '',
       opcoes.observacoes.trim(),
-      manual ? 'registro manual, sem código' : '',
+      'código conferido',
     ].filter(Boolean);
 
     const historico = [...alvo.historico];

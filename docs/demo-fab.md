@@ -64,7 +64,7 @@ já devolvido com cadeia João → Maria (para mostrar a linha do tempo completa
 | Equipamento | Campo `prazoMaximoDias` (obrigatório, 1–365). A API valida `dataPrevistaDevolucao − dataPrevistaRetirada ≤ prazo` (menor prazo entre os itens). |
 | Empréstimo | Novos campos: `responsavel`, `historico[]` (evento: `tipo`, `em`, `por`, `detalhe`), `codigoRetirada`, `codigoDevolucao`, `transferenciaPendente`, `dataRetiradaEfetiva`. |
 | Códigos | 6 caracteres sem `I L O 0 1`, uso único, gerados na aprovação (retirada) e na retirada (devolução). **Trocar o de devolução a cada transferência aceita.** Conteúdo do QR: `FAB:R:<protocolo>:<codigo>` ou `FAB:D:<protocolo>:<codigo>`. |
-| Balcão | `POST /emprestimos/balcao/retirada` e `/devolucao` (admin) recebendo o código; exceção manual registrada no histórico. |
+| Balcão | `POST /emprestimos/balcao/retirada` e `/devolucao` (admin) recebendo o código (obrigatório: não existe registro sem código). |
 | Transferência | `POST /emprestimos/:id/transferencia` (responsável), `PATCH .../transferencia/aceitar` e `/recusar` (destinatário), `DELETE .../transferencia` (quem pediu ou admin). Mesmas regras da seção 2. |
 | Auditoria | `historico` é **só de acréscimo** (nunca editar nem apagar). |
 
@@ -72,6 +72,7 @@ já devolvido com cadeia João → Maria (para mostrar a linha do tempo completa
 
 - Os dados ficam no **navegador** (localStorage): cada computador tem os seus. Não há envio real de e-mail.
 - As **senhas da demo ficam em texto** no navegador. Com o backend, só o hash existe (Card 4).
+- **Sem código não há retirada nem devolução.** Se o professor perder o código, ele o vê de novo em *Meus pedidos* (com o QR).
 - O QR é gerado no front; o **leitor** é o USB (ele "digita" o código no campo do Balcão). Ler por câmera fica para a versão com app/PWA.
 
 ## 7. Ideias para ir além (se sobrar tempo)

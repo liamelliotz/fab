@@ -11,6 +11,7 @@ type Aba = 'retirada' | 'devolucao';
  * Balcão da coordenação: entrega e recebe o material usando o código (digitado, ditado ou lido
  * do QR por um leitor USB, que "digita" o conteúdo e dá Enter).
  * O código prova que a pessoa que está no balcão é quem recebeu a aprovação.
+ * Não existe registro sem código: as listas abaixo só mostram o que está esperando.
  */
 @Component({
   selector: 'app-admin-balcao',
@@ -31,8 +32,6 @@ export class AdminBalcao {
 
   /** Pedido encontrado (pelo código ou escolhido nas listas) aguardando a confirmação. */
   readonly alvo = signal<Emprestimo | null>(null);
-  /** true = a coordenação escolheu o pedido na lista, sem usar o código (fica anotado na linha do tempo). */
-  readonly manual = signal(false);
 
   // Conferência da devolução
   readonly houveAvaria = signal(false);
@@ -81,26 +80,13 @@ export class AdminBalcao {
       this.erro.set(this.service.erroCodigo(texto, this.aba()));
       return;
     }
-    this.manual.set(false);
     this.alvo.set(achado);
-  }
-
-  /** Escolhe um pedido da lista (exceção: sem código). */
-  escolher(s: Emprestimo, aba: Aba): void {
-    this.aba.set(aba);
-    this.erro.set('');
-    this.codigo.set('');
-    this.houveAvaria.set(false);
-    this.observacoes.set('');
-    this.manual.set(true);
-    this.alvo.set(s);
   }
 
   limpar(): void {
     this.codigo.set('');
     this.erro.set('');
     this.alvo.set(null);
-    this.manual.set(false);
     this.houveAvaria.set(false);
     this.observacoes.set('');
   }
@@ -109,14 +95,14 @@ export class AdminBalcao {
     const s = this.alvo();
     if (!s) return;
 
+    // O registro só acontece com o código: o serviço confere o código de novo antes de alterar o pedido.
     const resultado =
       this.aba() === 'retirada'
-        ? this.service.registrarRetirada(s.id, this.manual())
-        : this.service.registrarDevolucao(
-            s.id,
-            { houveAvaria: this.houveAvaria(), observacoes: this.observacoes() },
-            this.manual(),
-          );
+        ? this.service.confirmarRetirada(this.codigo())
+        : this.service.confirmarDevolucao(this.codigo(), {
+            houveAvaria: this.houveAvaria(),
+            observacoes: this.observacoes(),
+          });
 
     if (!resultado.ok) {
       this.erro.set(resultado.erro);

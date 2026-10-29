@@ -57,6 +57,7 @@
         </div>
         <small>
           Leitores de QR USB funcionam sozinhos: basta clicar neste campo e escanear.
+          Sem o código não há registro. Se o professor perdeu, ele vê o código e o QR de novo em Meus pedidos.
         </small>
       </label>
       @if (erro()) {
@@ -82,12 +83,6 @@
           </p>
           @if (s.solicitante.id !== s.responsavel.id) {
             <p class="bal__info">Pedido aberto por {{ s.solicitante.nome }} e transferido a {{ s.responsavel.nome }}.</p>
-          }
-          @if (manual()) {
-            <p class="bal__aviso">
-              <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
-              Registro manual, sem código. Isso fica anotado na linha do tempo do pedido.
-            </p>
           }
 
           @if (aba() === 'devolucao') {
@@ -131,9 +126,7 @@
             <strong>{{ s.protocolo }}</strong> · {{ s.responsavel.nome }}
             <p>{{ itens(s) }} · retirada prevista {{ data(s.dataPrevistaRetirada) }}</p>
           </div>
-          <button type="button" class="bal__btn bal__btn--sutil" (click)="escolher(s, 'retirada')">
-            Registrar sem código
-          </button>
+          <span class="bal__tag">exige o código</span>
         </article>
       } @empty {
         <p class="bal__vazio">Nenhum pedido aprovado aguardando retirada.</p>
@@ -150,9 +143,7 @@
             @if (s.transferenciaPendente) { <span class="bal__tag">transferência pendente</span> }
             <p>{{ itens(s) }} · devolução até {{ data(s.dataPrevistaDevolucao) }}</p>
           </div>
-          <button type="button" class="bal__btn bal__btn--sutil" (click)="escolher(s, 'devolucao')">
-            Registrar sem código
-          </button>
+          <span class="bal__tag">exige o código</span>
         </article>
       } @empty {
         <p class="bal__vazio">Nenhum material em uso.</p>
