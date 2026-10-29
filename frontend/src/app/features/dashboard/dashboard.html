@@ -18,6 +18,25 @@
     }
   </header>
 
+  @if (!ehAdmin() && transferenciasParaMim() > 0) {
+    <a class="alerta-destaque" routerLink="/meus-emprestimos">
+      <i class="fa-solid fa-right-left" aria-hidden="true"></i>
+      <span>
+        <strong>{{ transferenciasParaMim() }} transferência(s) esperando a sua resposta.</strong>
+        Um colega quer passar um material para você. Toque para aceitar ou recusar.
+      </span>
+    </a>
+  }
+  @if (ehAdmin() && (avisosNaoLidos() > 0 || transferenciasPendentes() > 0)) {
+    <a class="alerta-destaque" routerLink="/admin/emprestimos">
+      <i class="fa-solid fa-bell" aria-hidden="true"></i>
+      <span>
+        <strong>{{ avisosNaoLidos() }} movimentação(ões) nova(s).</strong>
+        {{ transferenciasPendentes() }} transferência(s) entre professores aguardando resposta.
+      </span>
+    </a>
+  }
+
   <section class="dashboard-section" aria-labelledby="overview-title">
     <div class="section-heading">
       <h2 id="overview-title">Visão geral</h2>
@@ -153,13 +172,13 @@
           @for (s of recentes(); track s.id) {
             <li class="recent-item">
               <div class="recent-info">
-                <strong>{{ s.protocolo }}</strong>
+                <a class="recent-link" [routerLink]="['/pedidos', s.id]">{{ s.protocolo }}</a>
                 <span>
                   {{ ehAdmin() ? s.solicitante.nome + ' · ' : '' }}{{ itens(s) }}
                 </span>
                 <small>Devolução prevista: {{ data(s.dataPrevistaDevolucao) }}</small>
               </div>
-              <span class="chip chip--{{ s.status }}">{{ nomeStatus[s.status] }}</span>
+              <span class="chip chip--{{ statusExibido(s) }}">{{ nomeStatusExibido(s) }}</span>
             </li>
           }
         </ul>

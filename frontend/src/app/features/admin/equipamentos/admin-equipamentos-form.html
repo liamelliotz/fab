@@ -52,6 +52,15 @@
       }
     </label>
 
+    <label class="campo">
+      <span>Prazo máximo de empréstimo (dias)</span>
+      <input type="number" min="1" max="365" formControlName="prazoMaximoDias" />
+      <small class="dica">Quanto tempo, no máximo, uma pessoa pode ficar com este material.</small>
+      @if (form.controls.prazoMaximoDias.touched && form.controls.prazoMaximoDias.invalid) {
+        <small class="erro">Informe um prazo entre 1 e 365 dias.</small>
+      }
+    </label>
+
     <label class="campo campo-largo">
       <span>Descrição</span>
       <textarea rows="3" formControlName="descricao"></textarea>

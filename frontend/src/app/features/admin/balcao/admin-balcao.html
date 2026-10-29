@@ -1,0 +1,162 @@
+<section class="bal">
+  <header class="bal__cabecalho">
+    <h1>Balcão</h1>
+    <p>Entregue e receba materiais conferindo o código (ou o QR) que o professor mostra.</p>
+  </header>
+
+  <div class="bal__abas" role="tablist">
+    <button
+      type="button"
+      role="tab"
+      class="bal__aba"
+      [class.bal__aba--ativa]="aba() === 'retirada'"
+      [attr.aria-selected]="aba() === 'retirada'"
+      (click)="trocarAba('retirada')"
+    >
+      <i class="fa-solid fa-hand-holding" aria-hidden="true"></i>
+      Retirada
+      @if (aguardandoRetirada().length > 0) {
+        <span class="bal__contador">{{ aguardandoRetirada().length }}</span>
+      }
+    </button>
+    <button
+      type="button"
+      role="tab"
+      class="bal__aba"
+      [class.bal__aba--ativa]="aba() === 'devolucao'"
+      [attr.aria-selected]="aba() === 'devolucao'"
+      (click)="trocarAba('devolucao')"
+    >
+      <i class="fa-solid fa-box-archive" aria-hidden="true"></i>
+      Devolução
+      @if (emUso().length > 0) {
+        <span class="bal__contador">{{ emUso().length }}</span>
+      }
+    </button>
+  </div>
+
+  <div class="bal__painel">
+    @if (!alvo()) {
+      <label class="bal__campo">
+        <span>Código de {{ aba() === 'retirada' ? 'retirada' : 'devolução' }}</span>
+        <div class="bal__linha">
+          <input
+            type="text"
+            autocomplete="off"
+            autocapitalize="characters"
+            spellcheck="false"
+            placeholder="Digite o código ou escaneie o QR"
+            [value]="codigo()"
+            (input)="atualizarCodigo($event)"
+            (keydown.enter)="buscar()"
+          />
+          <button type="button" class="bal__btn bal__btn--ok" (click)="buscar()">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            Conferir
+          </button>
+        </div>
+        <small>
+          Leitores de QR USB funcionam sozinhos: basta clicar neste campo e escanear.
+        </small>
+      </label>
+      @if (erro()) {
+        <p class="bal__erro" role="alert">{{ erro() }}</p>
+      }
+    } @else {
+      @if (alvo(); as s) {
+        <div class="bal__confere">
+          <div class="bal__confere-topo">
+            <div>
+              <span class="bal__eyebrow">{{ aba() === 'retirada' ? 'ENTREGAR A' : 'RECEBER DE' }}</span>
+              <h2>{{ s.responsavel.nome }}</h2>
+              <p>{{ s.responsavel.departamento }}</p>
+            </div>
+            <a class="bal__link" [routerLink]="['/pedidos', s.id]">{{ s.protocolo }}</a>
+          </div>
+
+          <p class="bal__itens">{{ itens(s) }}</p>
+          <p class="bal__info">
+            Retirada prevista {{ data(s.dataPrevistaRetirada) }} · devolução até
+            <strong [class.bal__atraso]="atrasado(s)">{{ data(s.dataPrevistaDevolucao) }}</strong>
+            @if (atrasado(s)) { <span class="bal__atraso">(atrasado)</span> }
+          </p>
+          @if (s.solicitante.id !== s.responsavel.id) {
+            <p class="bal__info">Pedido aberto por {{ s.solicitante.nome }} e transferido a {{ s.responsavel.nome }}.</p>
+          }
+          @if (manual()) {
+            <p class="bal__aviso">
+              <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+              Registro manual, sem código. Isso fica anotado na linha do tempo do pedido.
+            </p>
+          }
+
+          @if (aba() === 'devolucao') {
+            <label class="bal__check">
+              <input type="checkbox" [checked]="houveAvaria()" (change)="atualizarAvaria($event)" />
+              <span>Material devolvido com avaria ou peça faltando</span>
+            </label>
+            <label class="bal__campo">
+              <span>Observações (opcional)</span>
+              <textarea
+                rows="2"
+                placeholder="Ex.: falta o cabo HDMI"
+                [value]="observacoes()"
+                (input)="atualizarObservacoes($event)"
+              ></textarea>
+            </label>
+          }
+
+          @if (erro()) {
+            <p class="bal__erro" role="alert">{{ erro() }}</p>
+          }
+
+          <div class="bal__acoes">
+            <button type="button" class="bal__btn" (click)="limpar()">Cancelar</button>
+            <button type="button" class="bal__btn bal__btn--ok" (click)="confirmar()">
+              <i class="fa-solid fa-check" aria-hidden="true"></i>
+              {{ aba() === 'retirada' ? 'Confirmar entrega' : 'Confirmar devolução' }}
+            </button>
+          </div>
+        </div>
+      }
+    }
+  </div>
+
+  @if (aba() === 'retirada') {
+    <div class="bal__lista">
+      <h2>Aguardando retirada ({{ aguardandoRetirada().length }})</h2>
+      @for (s of aguardandoRetirada(); track s.id) {
+        <article class="bal__item">
+          <div>
+            <strong>{{ s.protocolo }}</strong> · {{ s.responsavel.nome }}
+            <p>{{ itens(s) }} · retirada prevista {{ data(s.dataPrevistaRetirada) }}</p>
+          </div>
+          <button type="button" class="bal__btn bal__btn--sutil" (click)="escolher(s, 'retirada')">
+            Registrar sem código
+          </button>
+        </article>
+      } @empty {
+        <p class="bal__vazio">Nenhum pedido aprovado aguardando retirada.</p>
+      }
+    </div>
+  } @else {
+    <div class="bal__lista">
+      <h2>Em uso ({{ emUso().length }})</h2>
+      @for (s of emUso(); track s.id) {
+        <article class="bal__item" [class.bal__item--atraso]="atrasado(s)">
+          <div>
+            <strong>{{ s.protocolo }}</strong> · {{ s.responsavel.nome }}
+            @if (atrasado(s)) { <span class="bal__atraso">atrasado</span> }
+            @if (s.transferenciaPendente) { <span class="bal__tag">transferência pendente</span> }
+            <p>{{ itens(s) }} · devolução até {{ data(s.dataPrevistaDevolucao) }}</p>
+          </div>
+          <button type="button" class="bal__btn bal__btn--sutil" (click)="escolher(s, 'devolucao')">
+            Registrar sem código
+          </button>
+        </article>
+      } @empty {
+        <p class="bal__vazio">Nenhum material em uso.</p>
+      }
+    </div>
+  }
+</section>

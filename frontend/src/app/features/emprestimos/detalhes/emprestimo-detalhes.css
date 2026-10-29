@@ -1,0 +1,300 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.det {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 8px;
+}
+
+.det__voltar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  color: #24845c;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.det__cabecalho {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.det__eyebrow {
+  color: #24845c;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+}
+
+.det__cabecalho h1 {
+  margin: 4px 0;
+  color: #172b24;
+  font-size: 30px;
+}
+
+.det__cabecalho p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.det__status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.det__status small {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.det__prazo--alerta {
+  color: #b91c1c;
+  font-weight: 700;
+}
+
+.det__transf {
+  display: flex;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid #fcd34d;
+  border-radius: 12px;
+  background: #fffbeb;
+  color: #78350f;
+}
+
+.det__transf > i {
+  margin-top: 3px;
+  font-size: 20px;
+}
+
+.det__transf-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 14px;
+}
+
+.det__recusa {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.det__recusa input {
+  padding: 8px 10px;
+  border: 1px solid #fcd34d;
+  border-radius: 8px;
+  background: #fff;
+  font: inherit;
+  font-weight: 400;
+}
+
+.det__codigo {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 22px;
+  padding: 20px;
+  border: 2px solid #24845c;
+  border-radius: 14px;
+  background: #f0fdf4;
+}
+
+.det__codigo--devolucao {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
+
+.det__codigo app-qr-code {
+  padding: 8px;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.det__codigo-texto {
+  display: flex;
+  flex: 1 1 260px;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.det__codigo-rotulo {
+  color: #4b5563;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.det__codigo-valor {
+  color: #172b24;
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  font-size: 40px;
+  letter-spacing: 6px;
+}
+
+.det__codigo-texto p {
+  margin: 0;
+  color: #374151;
+  font-size: 14px;
+}
+
+.det__alerta {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #fee2e2;
+  color: #991b1b;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.det__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.det__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border: 1px solid #d5ddd9;
+  border-radius: 8px;
+  background: #fff;
+  color: #172b24;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.det__btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.det__btn--ok {
+  border-color: #24845c;
+  background: #24845c;
+  color: #fff;
+}
+
+.det__btn--perigo {
+  border-color: #b91c1c;
+  background: #fff;
+  color: #b91c1c;
+}
+
+.det__dica {
+  margin: 0;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.det__grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 18px;
+}
+
+.det__bloco {
+  padding: 18px;
+  border: 1px solid #e5ebe8;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.det__bloco h2 {
+  margin: 0 0 12px;
+  color: #172b24;
+  font-size: 16px;
+}
+
+.det__bloco dl {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+}
+
+.det__bloco dt {
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.det__bloco dd {
+  margin: 0;
+  color: #172b24;
+  font-size: 14px;
+}
+
+.det__atual {
+  display: flex;
+  flex-direction: column;
+  margin: 0 0 12px;
+}
+
+.det__atual span {
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.det__atual strong {
+  color: #172b24;
+  font-size: 18px;
+}
+
+.det__atual small {
+  color: #6b7280;
+}
+
+.det__cadeia-titulo {
+  margin: 0 0 6px;
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.det__cadeia {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding-left: 20px;
+  color: #374151;
+  font-size: 14px;
+}
+
+.det__cadeia--atual {
+  color: #166534;
+  font-weight: 700;
+}
+
+.det__cadeia em {
+  font-style: normal;
+  font-weight: 500;
+}
+
+.det__vazio {
+  padding: 40px 0;
+  color: #6b7280;
+  text-align: center;
+}

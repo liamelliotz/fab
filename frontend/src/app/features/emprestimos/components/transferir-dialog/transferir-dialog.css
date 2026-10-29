@@ -1,0 +1,159 @@
+.td__fundo {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.td__painel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(540px, 100%);
+  max-height: 92vh;
+  padding: 22px;
+  overflow-y: auto;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.td__painel h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: #172b24;
+  font-size: 19px;
+}
+
+.td__resumo {
+  margin: 0;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.td__regra {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #ecfdf5;
+  color: #14532d;
+  font-size: 13px;
+}
+
+.td__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.td__lista legend {
+  margin-bottom: 6px;
+  color: #172b24;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.td__op {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #d5ddd9;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.td__op--sel {
+  border-color: #24845c;
+  background: #f0fdf4;
+}
+
+.td__op--off {
+  background: #f9fafb;
+  cursor: not-allowed;
+  opacity: 0.75;
+}
+
+.td__op-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  font-size: 14px;
+}
+
+.td__op-texto small {
+  color: #6b7280;
+}
+
+.td__bloqueio {
+  color: #b91c1c;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 600;
+}
+
+.td__vazio {
+  margin: 0;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.td__campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #172b24;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.td__campo textarea {
+  padding: 10px 12px;
+  border: 1px solid #d5ddd9;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 400;
+  resize: vertical;
+}
+
+.td__erro {
+  margin: 0;
+  color: #b91c1c;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.td__acoes {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.td__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border: 1px solid #d5ddd9;
+  border-radius: 8px;
+  background: #fff;
+  color: #172b24;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.td__btn--ok {
+  border-color: #24845c;
+  background: #24845c;
+  color: #fff;
+}

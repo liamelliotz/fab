@@ -2,7 +2,7 @@
   <header class="cabecalho">
     <div>
       <h1>Meus pedidos</h1>
-      <p>Acompanhe suas solicitações e os prazos de devolução.</p>
+      <p>Acompanhe suas solicitações, os códigos de retirada e devolução e os prazos.</p>
     </div>
     <a class="btn-principal" routerLink="/meus-emprestimos/nova">
       <i class="fa-solid fa-plus" aria-hidden="true"></i>
@@ -16,6 +16,35 @@
     </p>
   }
 
+  @if (recebidas().length > 0) {
+    <section class="recebidas" aria-label="Transferências para você">
+      <h2>
+        <i class="fa-solid fa-right-left" aria-hidden="true"></i>
+        Transferências para você ({{ recebidas().length }})
+      </h2>
+      @for (s of recebidas(); track s.id) {
+        <article class="recebida">
+          <div>
+            <strong>{{ s.transferenciaPendente?.de.nome }}</strong> quer passar para você:
+            <strong>{{ itens(s) }}</strong>
+            <p class="item__info">Motivo: {{ s.transferenciaPendente?.motivo }}</p>
+            <p class="item__info">
+              {{ s.protocolo }} · o prazo de devolução continua <strong>{{ data(s.dataPrevistaDevolucao) }}</strong>
+            </p>
+          </div>
+          <div class="item__acoes">
+            <button type="button" class="btn-ok" (click)="aceitar(s)">
+              <i class="fa-solid fa-check" aria-hidden="true"></i>
+              Aceitar
+            </button>
+            <button type="button" class="btn-secundario" (click)="recusar(s)">Recusar</button>
+            <a class="btn-link" [routerLink]="['/pedidos', s.id]">Detalhes</a>
+          </div>
+        </article>
+      }
+    </section>
+  }
+
   @if (meus().length > 0) {
     <div class="lista">
       @for (s of meus(); track s.id) {
@@ -25,7 +54,7 @@
               <h3 class="item__protocolo">{{ s.protocolo }}</h3>
               <p class="item__info">Enviada em {{ data(s.dataSolicitacao) }}</p>
             </div>
-            <span class="chip chip--{{ s.status }}">{{ nomeStatus[s.status] }}</span>
+            <span class="chip chip--{{ statusExibido(s) }}">{{ nomeStatusExibido(s) }}</span>
           </div>
 
           <p class="item__info"><strong>Itens:</strong> {{ itens(s) }}</p>
@@ -34,6 +63,34 @@
             <strong>Retirada:</strong> {{ data(s.dataPrevistaRetirada) }} ·
             <strong>Devolução:</strong> {{ data(s.dataPrevistaDevolucao) }}
           </p>
+          @if (papel(s)) {
+            <p class="item__papel">{{ papel(s) }}</p>
+          }
+
+          @if (s.status === 'aprovado' && s.codigoRetirada && souResponsavel(s)) {
+            <a class="item__codigo" [routerLink]="['/pedidos', s.id]">
+              <i class="fa-solid fa-qrcode" aria-hidden="true"></i>
+              <span>Código de retirada <strong>{{ codigo(s.codigoRetirada) }}</strong></span>
+              <small>Toque para ver o QR</small>
+            </a>
+          }
+          @if (s.status === 'em_andamento' && s.codigoDevolucao && souResponsavel(s)) {
+            <a class="item__codigo item__codigo--devolucao" [routerLink]="['/pedidos', s.id]">
+              <i class="fa-solid fa-qrcode" aria-hidden="true"></i>
+              <span>Código de devolução <strong>{{ codigo(s.codigoDevolucao) }}</strong></span>
+              <small>Toque para ver o QR</small>
+            </a>
+          }
+
+          @if (s.transferenciaPendente; as t) {
+            <p class="item__transf">
+              <i class="fa-solid fa-hourglass-half" aria-hidden="true"></i>
+              Transferência para <strong>{{ t.para.nome }}</strong> aguardando resposta.
+              @if (t.de.id === eu().id) {
+                <button type="button" class="btn-link" (click)="cancelarTransferencia(s)">Cancelar</button>
+              }
+            </p>
+          }
 
           @if (atrasado(s)) {
             <p class="item__alerta">Prazo de devolução vencido. Devolva o material o quanto antes.</p>
@@ -42,13 +99,28 @@
             <p class="item__alerta">Motivo da reprovação: {{ s.motivoRejeicao }}</p>
           }
 
-          @if (s.status === 'pendente') {
-            <div class="item__acoes">
-              <button type="button" class="btn-secundario" (click)="cancelar(s)">
-                Cancelar pedido
+          <div class="item__acoes">
+            <a class="btn-link" [routerLink]="['/pedidos', s.id]">
+              <i class="fa-solid fa-timeline" aria-hidden="true"></i>
+              Detalhes e linha do tempo
+            </a>
+
+            @if (s.status === 'em_andamento' && souResponsavel(s)) {
+              <button
+                type="button"
+                class="btn-ok"
+                [disabled]="!!erroTransferencia(s)"
+                [attr.title]="erroTransferencia(s)"
+                (click)="dialogo.set(s)"
+              >
+                <i class="fa-solid fa-right-left" aria-hidden="true"></i>
+                Transferir
               </button>
-            </div>
-          }
+            }
+            @if (podeCancelar(s)) {
+              <button type="button" class="btn-secundario" (click)="cancelar(s)">Cancelar pedido</button>
+            }
+          </div>
         </article>
       }
     </div>
@@ -57,5 +129,9 @@
       <p>Você ainda não fez nenhuma solicitação.</p>
       <a class="btn-principal" routerLink="/materiais">Ver materiais disponíveis</a>
     </div>
+  }
+
+  @if (dialogo(); as d) {
+    <app-transferir-dialog [pedido]="d" (fechar)="dialogo.set(null)" />
   }
 </section>

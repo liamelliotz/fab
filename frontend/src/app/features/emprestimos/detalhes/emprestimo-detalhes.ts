@@ -1,103 +1,183 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, computed, inject, signal } from '@angular/core';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { AuthService } from '../../../core/services/auth.service';
+import {
+  EmprestimoService,
+  NOME_STATUS_EMPRESTIMO,
+} from '../../../core/services/emprestimo.service';
+import { NotificationService } from '../../../core/services/notification.service';
+import { formatarCodigo, montarPayloadQr } from '../../../core/utils/codigo.utils';
+import { formatarData, formatarDataHora } from '../../../core/utils/date.utils';
+import { LinhaDoTempo, PassoFuturo } from '../../../shared/components/linha-do-tempo/linha-do-tempo';
+import { QrCode } from '../../../shared/components/qr-code/qr-code';
+import { TransferirDialog } from '../components/transferir-dialog/transferir-dialog';
 
-// INTERFACES/ TIPAGEM DE DADOS 
-
-//Interface para os dados dos dados do requerente Professor(a) ou Funcionário(a)
-export interface RequerenteEscolar {
-    nome: string;
-    email: string;
-    cargo: string; //ex: professor(a) ou Coordenador(a)
-    setorOuDisciplina: string; //ex: matemática ou laboratório de ciências
-    matricula: string; //matrícula/id na instituição
-}
-//Interface para o cronograma de datas do empréstimo
-export interface CronogramaDatas {
-    dataSolicitacao: string;
-    dataPrevistaRetirada: string;
-    dataPrevistaDevolucao: string;
-}
-//interface para os termos de responsabilidade 
-export interface TermoResposabilidade {
-    id: number;
-    titulo: string;
-    versao: string;
-    aceitoEm: string;
-}
-//interface para cada evento do histórico
-export interface EventoTimeLine {
-    titulo: string;
-    descricao: string;
-    dataHora: string;
-    status: 'Concluido' | 'Em_andamento' | 'Pendente';
-}//interface principal que agrupa todas as informações do comprovante
-export interface EmprestimoDetalhes {
-    id: string;
-    statusGeral: string;
-    requerente: RequerenteEscolar;
-    cronograma: CronogramaDatas;
-    termos: TermoResposabilidade[];
-    linhaDoTempo: EventoTimeLine[];
-}
-
-// COMPONENTE ANGULAR
+/**
+ * Detalhes de um pedido: código e QR (retirada e devolução), responsável atual, cadeia de
+ * responsáveis, transferência e a linha do tempo completa (auditoria).
+ * Aberto em /pedidos/:id pelo professor (seus pedidos) e pela coordenação (todos).
+ */
 @Component({
-    selector: 'app-emprestimo-detalhes',
-    standalone: true,
-    imports: [CommonModule], //necessário para diretivas como *ngFor e *ngClass
-    templateUrl: './emprestimo-detalhes.html',
-    styleUrls: ['./emprestimo-detalhes.css']
+  selector: 'app-emprestimo-detalhes',
+  standalone: true,
+  imports: [RouterLink, QrCode, LinhaDoTempo, TransferirDialog],
+  templateUrl: './emprestimo-detalhes.html',
+  styleUrl: './emprestimo-detalhes.css',
 })
-export class EmprestimoDetalhesComponent implements OnInit {
-    //Objeto 'emprestimo' com dados simulados (mock) 
-    public emprestimo: EmprestimoDetalhes = {
-        id: 'REQ-2026-0892',
-        statusGeral: 'Em andamento',
+export class EmprestimoDetalhes {
+  private readonly route = inject(ActivatedRoute);
+  private readonly service = inject(EmprestimoService);
+  private readonly auth = inject(AuthService);
+  private readonly notificacoes = inject(NotificationService);
 
-        // 1. Dados do requerente (Docente/funcionario)
-        requerente: {
-            nome: 'Prof. Carlos Eduardo Santos',
-            email: 'carlos.santos@escola.edu.br',
-            cargo: 'Professor',
-            setorOuDisciplina: 'Ciências e biologia / ensino fundamental II',
-            matricula: 'FUNC-2024-8841'
-        },
-        // 2. Cronograma de datas
-        cronograma: {
-            dataSolicitacao: '101/10/2026 às 09:30',
-            dataPrevistaRetirada: '02/10/2026 às 14:00',
-            dataPrevistaDevolucao: '15/10/2026 às 18:00'
-        },
-        
-        // 3. Termos de responsabilidade 
-        termos: [
-            {
-                id: 101,
-                titulo: 'Termo de responsabilidade e conservação de equipamentos didáticos',
-                versao: 'v2.0',
-                aceitoEm: '01/10/2026 às 09:30'
-            }
-        ],
+  private readonly id = this.route.snapshot.paramMap.get('id') ?? '';
 
-        // 4. Linha do tempo de eventos do pedido
-        linhaDoTempo: [
-            {
-                titulo: 'Solicitação criada',
-                descricao: 'Requisição cadastrada pelo docente no sistema de materiais.',
-                dataHora: '01/10/2026 - 09:30',
-                status: 'Concluido'
-            },
-            {
-                titulo: 'Devolução pendente',
-                descricao: 'Aguardando devolução ao término do período do empréstimo.',
-                dataHora: 'Previsto para 15/10/2026',
-                status: 'Pendente'
-            }
-        ]
+  readonly nomeStatus = NOME_STATUS_EMPRESTIMO;
+  readonly data = formatarData;
+  readonly dataHora = formatarDataHora;
+  readonly codigo = formatarCodigo;
+
+  readonly dialogoAberto = signal(false);
+  readonly recusando = signal(false);
+  readonly motivoRecusa = signal('');
+
+  readonly eu = computed(() => this.auth.usuarioAtual());
+  readonly ehAdmin = computed(() => this.eu().perfil === 'admin');
+  readonly pedido = computed(() => this.service.buscarPorId(this.id));
+
+  /** A coordenação vê tudo; o professor só vê pedidos em que participa. */
+  readonly podeVer = computed(() => {
+    const p = this.pedido();
+    if (!p) return false;
+    const eu = this.eu();
+    return (
+      this.ehAdmin() ||
+      p.solicitante.id === eu.id ||
+      p.responsavel.id === eu.id ||
+      p.transferenciaPendente?.para.id === eu.id
+    );
+  });
+
+  readonly voltarPara = computed(() => (this.ehAdmin() ? '/admin/emprestimos' : '/meus-emprestimos'));
+  readonly souResponsavel = computed(() => this.pedido()?.responsavel.id === this.eu().id);
+  readonly souDestinatario = computed(
+    () => this.pedido()?.transferenciaPendente?.para.id === this.eu().id,
+  );
+  readonly souQuemTransfere = computed(
+    () => this.pedido()?.transferenciaPendente?.de.id === this.eu().id,
+  );
+
+  readonly atrasado = computed(() => {
+    const p = this.pedido();
+    return !!p && this.service.estaAtrasado(p);
+  });
+  readonly statusExibido = computed(() => (this.atrasado() ? 'atrasado' : this.pedido()?.status ?? ''));
+  readonly nomeStatusExibido = computed(() =>
+    this.atrasado() ? 'Atrasado' : this.nomeStatus[this.pedido()?.status ?? 'pendente'],
+  );
+
+  readonly itens = computed(() => {
+    const p = this.pedido();
+    return p ? this.service.resumoItens(p) : '';
+  });
+  readonly cadeia = computed(() => {
+    const p = this.pedido();
+    return p ? this.service.cadeiaResponsaveis(p) : [];
+  });
+
+  /** "Faltam 3 dia(s)", "Vence hoje" ou "Atrasado há 2 dia(s)". */
+  readonly prazoTexto = computed(() => {
+    const p = this.pedido();
+    if (!p || (p.status !== 'aprovado' && p.status !== 'em_andamento')) return '';
+    const dias = this.service.diasRestantes(p);
+    if (dias < 0) return `Atrasado há ${-dias} dia(s)`;
+    return dias === 0 ? 'Vence hoje' : `Faltam ${dias} dia(s)`;
+  });
+
+  /** Motivo pelo qual o botão "Transferir" está bloqueado (null = liberado). */
+  readonly erroTransferencia = computed(() => {
+    const p = this.pedido();
+    return p && this.souResponsavel() ? this.service.erroTransferencia(p, this.eu().id) : null;
+  });
+  readonly mostrarTransferir = computed(
+    () => this.pedido()?.status === 'em_andamento' && this.souResponsavel(),
+  );
+  readonly podeCancelarPedido = computed(() => {
+    const p = this.pedido();
+    if (!p || (p.status !== 'pendente' && p.status !== 'aprovado')) return false;
+    const eu = this.eu();
+    return this.ehAdmin() || p.solicitante.id === eu.id || p.responsavel.id === eu.id;
+  });
+
+  // ---- Código e QR (só o responsável atual vê; a coordenação digita o que a pessoa mostra) ----
+  readonly qrRetirada = computed(() => {
+    const p = this.pedido();
+    return p?.codigoRetirada ? montarPayloadQr('R', p.protocolo, p.codigoRetirada) : '';
+  });
+  readonly qrDevolucao = computed(() => {
+    const p = this.pedido();
+    return p?.codigoDevolucao ? montarPayloadQr('D', p.protocolo, p.codigoDevolucao) : '';
+  });
+
+  /** Etapas que ainda vão acontecer, mostradas tracejadas no fim da linha do tempo. */
+  readonly passosFuturos = computed<PassoFuturo[]>(() => {
+    const p = this.pedido();
+    if (!p) return [];
+    const devolucao: PassoFuturo = {
+      titulo: 'Devolução',
+      detalhe: `Prevista para ${formatarData(p.dataPrevistaDevolucao)}`,
+      alerta: this.atrasado(),
     };
-    constructor() {}
-    //método onrigatório devido ao 'implements OnInit'
-    ngOnInit(): void{
-
+    switch (p.status) {
+      case 'pendente':
+        return [
+          { titulo: 'Análise da coordenação', detalhe: 'Aguardando aprovação' },
+          { titulo: 'Retirada', detalhe: `Prevista para ${formatarData(p.dataPrevistaRetirada)}` },
+          devolucao,
+        ];
+      case 'aprovado':
+        return [
+          { titulo: 'Retirada no balcão', detalhe: `Prevista para ${formatarData(p.dataPrevistaRetirada)}` },
+          devolucao,
+        ];
+      case 'em_andamento':
+        return [devolucao];
+      default:
+        return [];
     }
+  });
+
+  // ---- Ações ----
+  aceitar(): void {
+    const erro = this.service.responderTransferencia(this.id, true);
+    if (erro) this.notificacoes.erro(erro);
+    else this.notificacoes.sucesso('Transferência aceita. Agora você é o responsável por este material.');
+  }
+
+  recusar(): void {
+    const erro = this.service.responderTransferencia(this.id, false, this.motivoRecusa());
+    if (erro) {
+      this.notificacoes.erro(erro);
+      return;
+    }
+    this.recusando.set(false);
+    this.motivoRecusa.set('');
+    this.notificacoes.info('Transferência recusada. O material continua com quem pediu.');
+  }
+
+  atualizarMotivoRecusa(evento: Event): void {
+    this.motivoRecusa.set((evento.target as HTMLInputElement).value);
+  }
+
+  cancelarTransferencia(): void {
+    const erro = this.service.cancelarTransferencia(this.id);
+    if (erro) this.notificacoes.erro(erro);
+    else this.notificacoes.info('Pedido de transferência cancelado.');
+  }
+
+  cancelarPedido(): void {
+    const erro = this.service.cancelar(this.id);
+    if (erro) this.notificacoes.erro(erro);
+    else this.notificacoes.info('Pedido cancelado.');
+  }
 }

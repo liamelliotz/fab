@@ -36,6 +36,7 @@
             <th>Nome</th>
             <th>Categoria</th>
             <th>Qtd.</th>
+            <th>Prazo máx.</th>
             <th>Status</th>
             <th>Ações</th>
           </tr>
@@ -52,6 +53,7 @@
               </td>
               <td>{{ nomeCategoria(e.categoria) }}</td>
               <td>{{ e.quantidadeDisponivel }}/{{ e.quantidadeTotal }}</td>
+              <td>{{ e.prazoMaximoDias }} dia(s)</td>
               <td>
                 <span class="status status-{{ e.status }}">{{ nomeStatus(e.status) }}</span>
               </td>

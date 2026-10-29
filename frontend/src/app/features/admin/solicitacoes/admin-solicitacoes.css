@@ -186,3 +186,13 @@
   color: #b91c1c;
   font-size: 13px;
 }
+
+.sol__link {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #24845c;
+  font-size: 13px;
+  font-weight: 600;
+}

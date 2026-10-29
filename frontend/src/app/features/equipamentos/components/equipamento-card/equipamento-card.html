@@ -27,6 +27,10 @@
         <span [title]="equipamento.localizacao">Local: {{ equipamento.localizacao }}</span>
       </li>
       <li>
+        <i class="fa-regular fa-clock" aria-hidden="true"></i>
+        <span>Prazo máximo: {{ equipamento.prazoMaximoDias }} dia(s)</span>
+      </li>
+      <li>
         <i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i>
         <span>
           Disponíveis: {{ equipamento.quantidadeDisponivel }} de {{ equipamento.quantidadeTotal }}

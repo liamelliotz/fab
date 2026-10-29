@@ -1,121 +1,218 @@
 <div class="pagina-usuarios">
-
   <header class="cabecalho">
     <div>
-      <h1>Gestão de Utilizadores</h1>
-      <p>Consulte as contas cadastradas e gerencie os perfis de acesso.</p>
+      <h1>Gestão de Usuários</h1>
+      <p>Crie contas, defina perfis e conceda as habilitações exigidas por alguns equipamentos.</p>
     </div>
+    <button type="button" class="btn-novo" (click)="alternarForm()">
+      <i class="fa-solid {{ formAberto() ? 'fa-xmark' : 'fa-user-plus' }}" aria-hidden="true"></i>
+      {{ formAberto() ? 'Fechar' : 'Novo usuário' }}
+    </button>
   </header>
 
-  <section class="resumo">
-
-    <div class="card">
-      <p>Total de utilizadores</p>
-      <strong>{{ totalUsuarios }}</strong>
+  @if (credencial(); as c) {
+    <div class="credencial" role="status">
+      <div>
+        <strong>Conta criada para {{ c.nome }}.</strong>
+        <p>
+          Repasse estes dados à pessoa: e-mail <code>{{ c.email }}</code> e senha provisória
+          <code>{{ c.senha }}</code>. Esta é a única vez que a senha aparece.
+        </p>
+      </div>
+      <button type="button" class="btn-sutil" (click)="fecharCredencial()">Entendi</button>
     </div>
+  }
 
+  @if (formAberto()) {
+    <section class="painel">
+      <div class="topo-painel">
+        <div>
+          <h2>Novo usuário</h2>
+          <p>Só o administrador cria contas. A pessoa entra com o e-mail e a senha provisória.</p>
+        </div>
+      </div>
+
+      <form class="formulario" [formGroup]="form" (ngSubmit)="criar()" novalidate>
+        <label class="campo campo--largo">
+          <span>Nome completo</span>
+          <input type="text" formControlName="nome" placeholder="Nome e sobrenome" />
+          @if (getError('nome')) { <small class="erro">{{ getError('nome') }}</small> }
+        </label>
+
+        <label class="campo">
+          <span>E-mail</span>
+          <input type="email" formControlName="email" placeholder="nome@escola.br" />
+          @if (getError('email')) { <small class="erro">{{ getError('email') }}</small> }
+        </label>
+
+        <label class="campo">
+          <span>CPF</span>
+          <input type="text" formControlName="cpf" placeholder="000.000.000-00" inputmode="numeric" />
+          @if (getError('cpf')) { <small class="erro">{{ getError('cpf') }}</small> }
+        </label>
+
+        <label class="campo">
+          <span>Telefone</span>
+          <input type="text" formControlName="telefone" placeholder="(00) 00000-0000" inputmode="tel" />
+          @if (getError('telefone')) { <small class="erro">{{ getError('telefone') }}</small> }
+        </label>
+
+        <label class="campo">
+          <span>Departamento / disciplina (opcional)</span>
+          <input type="text" formControlName="departamento" placeholder="Ex.: Informática" />
+        </label>
+
+        <label class="campo">
+          <span>Matrícula (opcional)</span>
+          <input type="text" formControlName="matricula" />
+        </label>
+
+        <label class="campo">
+          <span>Perfil</span>
+          <select formControlName="perfil">
+            <option value="usuario">Professor (usuário comum)</option>
+            <option value="admin">Administrador</option>
+          </select>
+        </label>
+
+        <label class="campo campo--largo">
+          <span>Senha provisória (mínimo 8 caracteres)</span>
+          <div class="campo__linha">
+            <input type="text" formControlName="senha" autocomplete="off" />
+            <button type="button" class="btn-sutil" (click)="gerarSenha()">
+              <i class="fa-solid fa-dice" aria-hidden="true"></i>
+              Gerar outra
+            </button>
+          </div>
+          @if (getError('senha')) { <small class="erro">{{ getError('senha') }}</small> }
+        </label>
+
+        @if (erroForm()) {
+          <p class="erro-geral campo--largo" role="alert">{{ erroForm() }}</p>
+        }
+
+        <div class="rodape campo--largo">
+          <button type="button" class="btn-sutil" (click)="alternarForm()">Cancelar</button>
+          <button type="submit" class="btn-novo">Criar conta</button>
+        </div>
+      </form>
+    </section>
+  }
+
+  <section class="resumo">
+    <div class="card">
+      <p>Total de usuários</p>
+      <strong>{{ totalUsuarios() }}</strong>
+    </div>
     <div class="card card-admin">
       <p>Administradores</p>
-      <strong>{{ totalAdmins }}</strong>
+      <strong>{{ totalAdmins() }}</strong>
     </div>
-
     <div class="card card-user">
-      <p>Utilizadores</p>
-      <strong>{{ totalUsers }}</strong>
+      <p>Professores</p>
+      <strong>{{ totalProfessores() }}</strong>
     </div>
-
   </section>
 
   <section class="painel">
-
     <div class="topo-painel">
-
       <div>
         <h2>Contas cadastradas</h2>
-        <p>Gerencie os perfis de acesso ao sistema.</p>
+        <p>Desative quem não deve mais entrar e conceda habilitações para equipamentos com treinamento.</p>
       </div>
-
       <input
         class="busca"
-        type="text"
-        [(ngModel)]="termoBusca"
-        placeholder="Buscar por nome ou e-mail">
+        type="search"
+        placeholder="Buscar por nome, e-mail ou departamento"
+        aria-label="Buscar usuário"
+        (input)="atualizarBusca($event)"
+      />
     </div>
 
     <div class="tabela-container">
-
       <table>
-
         <thead>
           <tr>
-            <th>ID</th>
             <th>Nome</th>
             <th>E-mail</th>
             <th>Perfil</th>
             <th>Status</th>
-            <th>Ação</th>
+            <th>Habilitações</th>
+            <th>Ações</th>
           </tr>
         </thead>
-
         <tbody>
-
-          <tr *ngFor="let usuario of usuariosFiltrados">
-
-            <td>#{{ usuario.id }}</td>
-
-            <td>
-              <strong>{{ usuario.nome }}</strong>
-            </td>
-
-            <td>{{ usuario.email }}</td>
-
-            <td>
-              <span
-                class="perfil"
-                [class.admin]="usuario.perfil === 'ADMIN'"
-                [class.user]="usuario.perfil === 'USER'">
-
-                {{ usuario.perfil }}
-
-              </span>
-            </td>
-
-            <td>
-              <span
-                class="status"
-                [class.ativo]="usuario.status === 'Ativo'"
-                [class.inativo]="usuario.status === 'Inativo'">
-
-                {{ usuario.status }}
-
-              </span>
-            </td>
-
-            <td>
-              <button
-                class="botao-perfil"
-                (click)="alterarPerfil(usuario)">
-
-                Tornar
-                {{ usuario.perfil === 'ADMIN' ? 'USER' : 'ADMIN' }}
-
-              </button>
-            </td>
-
-          </tr>
-
-          <tr *ngIf="usuariosFiltrados.length === 0">
-            <td colspan="6" class="sem-resultados">
-              Nenhum utilizador encontrado.
-            </td>
-          </tr>
-
+          @for (u of filtrados(); track u.id) {
+            <tr [class.linha-inativa]="u.status !== 'ativo'">
+              <td>
+                <strong>{{ u.nome }}</strong>
+                @if (ehEu(u)) { <small class="voce">você</small> }
+                @if (u.departamento) { <small class="depto">{{ u.departamento }}</small> }
+              </td>
+              <td>{{ u.email }}</td>
+              <td>
+                <span class="perfil" [class.admin]="u.perfil === 'admin'" [class.user]="u.perfil === 'usuario'">
+                  {{ nomePerfil(u.perfil) }}
+                </span>
+              </td>
+              <td>
+                <span class="status" [class.ativo]="u.status === 'ativo'" [class.inativo]="u.status !== 'ativo'">
+                  {{ nomeStatus(u.status) }}
+                </span>
+              </td>
+              <td class="habilitacoes">{{ habilitacoes(u) }}</td>
+              <td>
+                <div class="acoes">
+                  @if (u.perfil === 'usuario') {
+                    <button type="button" class="botao-perfil" (click)="abrirHabilitacoes(u)">
+                      <i class="fa-solid fa-certificate" aria-hidden="true"></i>
+                      Habilitações
+                    </button>
+                  }
+                  @if (!ehEu(u)) {
+                    <button type="button" class="botao-perfil" (click)="alterarPerfil(u)">
+                      Tornar {{ u.perfil === 'admin' ? 'professor' : 'admin' }}
+                    </button>
+                    <button type="button" class="botao-perfil" [class.botao-perigo]="u.status === 'ativo'" (click)="alternarStatus(u)">
+                      {{ u.status === 'ativo' ? 'Desativar' : 'Reativar' }}
+                    </button>
+                  }
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="sem-resultados">Nenhum usuário encontrado.</td>
+            </tr>
+          }
         </tbody>
-
       </table>
-
     </div>
-
   </section>
 
+  @if (habilitando(); as u) {
+    <div class="fundo" (click)="fecharHabilitacoes()">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="hab-titulo" (click)="$event.stopPropagation()">
+        <h2 id="hab-titulo">Habilitações de {{ u.nome }}</h2>
+        <p class="modal__texto">
+          Equipamentos que exigem treinamento. Sem a habilitação, a pessoa não consegue solicitar o material
+          nem receber uma transferência dele.
+        </p>
+        @for (e of treinaveis(); track e.id) {
+          <label class="hab">
+            <input type="checkbox" [checked]="habilitadoEm(u, e)" (change)="alternarHabilitacao(u, e, $event)" />
+            <span>
+              <strong>{{ e.nome }}</strong>
+              <small>{{ e.codigoPatrimonio }}</small>
+            </span>
+          </label>
+        } @empty {
+          <p class="modal__texto">Nenhum equipamento exige treinamento no momento.</p>
+        }
+        <div class="rodape">
+          <button type="button" class="btn-novo" (click)="fecharHabilitacoes()">Concluir</button>
+        </div>
+      </div>
+    </div>
+  }
 </div>

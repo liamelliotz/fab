@@ -4,8 +4,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 // ReactiveFormsModule: habilita formulário reativo (formGroup, formControlName)
 // FormBuilder: facilita criar o formulário; Validators: regras de validação
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-// RouterLink: permite usar [routerLink] no template (link de navegação sem recarregar a página)
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 // Componentes reutilizáveis criados no Card 5
 import { Button } from '../../../shared/components/button/button';
 import { Input } from '../../../shared/components/input/input';
@@ -16,7 +15,7 @@ import { AuthService } from '../../../core/services/auth.service';
   selector: 'app-login', // tag: <app-login>
   standalone: true,
   // Tudo que o template usa precisa estar listado aqui
-  imports: [ReactiveFormsModule, RouterLink, Button, Input],
+  imports: [ReactiveFormsModule, Button, Input],
   templateUrl: './login.html',
   styleUrl: './login.css',
 })
@@ -78,7 +77,9 @@ export class Login {
         this.erroApi.set(
           erro.status === 401
             ? 'E-mail ou senha incorretos'
-            : 'Não foi possível entrar. Tente novamente em instantes.',
+            : erro.status === 403
+              ? 'Esta conta está desativada. Procure a coordenação.'
+              : 'Não foi possível entrar. Tente novamente em instantes.',
         );
       },
     });

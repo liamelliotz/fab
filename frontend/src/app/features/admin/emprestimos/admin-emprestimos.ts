@@ -1,66 +1,95 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, computed, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { Emprestimo, StatusEmprestimo } from '../../../core/models/emprestimo.model';
+import {
+  EmprestimoService,
+  NOME_STATUS_EMPRESTIMO,
+} from '../../../core/services/emprestimo.service';
+import { formatarData, formatarDataHora } from '../../../core/utils/date.utils';
 
-interface Emprestimo {
-  id: number;
-  item: string;
-  responsavel: string;
-  dataEmprestimo: string;
-  dataPrevistaDevolucao: string;
-  status: 'Ativo' | 'Atrasado' | 'Devolvido';
-}
+type FiltroStatus = StatusEmprestimo | 'todos';
 
 @Component({
   selector: 'app-admin-emprestimos',
   standalone: true,
-  imports: [CommonModule],
+  imports: [RouterLink],
   templateUrl: './admin-emprestimos.html',
-  styleUrl: './admin-emprestimos.css'
+  styleUrl: './admin-emprestimos.css',
 })
 export class AdminEmprestimos {
+  private readonly service = inject(EmprestimoService);
 
-  emprestimos: Emprestimo[] = [
-    {
-      id: 1,
-      item: 'Notebook Dell',
-      responsavel: 'João Silva',
-      dataEmprestimo: '01/10/2026',
-      dataPrevistaDevolucao: '10/10/2026',
-      status: 'Ativo'
-    },
-    {
-      id: 2,
-      item: 'Projetor Epson',
-      responsavel: 'Maria Santos',
-      dataEmprestimo: '20/09/2026',
-      dataPrevistaDevolucao: '30/09/2026',
-      status: 'Atrasado'
-    },
-    {
-      id: 3,
-      item: 'Notebook Lenovo',
-      responsavel: 'Carlos Souza',
-      dataEmprestimo: '15/09/2026',
-      dataPrevistaDevolucao: '25/09/2026',
-      status: 'Devolvido'
-    }
-  ];
+  readonly data = formatarData;
+  readonly dataHora = formatarDataHora;
+  readonly nomeStatus = NOME_STATUS_EMPRESTIMO;
 
-  get totalAtivos(): number {
-    return this.emprestimos.filter(
-      emprestimo => emprestimo.status === 'Ativo'
-    ).length;
+  readonly busca = signal('');
+  readonly filtro = signal<FiltroStatus>('todos');
+
+  /** Tudo que já passou da análise (pedidos pendentes ficam na tela Solicitações). */
+  private readonly emCirculacao = computed(() =>
+    this.service.todas().filter((s) => s.status !== 'pendente'),
+  );
+
+  readonly totalAtivos = computed(() => this.service.emAndamento().length);
+  readonly totalAguardando = computed(
+    () => this.service.todas().filter((s) => s.status === 'aprovado').length,
+  );
+  readonly totalAtrasados = computed(
+    () => this.service.todas().filter((s) => this.service.estaAtrasado(s)).length,
+  );
+  readonly totalDevolvidos = computed(
+    () => this.service.todas().filter((s) => s.status === 'devolvido').length,
+  );
+  readonly totalTransferencias = computed(
+    () => this.service.todas().filter((s) => !!s.transferenciaPendente).length,
+  );
+
+  readonly emprestimos = computed(() => {
+    const termo = this.busca().trim().toLowerCase();
+    const filtro = this.filtro();
+    return this.emCirculacao().filter((s) => {
+      if (filtro === 'atrasado' && !this.service.estaAtrasado(s)) return false;
+      if (filtro !== 'todos' && filtro !== 'atrasado' && s.status !== filtro) return false;
+      return (
+        !termo ||
+        s.protocolo.toLowerCase().includes(termo) ||
+        s.responsavel.nome.toLowerCase().includes(termo) ||
+        s.solicitante.nome.toLowerCase().includes(termo) ||
+        this.service.resumoItens(s).toLowerCase().includes(termo)
+      );
+    });
+  });
+
+  /** Movimentações recentes (novas solicitações, transferências...). */
+  readonly avisos = computed(() => this.service.avisos().slice(0, 8));
+  readonly naoLidos = this.service.avisosNaoLidos;
+
+  itens(s: Emprestimo): string {
+    return this.service.resumoItens(s);
   }
 
-  get totalAtrasados(): number {
-    return this.emprestimos.filter(
-      emprestimo => emprestimo.status === 'Atrasado'
-    ).length;
+  atrasado(s: Emprestimo): boolean {
+    return this.service.estaAtrasado(s);
   }
 
-  get totalDevolvidos(): number {
-    return this.emprestimos.filter(
-      emprestimo => emprestimo.status === 'Devolvido'
-    ).length;
+  statusExibido(s: Emprestimo): string {
+    return this.atrasado(s) ? 'atrasado' : s.status;
+  }
+
+  nomeStatusExibido(s: Emprestimo): string {
+    return this.atrasado(s) ? 'Atrasado' : this.nomeStatus[s.status];
+  }
+
+  atualizarBusca(evento: Event): void {
+    this.busca.set((evento.target as HTMLInputElement).value);
+  }
+
+  atualizarFiltro(evento: Event): void {
+    this.filtro.set((evento.target as HTMLSelectElement).value as FiltroStatus);
+  }
+
+  marcarLidos(): void {
+    this.service.marcarAvisosLidos();
   }
 }

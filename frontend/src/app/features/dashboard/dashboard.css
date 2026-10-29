@@ -239,3 +239,34 @@
     gap: 8px;
   }
 }
+
+
+.alerta-destaque {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border: 1px solid #fcd34d;
+  border-radius: 12px;
+  background: #fffbeb;
+  color: #78350f;
+  font-size: 14px;
+}
+
+.alerta-destaque > i {
+  font-size: 22px;
+}
+
+.alerta-destaque:hover {
+  background: #fef3c7;
+}
+
+.recent-link {
+  color: #172b24;
+  font-weight: 700;
+}
+
+.recent-link:hover {
+  color: #24845c;
+  text-decoration: underline;
+}

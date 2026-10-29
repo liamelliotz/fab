@@ -46,11 +46,8 @@
         {{ carregando() ? 'Entrando...' : 'Entrar' }}
       </app-button>
 
-      <!-- Link para a tela de registro (rota definida em app.routes.ts) -->
-      <p class="login__register">
-        Não tem conta?
-        <a routerLink="/cadastro">Cadastre-se</a>
-      </p>
+      <!-- Não há cadastro público: as contas são criadas pelo administrador (tela Usuários) -->
+      <p class="login__register">Não tem acesso? Procure a coordenação do laboratório.</p>
     </form>
   </section>
 </main>

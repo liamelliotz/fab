@@ -10,11 +10,6 @@ export const routes: Routes = [
     title: 'Entrar | FAB',
     loadComponent: () => import('./features/auth/login/login').then((m) => m.Login),
   },
-  {
-    path: 'cadastro',
-    title: 'Cadastro | FAB',
-    loadComponent: () => import('./features/auth/cadastro/cadastro').then((m) => m.Cadastro),
-  },
 
   // O error.interceptor redireciona para /auth/login quando a sessão expira
   { path: 'auth/login', redirectTo: 'login' },
@@ -26,8 +21,8 @@ export const routes: Routes = [
     component: MainLayout,
     canActivate: [authGuard],
     children: [
-      // Área administrativa: /admin/solicitacoes, /admin/emprestimos, /admin/equipamentos,
-      // /admin/manutencao, /admin/usuarios e /admin/relatorios
+      // Área administrativa: /admin/solicitacoes, /admin/balcao, /admin/emprestimos,
+      // /admin/equipamentos, /admin/manutencao, /admin/usuarios e /admin/relatorios
       {
         path: 'admin',
         canActivate: [adminGuard],
@@ -60,6 +55,16 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/emprestimos/solicitar/emprestimo-solicitar').then(
             (m) => m.EmprestimoSolicitar,
+          ),
+      },
+      // Detalhes de um pedido (código/QR, responsáveis e linha do tempo). O professor vê só os
+      // pedidos em que participa; a coordenação vê todos (a própria tela confere).
+      {
+        path: 'pedidos/:id',
+        title: 'Pedido | FAB',
+        loadComponent: () =>
+          import('./features/emprestimos/detalhes/emprestimo-detalhes').then(
+            (m) => m.EmprestimoDetalhes,
           ),
       },
       {

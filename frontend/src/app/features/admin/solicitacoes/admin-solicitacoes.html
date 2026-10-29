@@ -15,7 +15,8 @@
     <select class="sol__campo" aria-label="Status" (change)="atualizarStatus($event)">
       <option value="">Todos os status</option>
       <option value="pendente">Pendente</option>
-      <option value="aprovado">Aprovado</option>
+      <option value="aprovado">Aprovado (aguardando retirada)</option>
+      <option value="em_andamento">Em andamento</option>
       <option value="rejeitado">Reprovado</option>
       <option value="devolvido">Devolvido</option>
       <option value="cancelado">Cancelado</option>
@@ -43,6 +44,11 @@
           @if (s.motivoRejeicao) {
             <p class="sol__motivo">Motivo da reprovação: {{ s.motivoRejeicao }}</p>
           }
+
+          <a class="sol__link" [routerLink]="['/pedidos', s.id]">
+            <i class="fa-solid fa-timeline" aria-hidden="true"></i>
+            Linha do tempo
+          </a>
 
           @if (s.status === 'pendente') {
             <div class="sol__acoes">

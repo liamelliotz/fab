@@ -1,103 +1,199 @@
-<!-- Container principal do comprovantede detalhes -->
- <div class="detalhes-container">
+<section class="det">
+  <a class="det__voltar" [routerLink]="voltarPara()">
+    <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+    Voltar
+  </a>
 
-<!-- CABEÇALHO DO COMPROVANTE -->
- <header class="'detalhes-header">
+  @if (pedido(); as p) {
+    @if (podeVer()) {
+      <header class="det__cabecalho">
+        <div>
+          <span class="det__eyebrow">PEDIDO</span>
+          <h1>{{ p.protocolo }}</h1>
+          <p>{{ itens() }}</p>
+        </div>
+        <div class="det__status">
+          <span class="chip chip--{{ statusExibido() }}">{{ nomeStatusExibido() }}</span>
+          @if (prazoTexto()) {
+            <small [class.det__prazo--alerta]="atrasado()">{{ prazoTexto() }}</small>
+          }
+        </div>
+      </header>
 
-    <div class="titulo-area">
-<h2>Comprovante de requisição de empréstimo</h2>
-<p class="codigo-requisicao">Código: <strong>{{ emprestimo.id }}</strong></p>
-    </div>
+      <!-- Transferência aguardando resposta -->
+      @if (p.transferenciaPendente; as t) {
+        <div class="det__transf">
+          <i class="fa-solid fa-right-left" aria-hidden="true"></i>
+          <div class="det__transf-texto">
+            @if (souDestinatario()) {
+              <strong>{{ t.de.nome }} quer transferir este material para você.</strong>
+              <span>Motivo: {{ t.motivo }}</span>
+              <span>Ao aceitar, você assume o material e o prazo de devolução continua {{ data(p.dataPrevistaDevolucao) }}.</span>
 
-<!-- Badge de status geral -->
- <span class="badge-status">{{ emprestimo.statusGeral }}</span>
- </header>
+              @if (recusando()) {
+                <label class="det__recusa">
+                  <span>Motivo da recusa (opcional)</span>
+                  <input type="text" [value]="motivoRecusa()" (input)="atualizarMotivoRecusa($event)" />
+                </label>
+                <div class="det__acoes">
+                  <button type="button" class="det__btn" (click)="recusando.set(false)">Voltar</button>
+                  <button type="button" class="det__btn det__btn--perigo" (click)="recusar()">Confirmar recusa</button>
+                </div>
+              } @else {
+                <div class="det__acoes">
+                  <button type="button" class="det__btn det__btn--ok" (click)="aceitar()">
+                    <i class="fa-solid fa-check" aria-hidden="true"></i>
+                    Aceitar transferência
+                  </button>
+                  <button type="button" class="det__btn" (click)="recusando.set(true)">Recusar</button>
+                </div>
+              }
+            } @else {
+              <strong>Transferência aguardando resposta de {{ t.para.nome }}.</strong>
+              <span>Motivo: {{ t.motivo }}</span>
+              <span>Até a resposta, {{ t.de.nome }} continua responsável pelo material.</span>
+              @if (souQuemTransfere() || ehAdmin()) {
+                <div class="det__acoes">
+                  <button type="button" class="det__btn" (click)="cancelarTransferencia()">
+                    Cancelar transferência
+                  </button>
+                </div>
+              }
+            }
+          </div>
+        </div>
+      }
 
-<div class="divisor"></div>
+      <!-- Código e QR da retirada -->
+      @if (p.status === 'aprovado' && p.codigoRetirada && souResponsavel()) {
+        <div class="det__codigo">
+          <app-qr-code [valor]="qrRetirada()" [tamanho]="168" rotulo="QR Code de retirada" />
+          <div class="det__codigo-texto">
+            <span class="det__codigo-rotulo">Código de retirada</span>
+            <strong class="det__codigo-valor">{{ codigo(p.codigoRetirada) }}</strong>
+            <p>
+              Pedido aprovado! Vá à coordenação, mostre este QR ou diga o código ao administrador e retire o
+              material. Retirada prevista: {{ data(p.dataPrevistaRetirada) }}.
+            </p>
+          </div>
+        </div>
+      }
 
-<!-- SEÇÃO 1: DADOS DO REQUERENTE -->
- <section class="secao-detalhe">
-<h3 class="titulo-secao">1. Dados do requerente</h3>
-<div class="grid-requerente">
+      <!-- Código e QR da devolução -->
+      @if (p.status === 'em_andamento' && p.codigoDevolucao && souResponsavel()) {
+        <div class="det__codigo det__codigo--devolucao">
+          <app-qr-code [valor]="qrDevolucao()" [tamanho]="168" rotulo="QR Code de devolução" />
+          <div class="det__codigo-texto">
+            <span class="det__codigo-rotulo">Código de devolução</span>
+            <strong class="det__codigo-valor">{{ codigo(p.codigoDevolucao) }}</strong>
+            <p>
+              Ao devolver o material, mostre este QR ou diga o código ao administrador. Devolução até
+              {{ data(p.dataPrevistaDevolucao) }}.
+            </p>
+          </div>
+        </div>
+      }
 
-    <div class="campo-info">
-<span class="rotulo">Nome completo:</span>
-<span class="valor">{{ emprestimo.requerente.nome }}</span>
-    </div>
+      @if (atrasado()) {
+        <p class="det__alerta" role="alert">
+          O prazo de devolução venceu. Devolva o material o quanto antes
+          (pedidos atrasados não podem ser transferidos).
+        </p>
+      }
+      @if (p.motivoRejeicao) {
+        <p class="det__alerta">Motivo da reprovação: {{ p.motivoRejeicao }}</p>
+      }
 
-    <div class="campo-info">
-<span class="rotulo">Matrícula funcional:</span>
-<span class="valor">{{ emprestimo.requerente.matricula }}</span>
-    </div>
-    <div class="campo-info">
-        <span class="rotulo">Cargo / Função:</span>
-        <span class="valor">{{ emprestimo.requerente.cargo }}</span>
-    </div>
-    <div class="campo-info">
-        <span class="rotulo">Setor / Disciplina:</span>
-        <span class="valor">{{ emprestimo.requerente.setorOuDisciplina }}</span>
-    </div>
-    <div class="campo-info">
-        <span class="rotulo">E-mail institucional:</span>
-        <span class="valor">{{ emprestimo.requerente.email }}</span>
-    </div>
-</div>
- </section>
+      <!-- Ações do responsável -->
+      @if (mostrarTransferir() || podeCancelarPedido()) {
+        <div class="det__acoes">
+          @if (mostrarTransferir()) {
+            <button
+              type="button"
+              class="det__btn det__btn--ok"
+              [disabled]="!!erroTransferencia()"
+              [attr.title]="erroTransferencia()"
+              (click)="dialogoAberto.set(true)"
+            >
+              <i class="fa-solid fa-right-left" aria-hidden="true"></i>
+              Transferir para outro professor
+            </button>
+          }
+          @if (podeCancelarPedido()) {
+            <button type="button" class="det__btn det__btn--perigo" (click)="cancelarPedido()">
+              Cancelar pedido
+            </button>
+          }
+        </div>
+        @if (mostrarTransferir() && erroTransferencia()) {
+          <p class="det__dica">{{ erroTransferencia() }}</p>
+        }
+      }
 
- <!-- SEÇÃO 2: CRONOGRAMA DE DATAS -->
-  <section class="secao-detalhe">
-<h3 class="titulo-secao">2. Cronograma do empréstimo</h3>
-<div class="cards-cronograma">
-<div class="card-data">
-    <span class="rotulo-data">Data de solicitação</span>
-    <strong class="valor-data">{{ emprestimo.cronograma.dataPrevistaDevolucao }}</strong> 
-</div>
-<div class="card-data">
-    <span class="rotulo-data">Previsão de retirada:</span>
-    <strong class="valor-data">{{ emprestimo.cronograma.dataPrevistaRetirada }}</strong>
-</div>
-<div class="card-data">
-     <span class="rotulo-data">Previsão de devolução:</span>
-     <strong class="valor-data">{{ emprestimo.cronograma.dataPrevistaDevolucao }}</strong>
-</div>
-</div>
-  </section>
+      <div class="det__grade">
+        <article class="det__bloco">
+          <h2>Dados do pedido</h2>
+          <dl>
+            <div><dt>Justificativa</dt><dd>{{ p.justificativa }}</dd></div>
+            <div><dt>Solicitado em</dt><dd>{{ data(p.dataSolicitacao) }}</dd></div>
+            <div>
+              <dt>Retirada</dt>
+              <dd>
+                Prevista {{ data(p.dataPrevistaRetirada) }}
+                @if (p.dataRetiradaEfetiva) { · feita em {{ data(p.dataRetiradaEfetiva) }} }
+              </dd>
+            </div>
+            <div>
+              <dt>Devolução</dt>
+              <dd>
+                Prevista {{ data(p.dataPrevistaDevolucao) }}
+                @if (p.dataDevolucaoEfetiva) { · feita em {{ data(p.dataDevolucaoEfetiva) }} }
+              </dd>
+            </div>
+            @if (p.responsavelAprovacao) {
+              <div><dt>Avaliado por</dt><dd>{{ p.responsavelAprovacao.nome }}</dd></div>
+            }
+            @if (p.observacoesDevolucao) {
+              <div><dt>Observações da devolução</dt><dd>{{ p.observacoesDevolucao }}</dd></div>
+            }
+          </dl>
+        </article>
 
-  <!-- SEÇÃO 3: TERMOS DE RESPONSABILIDADE -->
-   <section class="secao-detalhe">
-<h3 class="tituli-secao">3. Termo de responsabilidade</h3>
-<ul class="lista-temos">
-    <!-- Loop sobre a lista de termos -->
-     <li *ngFor="let termo of emprestimo.termos" class="item-termo">
-<span class="icone-check">joia</span>
-<div class="conteudo-termo">
-<strong>{{ termo.titulo }}</strong> <small>({{ termo.versao }})</small>
-<p class="data-aceite">Aceito digitalmente em: {{ termo.aceitoEm }}</p>
-</div>
-     </li>
-</ul>
-   </section>
+        <article class="det__bloco">
+          <h2>Responsáveis</h2>
+          <p class="det__atual">
+            <span>Responsável agora</span>
+            <strong>{{ p.responsavel.nome }}</strong>
+            @if (p.responsavel.departamento) { <small>{{ p.responsavel.departamento }}</small> }
+          </p>
+          @if (cadeia().length > 1) {
+            <p class="det__cadeia-titulo">Cadeia de responsáveis</p>
+            <ol class="det__cadeia">
+              @for (u of cadeia(); track $index; let ultimo = $last) {
+                <li [class.det__cadeia--atual]="ultimo">
+                  {{ u.nome }}
+                  @if (ultimo) { <em>(atual)</em> }
+                </li>
+              }
+            </ol>
+          } @else {
+            <p class="det__dica">Este pedido nunca foi transferido.</p>
+          }
+        </article>
+      </div>
 
-   <!-- SEÇÃO 4: LINHA DO TEMPO (TIMELINE DE EVENTOS)-->
-    <section class="secao-detalhe">
-<h3 class="titulo-secao">4. Linha do tempo do pedido</h3>
-<div class="timeline">
-    <!-- Loop sobre os eventos da timeline com classe dinâmica para o status -->
-     <div
-     *ngFor="let evento of emprestimo.linhaDoTempo"
-     class="item-timeline"
-     [ngClass]="evento.status"
-     >
-<!-- Marcador circular da timeline -->
- <div class="ponto-timeline"></div>
+      <article class="det__bloco">
+        <h2>Linha do tempo</h2>
+        <app-linha-do-tempo [eventos]="p.historico" [futuros]="passosFuturos()" />
+      </article>
 
-    <!-- Conteúdo descritivo do evento -->
-     <div class="conteudo-timeline">
-        <span class="data-evento">{{ evento.dataHora }}</span>
-        <h4 class="titulo-evento">{{ evento.titulo }}</h4>
-        <p class="descricao-evento">{{ evento.descricao }}</p>
-     </div>
-    </div>
-</div>
-    </section>
- </div>
+      @if (dialogoAberto()) {
+        <app-transferir-dialog [pedido]="p" (fechar)="dialogoAberto.set(false)" />
+      }
+    } @else {
+      <p class="det__vazio">Você não tem acesso a este pedido.</p>
+    }
+  } @else {
+    <p class="det__vazio">Pedido não encontrado.</p>
+  }
+</section>

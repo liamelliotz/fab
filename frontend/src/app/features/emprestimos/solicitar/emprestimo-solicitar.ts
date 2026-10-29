@@ -5,7 +5,8 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { EmprestimoService } from '../../../core/services/emprestimo.service';
 import { EquipamentoService } from '../../../core/services/equipamento.service';
-import { hojeISO } from '../../../core/utils/date.utils';
+import { UsuarioService } from '../../../core/services/usuario.service';
+import { formatarData, hojeISO } from '../../../core/utils/date.utils';
 
 @Component({
   selector: 'app-emprestimo-solicitar',
@@ -18,6 +19,7 @@ export class EmprestimoSolicitar {
   private readonly equipamentos = inject(EquipamentoService);
   private readonly emprestimos = inject(EmprestimoService);
   private readonly auth = inject(AuthService);
+  private readonly usuarios = inject(UsuarioService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly fb = inject(FormBuilder).nonNullable;
@@ -45,6 +47,23 @@ export class EmprestimoSolicitar {
   });
 
   readonly selecionado = computed(() => this.equipamentos.buscarPorId(this.idSelecionado()));
+
+  private readonly retirada = toSignal(this.form.controls.dataPrevistaRetirada.valueChanges, {
+    initialValue: hojeISO(),
+  });
+
+  /** Última data de devolução permitida para o material escolhido (prazo máximo de empréstimo). */
+  readonly dataLimite = computed(() => {
+    const item = this.selecionado();
+    return item ? this.emprestimos.dataLimiteDevolucao(this.retirada(), item.id) : null;
+  });
+  readonly dataLimiteTexto = computed(() => formatarData(this.dataLimite()));
+
+  /** O material exige treinamento e a pessoa ainda não foi habilitada pela coordenação. */
+  readonly semHabilitacao = computed(() => {
+    const item = this.selecionado();
+    return !!item && item.requerTreinamento && !this.usuarios.habilitado(this.auth.usuarioAtual().id, item.id);
+  });
 
   constructor() {
     // Vindo do botão "Solicitar empréstimo" do catálogo: já deixa o item escolhido
@@ -78,25 +97,7 @@ export class EmprestimoSolicitar {
     }
 
     const v = this.form.getRawValue();
-    const item = this.equipamentos.buscarPorId(v.equipamentoId);
-    if (!item || item.status !== 'disponivel') {
-      this.erro.set('Este material não está mais disponível.');
-      return;
-    }
-    if (v.quantidade > item.quantidadeDisponivel) {
-      this.erro.set(`Só há ${item.quantidadeDisponivel} unidade(s) disponível(is).`);
-      return;
-    }
-    if (v.dataPrevistaRetirada < this.hoje) {
-      this.erro.set('A data de retirada não pode ser anterior a hoje.');
-      return;
-    }
-    if (v.dataPrevistaDevolucao < v.dataPrevistaRetirada) {
-      this.erro.set('A devolução deve ser na mesma data da retirada ou depois dela.');
-      return;
-    }
-
-    this.emprestimos.solicitar(
+    const resultado = this.emprestimos.solicitar(
       {
         itens: [{ equipamentoId: v.equipamentoId, quantidade: v.quantidade }],
         justificativa: v.justificativa.trim(),
@@ -105,6 +106,10 @@ export class EmprestimoSolicitar {
       },
       this.auth.usuarioAtual(),
     );
+    if (!resultado.ok) {
+      this.erro.set(resultado.erro);
+      return;
+    }
 
     this.router.navigate(['/meus-emprestimos'], { queryParams: { enviado: 1 } });
   }

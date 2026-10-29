@@ -26,10 +26,19 @@
         <strong>{{ item.nome }}</strong>
         <span>{{ item.descricao }}</span>
         <span>Local: {{ item.localizacao }} · Patrimônio: {{ item.codigoPatrimonio }}</span>
+        <span class="prazo">
+          <i class="fa-regular fa-clock" aria-hidden="true"></i>
+          Prazo máximo de empréstimo: <strong>{{ item.prazoMaximoDias }} dia(s)</strong>
+        </span>
         @if (item.requerTreinamento) {
-          <span class="aviso">
-            Este equipamento requer treinamento prévio. Procure a coordenação antes de retirá-lo.
-          </span>
+          @if (semHabilitacao()) {
+            <span class="aviso">
+              Este equipamento exige treinamento e você ainda não está habilitado. Procure a coordenação
+              antes de solicitar.
+            </span>
+          } @else {
+            <span class="ok">Você está habilitado para usar este equipamento.</span>
+          }
         }
       </div>
     }
@@ -56,7 +65,15 @@
 
     <label class="campo">
       <span>Data de devolução</span>
-      <input type="date" [min]="hoje" formControlName="dataPrevistaDevolucao" />
+      <input
+        type="date"
+        [min]="hoje"
+        [max]="dataLimite()"
+        formControlName="dataPrevistaDevolucao"
+      />
+      @if (dataLimite()) {
+        <small class="dica">Neste material, a devolução pode ser até {{ dataLimiteTexto() }}.</small>
+      }
       @if (getError('dataPrevistaDevolucao')) {
         <small class="erro">{{ getError('dataPrevistaDevolucao') }}</small>
       }

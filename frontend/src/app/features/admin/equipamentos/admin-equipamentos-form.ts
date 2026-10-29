@@ -32,6 +32,8 @@ export class AdminEquipamentosForm {
     descricao: [''],
     localizacao: ['', Validators.required],
     quantidadeTotal: [1, [Validators.required, Validators.min(1)]],
+    // Impede que alguém fique com o material o ano todo (a solicitação respeita este limite)
+    prazoMaximoDias: [7, [Validators.required, Validators.min(1), Validators.max(365)]],
     requerTreinamento: [false],
   });
 
@@ -49,6 +51,7 @@ export class AdminEquipamentosForm {
         descricao: item.descricao,
         localizacao: item.localizacao,
         quantidadeTotal: item.quantidadeTotal,
+        prazoMaximoDias: item.prazoMaximoDias,
         requerTreinamento: item.requerTreinamento,
       });
     }

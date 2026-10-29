@@ -9,6 +9,11 @@ export const ADMIN_ROUTES: Routes = [
       import('./solicitacoes/admin-solicitacoes').then((m) => m.AdminSolicitacoes),
   },
   {
+    path: 'balcao',
+    title: 'Balcão | FAB',
+    loadComponent: () => import('./balcao/admin-balcao').then((m) => m.AdminBalcao),
+  },
+  {
     path: 'emprestimos',
     title: 'Empréstimos | FAB',
     loadComponent: () =>

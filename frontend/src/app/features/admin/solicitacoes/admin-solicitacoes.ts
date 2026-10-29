@@ -1,19 +1,23 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { Emprestimo, StatusEmprestimo } from '../../../core/models/emprestimo.model';
 import {
   EmprestimoService,
   NOME_STATUS_EMPRESTIMO,
 } from '../../../core/services/emprestimo.service';
+import { NotificationService } from '../../../core/services/notification.service';
 import { formatarData } from '../../../core/utils/date.utils';
 
 @Component({
   selector: 'app-admin-solicitacoes',
   standalone: true,
+  imports: [RouterLink],
   templateUrl: './admin-solicitacoes.html',
   styleUrl: './admin-solicitacoes.css',
 })
 export class AdminSolicitacoes {
   private readonly service = inject(EmprestimoService);
+  private readonly notificacoes = inject(NotificationService);
 
   readonly data = formatarData;
 
@@ -90,6 +94,11 @@ export class AdminSolicitacoes {
       this.erro.set(mensagem);
       return;
     }
+    this.notificacoes.sucesso(
+      decisao === 'aprovar'
+        ? `${alvo.protocolo} aprovado. O código de retirada já está disponível para ${alvo.solicitante.nome}.`
+        : `${alvo.protocolo} reprovado.`,
+    );
     this.cancelar();
   }
 }

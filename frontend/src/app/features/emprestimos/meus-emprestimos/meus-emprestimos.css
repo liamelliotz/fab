@@ -126,3 +126,131 @@
   color: #6b7280;
   text-align: center;
 }
+
+/* ---- Transferências, códigos e ações ---- */
+.btn-ok {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid #24845c;
+  border-radius: 8px;
+  background: #24845c;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.btn-ok:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.btn-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 4px;
+  color: #24845c;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.recebidas {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #fcd34d;
+  border-radius: 12px;
+  background: #fffbeb;
+}
+
+.recebidas h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: #78350f;
+  font-size: 16px;
+}
+
+.recebida {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  background: #fff;
+  color: #172b24;
+  font-size: 14px;
+}
+
+.recebida p {
+  margin: 4px 0 0;
+}
+
+.item__acoes {
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.item__papel {
+  margin: 0;
+  color: #1d4ed8;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.item__transf {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #fffbeb;
+  color: #92400e;
+  font-size: 13px;
+}
+
+.item__codigo {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #86efac;
+  border-radius: 10px;
+  background: #f0fdf4;
+  color: #14532d;
+  font-size: 14px;
+}
+
+.item__codigo i {
+  font-size: 22px;
+}
+
+.item__codigo strong {
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  font-size: 18px;
+  letter-spacing: 3px;
+}
+
+.item__codigo small {
+  margin-left: auto;
+  color: #166534;
+}
+
+.item__codigo--devolucao {
+  border-color: #93c5fd;
+  background: #eff6ff;
+  color: #1e3a8a;
+}
+
+.item__codigo--devolucao small {
+  color: #1d4ed8;
+}

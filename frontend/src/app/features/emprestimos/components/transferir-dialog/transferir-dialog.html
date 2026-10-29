@@ -1,0 +1,70 @@
+<div class="td__fundo" (click)="fechar.emit()">
+  <div
+    class="td__painel"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="td-titulo"
+    (click)="$event.stopPropagation()"
+  >
+    <h2 id="td-titulo">
+      <i class="fa-solid fa-right-left" aria-hidden="true"></i>
+      Transferir {{ pedido().protocolo }}
+    </h2>
+    <p class="td__resumo">{{ itens() }} · devolução até {{ data(pedido().dataPrevistaDevolucao) }}</p>
+
+    <p class="td__regra">
+      O material <strong>não volta ao laboratório</strong>. Você continua responsável por ele até a outra
+      pessoa aceitar, e o <strong>prazo de devolução não muda</strong>.
+    </p>
+
+    <fieldset class="td__lista">
+      <legend>Para quem?</legend>
+      @for (c of candidatos(); track c.usuario.id) {
+        <label
+          class="td__op"
+          [class.td__op--off]="!!c.bloqueio"
+          [class.td__op--sel]="paraId() === c.usuario.id"
+        >
+          <input
+            type="radio"
+            name="destino"
+            [checked]="paraId() === c.usuario.id"
+            [disabled]="!!c.bloqueio"
+            (change)="paraId.set(c.usuario.id)"
+          />
+          <span class="td__op-texto">
+            <strong>{{ c.usuario.nome }}</strong>
+            <small>{{ c.usuario.departamento }}</small>
+            @if (c.bloqueio) {
+              <em class="td__bloqueio">{{ c.bloqueio }}</em>
+            }
+          </span>
+        </label>
+      } @empty {
+        <p class="td__vazio">Não há outros professores com conta ativa.</p>
+      }
+    </fieldset>
+
+    <label class="td__campo">
+      <span>Motivo da transferência</span>
+      <textarea
+        rows="3"
+        placeholder="Ex.: Vou me ausentar na próxima semana e a colega continua a atividade."
+        [value]="motivo()"
+        (input)="atualizarMotivo($event)"
+      ></textarea>
+    </label>
+
+    @if (erro()) {
+      <p class="td__erro" role="alert">{{ erro() }}</p>
+    }
+
+    <div class="td__acoes">
+      <button type="button" class="td__btn" (click)="fechar.emit()">Cancelar</button>
+      <button type="button" class="td__btn td__btn--ok" (click)="enviar()">
+        <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+        Enviar pedido de transferência
+      </button>
+    </div>
+  </div>
+</div>

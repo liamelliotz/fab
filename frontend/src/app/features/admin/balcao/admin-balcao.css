@@ -1,0 +1,271 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.bal {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 8px;
+}
+
+.bal__cabecalho h1 {
+  margin: 0 0 6px;
+  color: #172b24;
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.bal__cabecalho p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.bal__abas {
+  display: flex;
+  gap: 8px;
+}
+
+.bal__aba {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border: 1px solid #d5ddd9;
+  border-radius: 10px;
+  background: #fff;
+  color: #4b5563;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.bal__aba--ativa {
+  border-color: #24845c;
+  background: #24845c;
+  color: #fff;
+}
+
+.bal__contador {
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.15);
+  font-size: 12px;
+  text-align: center;
+}
+
+.bal__painel {
+  padding: 20px;
+  border: 1px solid #e5ebe8;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.bal__campo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: #172b24;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.bal__campo small {
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.bal__linha {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.bal__campo input[type='text'] {
+  flex: 1 1 260px;
+  padding: 14px 16px;
+  border: 2px solid #d5ddd9;
+  border-radius: 10px;
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  font-size: 20px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+.bal__campo input[type='text']:focus,
+.bal__campo textarea:focus {
+  border-color: #24845c;
+  outline: none;
+}
+
+.bal__campo textarea {
+  padding: 10px 12px;
+  border: 1px solid #d5ddd9;
+  border-radius: 8px;
+  font: inherit;
+  font-weight: 400;
+}
+
+.bal__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border: 1px solid #d5ddd9;
+  border-radius: 10px;
+  background: #fff;
+  color: #172b24;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.bal__btn--ok {
+  border-color: #24845c;
+  background: #24845c;
+  color: #fff;
+}
+
+.bal__btn--sutil {
+  padding: 7px 12px;
+  color: #4b5563;
+  font-size: 13px;
+}
+
+.bal__erro {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fee2e2;
+  color: #991b1b;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.bal__confere {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bal__confere-topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.bal__eyebrow {
+  color: #24845c;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+}
+
+.bal__confere h2 {
+  margin: 2px 0 0;
+  color: #172b24;
+  font-size: 24px;
+}
+
+.bal__confere p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.bal__link {
+  color: #24845c;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.bal__itens {
+  color: #172b24 !important;
+  font-size: 16px !important;
+  font-weight: 600;
+}
+
+.bal__info {
+  font-size: 13px !important;
+}
+
+.bal__atraso {
+  color: #b91c1c;
+  font-weight: 700;
+}
+
+.bal__aviso {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fffbeb;
+  color: #92400e !important;
+  font-size: 13px !important;
+}
+
+.bal__check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #172b24;
+  font-size: 14px;
+}
+
+.bal__acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.bal__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bal__lista h2 {
+  margin: 0;
+  color: #172b24;
+  font-size: 16px;
+}
+
+.bal__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid #e5ebe8;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 14px;
+}
+
+.bal__item--atraso {
+  border-color: #fca5a5;
+}
+
+.bal__item p {
+  margin: 2px 0 0;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.bal__tag {
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.bal__vazio {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
+}

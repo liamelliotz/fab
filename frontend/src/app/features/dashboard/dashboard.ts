@@ -38,10 +38,19 @@ export class Dashboard {
   readonly emManutencao = this.equipamentos.emManutencao;
 
   // ---- Métricas do usuário comum ----
-  private readonly meus = computed(() => {
-    const id = this.auth.usuarioAtual().id;
-    return this.emprestimos.todas().filter((s) => s.solicitante.id === id);
-  });
+  // Pedidos que a pessoa abriu ou dos quais é responsável (inclui os recebidos por transferência)
+  private readonly meus = computed(() => this.emprestimos.meusPedidos(this.auth.usuarioAtual().id));
+
+  /** Transferências de outros professores esperando a resposta desta pessoa. */
+  readonly transferenciasParaMim = computed(
+    () => this.emprestimos.transferenciasRecebidas(this.auth.usuarioAtual().id).length,
+  );
+
+  // ---- Avisos da coordenação ----
+  readonly transferenciasPendentes = computed(
+    () => this.emprestimos.todas().filter((s) => !!s.transferenciaPendente).length,
+  );
+  readonly avisosNaoLidos = this.emprestimos.avisosNaoLidos;
   readonly meusPendentes = computed(() => this.meus().filter((s) => s.status === 'pendente').length);
   readonly meusAtivos = computed(
     () => this.meus().filter((s) => s.status === 'aprovado' || s.status === 'em_andamento').length,
@@ -54,5 +63,14 @@ export class Dashboard {
 
   itens(s: Emprestimo): string {
     return this.emprestimos.resumoItens(s);
+  }
+
+  /** Mostra "atrasado" no lugar de "em andamento" quando o prazo venceu. */
+  statusExibido(s: Emprestimo): string {
+    return this.emprestimos.estaAtrasado(s) ? 'atrasado' : s.status;
+  }
+
+  nomeStatusExibido(s: Emprestimo): string {
+    return this.emprestimos.estaAtrasado(s) ? 'Atrasado' : this.nomeStatus[s.status];
   }
 }

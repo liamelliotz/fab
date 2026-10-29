@@ -110,3 +110,8 @@
     grid-template-columns: 1fr;
   }
 }
+.dica {
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 400;
+}
