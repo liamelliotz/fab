@@ -2,57 +2,32 @@ import { Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core
 // isPlatformBrowser: diz se o código está rodando no navegador (true) ou no servidor SSR (false)
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, defer, delay, map, of, switchMap, tap, throwError } from 'rxjs';
+import { Observable, defer, delay, map, of, tap, throwError } from 'rxjs';
 // Contratos de dados criados no Card 3
 import { ApiResponse } from '../models/api-response.model';
 import { API_URL, ENDPOINTS } from '../constants/api.constants';
 import { AuthResponse, JwtPayload, LoginCredenciaisDTO } from '../models/auth.model';
 import { PerfilUsuario, UsuarioResumo } from '../models/usuario.model';
+import { UsuarioDemo, UsuarioService } from './usuario.service';
 
 // Chaves usadas no localStorage. fab_token e fab_role são as MESMAS lidas pelos guards.
 const CHAVE_TOKEN = 'fab_token';
 const CHAVE_PERFIL = 'fab_role';
 const CHAVE_NOME = 'fab_nome';
-const CHAVE_CONTAS_DEMO = 'fab_demo_contas';
 
 /**
  * MODO DEMONSTRAÇÃO
- * true  = não precisa de backend: o login usa as contas de teste abaixo e os cadastros
- *         ficam salvos só neste navegador (localStorage). Serve para apresentar o protótipo.
+ * true  = não precisa de backend: o login usa as contas do UsuarioService (que o administrador
+ *         gerencia na tela de Usuários) e tudo fica salvo só neste navegador. Serve para apresentar o protótipo.
  * false = usa a API real (API_URL, definida em environments/).
  * ATENÇÃO: no modo demonstração as senhas ficam em texto puro no navegador. Nunca use em produção.
  */
 const MODO_DEMO: boolean = true;
 
-/** Conta usada no modo demonstração. */
-interface ContaDemo {
-  id: string;
-  nome: string;
-  email: string;
-  cpf: string;
-  telefone: string;
-  senha: string;
-  perfil: PerfilUsuario;
-}
-
-/** Contas de teste que já existem no modo demonstração. */
-const CONTAS_DEMO: ContaDemo[] = [
-  { id: 'demo-admin', nome: 'Administrador FAB', email: 'admin@fab.com', cpf: '', telefone: '', senha: 'admin123', perfil: 'admin' },
-  { id: 'demo-professor', nome: 'Professor Demonstração', email: 'professor@fab.com', cpf: '', telefone: '', senha: 'prof123', perfil: 'usuario' },
-];
-
-/** Dados enviados ao criar uma conta (vindos do formulário de cadastro). */
-export interface CadastroPayload {
-  nome: string;
-  email: string;
-  cpf: string;      // somente números
-  senha: string;
-  telefone: string; // somente números
-}
-
 @Injectable({ providedIn: 'root' }) // um único AuthService para o app inteiro
 export class AuthService {
   private http = inject(HttpClient);
+  private usuarios = inject(UsuarioService);
   private platformId = inject(PLATFORM_ID);
   // No servidor (SSR) não existe localStorage, então só usamos no navegador
   private ehNavegador = isPlatformBrowser(this.platformId);
@@ -75,7 +50,7 @@ export class AuthService {
     return !!token && !this.tokenExpirado(token);
   });
 
-  // ---------- Autenticação e registo ----------
+  // ---------- Autenticação ----------
 
   /**
    * Faz o login. Se aceito, guarda o token e o perfil e devolve a resposta.
@@ -92,27 +67,8 @@ export class AuthService {
     return resposta$.pipe(tap((auth) => this.salvarSessao(auth.tokenAcesso, auth.usuario?.nome)));
   }
 
-  /** Cria uma conta nova (não faz login). */
-  cadastrar(dados: CadastroPayload): Observable<ApiResponse<unknown>> {
-    if (MODO_DEMO) {
-      return this.cadastrarDemo(dados);
-    }
-    return this.http.post<ApiResponse<unknown>>(`${API_URL}${ENDPOINTS.auth.cadastro}`, dados);
-  }
-
   /**
-   * Cria a conta e, se der certo, já faz o login com o mesmo e-mail e senha.
-   * Assim o usuário entra direto no app depois do cadastro, sem passar pela tela de login.
-   */
-  cadastrarELogar(dados: CadastroPayload): Observable<AuthResponse> {
-    return this.cadastrar(dados).pipe(
-      // switchMap: só executa o login depois que o cadastro terminou com sucesso
-      switchMap(() => this.login({ email: dados.email, senha: dados.senha })),
-    );
-  }
-
-  /**
-   * Rota para onde o usuário vai depois de entrar (login ou cadastro):
+   * Rota para onde o usuário vai depois de entrar:
    * todos os perfis entram pelo dashboard.
    */
   rotaInicial(): string {
@@ -149,17 +105,21 @@ export class AuthService {
 
   // ---------- Modo demonstração (sem backend) ----------
 
-  /** Valida e-mail e senha nas contas de teste e nas contas cadastradas neste navegador. */
+  /** Valida e-mail e senha nas contas do UsuarioService (as de exemplo e as criadas pelo administrador). */
   private loginDemo(credenciais: LoginCredenciaisDTO): Observable<AuthResponse> {
     return defer(() => {
-      const email = credenciais.email.trim().toLowerCase();
-      const conta = this.contasDemo().find(
-        (c) => c.email.toLowerCase() === email && c.senha === credenciais.senha,
-      );
+      const { usuario: conta, erro } = this.usuarios.autenticar(credenciais.email, credenciais.senha);
 
       if (!conta) {
-        // Mesmo erro que a API devolveria para credenciais erradas
-        return throwError(() => new HttpErrorResponse({ status: 401, statusText: 'Unauthorized' }));
+        // Mesmos erros que a API devolveria: 401 para credencial errada e 403 para conta desativada
+        return throwError(
+          () =>
+            new HttpErrorResponse(
+              erro === 'inativo'
+                ? { status: 403, statusText: 'Forbidden' }
+                : { status: 401, statusText: 'Unauthorized' },
+            ),
+        );
       }
 
       const resposta: AuthResponse = {
@@ -173,65 +133,16 @@ export class AuthService {
           cpf: conta.cpf,
           telefone: conta.telefone,
           perfil: conta.perfil,
-          status: 'ativo',
-          criadoEm: new Date().toISOString(),
+          status: conta.status,
+          criadoEm: conta.criadoEm,
         },
       };
       return of(resposta).pipe(delay(400)); // pequena espera, como numa requisição de verdade
     });
   }
 
-  /** Guarda a conta nova no navegador. Recusa e-mail ou CPF já usados (erro 409, como a API). */
-  private cadastrarDemo(dados: CadastroPayload): Observable<ApiResponse<unknown>> {
-    return defer(() => {
-      const email = dados.email.trim().toLowerCase();
-      const duplicada = this.contasDemo().some(
-        (c) => c.email.toLowerCase() === email || (!!c.cpf && c.cpf === dados.cpf),
-      );
-
-      if (duplicada) {
-        return throwError(() => new HttpErrorResponse({ status: 409, statusText: 'Conflict' }));
-      }
-
-      const nova: ContaDemo = {
-        id: `demo-${Date.now()}`,
-        nome: dados.nome.trim(),
-        email: dados.email.trim(),
-        cpf: dados.cpf,
-        telefone: dados.telefone,
-        senha: dados.senha,
-        perfil: 'usuario', // quem se cadastra é usuário comum
-      };
-      this.escreverStorage(
-        CHAVE_CONTAS_DEMO,
-        JSON.stringify([...this.lerContasCadastradas(), nova]),
-      );
-
-      const resposta: ApiResponse<unknown> = {
-        sucesso: true,
-        mensagem: 'Conta criada (modo demonstração)',
-        dados: null,
-        timestamp: new Date().toISOString(),
-      };
-      return of(resposta).pipe(delay(400));
-    });
-  }
-
-  /** Contas de teste + contas cadastradas neste navegador. */
-  private contasDemo(): ContaDemo[] {
-    return [...CONTAS_DEMO, ...this.lerContasCadastradas()];
-  }
-
-  private lerContasCadastradas(): ContaDemo[] {
-    try {
-      return JSON.parse(this.lerStorage(CHAVE_CONTAS_DEMO) ?? '[]') as ContaDemo[];
-    } catch {
-      return [];
-    }
-  }
-
-  /** Monta um "JWT" de mentira (cabeçalho.dados.assinatura) só para o app ler o perfil. */
-  private gerarTokenDemo(conta: ContaDemo): string {
+  /** Monta um "token" de mentira (sem assinatura) só para o modo demonstração. */
+  private gerarTokenDemo(conta: Pick<UsuarioDemo, 'id' | 'email' | 'perfil'>): string {
     const agora = Math.floor(Date.now() / 1000);
     const codificar = (obj: object) =>
       btoa(JSON.stringify(obj)).replace(/\+/g, '-').replace(/\//g, '_'); // base64url
@@ -269,7 +180,7 @@ export class AuthService {
     }
   }
 
-  /** Apaga tudo que identifica o usuário logado. (As contas do modo demonstração são mantidas.) */
+  /** Apaga tudo que identifica o usuário logado. */
   private limparSessao(): void {
     this.token.set(null);
     this.perfil.set(null);
