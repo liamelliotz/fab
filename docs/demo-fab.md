@@ -57,6 +57,9 @@ já devolvido com cadeia João → Maria (para mostrar a linha do tempo completa
 
 ## 5. O que o backend precisa para virar produção
 
+> **Atualização (v2, 11/11/2026):** tudo desta seção foi incorporado ao contrato oficial,
+> [`contrato-api.md`](contrato-api.md). Em caso de diferença, vale o contrato.
+
 | Tema | Mudança no contrato |
 | --- | --- |
 | Cadastro | `POST /auth/cadastro` deixa de ser público. Criação de conta passa a ser **`POST /usuarios` (admin)**. O login continua igual. |
