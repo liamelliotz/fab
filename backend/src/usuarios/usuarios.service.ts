@@ -27,10 +27,13 @@ export interface NovoUsuario {
   perfil?: Perfil;
   /** Padrão: `ativo`. */
   status?: StatusUsuario;
+  /** Ids de equipamentos que exigem treinamento. Padrão: nenhum. */
+  habilitacoes?: string[];
 }
 
 /** Campos que podem ser alterados depois de criado (e-mail, CPF e senha têm métodos próprios). */
 export interface AtualizacaoUsuario {
+  habilitacoes?: string[];
   nome?: string;
   telefone?: string;
   matricula?: string;
@@ -80,6 +83,7 @@ export class UsuariosService {
       telefone: dados.telefone?.trim(),
       matricula: dados.matricula?.trim(),
       departamento: dados.departamento?.trim(),
+      habilitacoes: [...new Set(dados.habilitacoes ?? [])],
       perfil: dados.perfil ?? Perfil.Usuario,
       status: dados.status ?? StatusUsuario.Ativo,
       criadoEm: new Date().toISOString(),
@@ -143,6 +147,9 @@ export class UsuariosService {
       matricula: dados.matricula?.trim(),
       departamento: dados.departamento?.trim(),
       perfil: dados.perfil,
+      habilitacoes: dados.habilitacoes
+        ? [...new Set(dados.habilitacoes)]
+        : undefined,
       atualizadoEm: new Date().toISOString(),
     });
     if (!atualizado) {
