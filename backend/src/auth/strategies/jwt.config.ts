@@ -1,35 +1,59 @@
 import { Logger } from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
 
-/** Usado só quando o .env não define JWT_SECRET e a API NÃO está em produção. */
+/** Usado só em desenvolvimento, quando o .env não define JWT_SECRET. */
 const SEGREDO_DE_DESENVOLVIMENTO =
   'fab-segredo-de-desenvolvimento-nao-usar-em-producao';
 
+/** Texto que vem no .env.example. Não é um segredo: está publicado no repositório. */
+export const SEGREDO_DE_EXEMPLO =
+  'troque-este-segredo-por-um-valor-longo-e-aleatorio';
+
+export const TAMANHO_MINIMO_DO_SEGREDO = 32;
+
 let avisou = false;
 
-/**
- * Segredo que assina e confere os tokens JWT (JWT_SECRET no .env).
- * Em produção (NODE_ENV=production) ele é obrigatório. Em desenvolvimento, se faltar,
- * usa um segredo fixo e avisa no log, para a API (e os testes e2e) subirem sem .env.
- */
-export function obterSegredoJwt(config: ConfigService): string {
-  const segredo = config.get<string>('JWT_SECRET')?.trim();
-  if (segredo) {
-    return segredo;
-  }
-  if (config.get<string>('NODE_ENV') === 'production') {
-    throw new Error('JWT_SECRET não está definido. Configure-o no .env.');
-  }
-  if (!avisou) {
-    avisou = true;
-    new Logger('Auth').warn(
-      'JWT_SECRET não definido: usando segredo de desenvolvimento. Copie .env.example para .env.',
-    );
-  }
-  return SEGREDO_DE_DESENVOLVIMENTO;
+function avisarUmaVez(mensagem: string): void {
+  if (avisou) return;
+  avisou = true;
+  new Logger('Auth').warn(mensagem);
 }
 
-/** Validade do token (JWT_EXPIRES_IN no .env, ex.: "8h"). Padrão: 8h. */
+/**
+ * Segredo que assina os tokens.
+ *
+ * Em produção (NODE_ENV=production) a API NÃO sobe se o JWT_SECRET estiver ausente, for o
+ * texto do .env.example ou tiver menos de 32 caracteres. Em desenvolvimento, só avisa no log.
+ */
+export function obterSegredoJwt(config: ConfigService): string {
+  const segredo = config.get<string>('JWT_SECRET')?.trim() ?? '';
+  const emProducao = config.get<string>('NODE_ENV') === 'production';
+  const fraco =
+    segredo === SEGREDO_DE_EXEMPLO ||
+    segredo === SEGREDO_DE_DESENVOLVIMENTO ||
+    segredo.length < TAMANHO_MINIMO_DO_SEGREDO;
+
+  if (emProducao && fraco) {
+    throw new Error(
+      `JWT_SECRET ausente ou fraco. Em produção ele precisa ter ao menos ${TAMANHO_MINIMO_DO_SEGREDO} caracteres aleatórios ` +
+        "e não pode ser o texto do .env.example. Gere um com: node -e \"console.log(require('crypto').randomBytes(48).toString('hex'))\"",
+    );
+  }
+  if (!segredo) {
+    avisarUmaVez(
+      'JWT_SECRET não definido: usando segredo de desenvolvimento. Copie .env.example para .env.',
+    );
+    return SEGREDO_DE_DESENVOLVIMENTO;
+  }
+  if (fraco) {
+    avisarUmaVez(
+      'JWT_SECRET fraco (texto de exemplo ou curto). Serve para desenvolver, mas troque antes de publicar.',
+    );
+  }
+  return segredo;
+}
+
+/** Validade do token de acesso (padrão 8h, a mesma da sessão do front). */
 export function obterExpiracaoJwt(config: ConfigService): string {
   return config.get<string>('JWT_EXPIRES_IN')?.trim() || '8h';
 }
