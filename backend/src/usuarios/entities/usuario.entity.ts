@@ -19,6 +19,11 @@ export interface Usuario {
   telefone?: string;
   matricula?: string;
   departamento?: string;
+  /**
+   * Ids dos equipamentos com `requerTreinamento` que este usuário está habilitado a usar.
+   * Só a coordenação (admin) concede ou retira. Sem a habilitação, o pedido é barrado.
+   */
+  habilitacoes: string[];
   perfil: Perfil;
   status: StatusUsuario;
   /** Data de criação (ISO 8601). */

@@ -1,19 +1,22 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { hojeIso } from '../common/utils/data.util.js';
 import { EmprestimosRepository } from './emprestimos.repository.js';
 
 @Injectable()
 export class EmprestimosService {
-  constructor(private readonly emprestimosRepository: EmprestimosRepository) {}
+  constructor(
+    @Inject(EmprestimosRepository)
+    private readonly emprestimosRepository: EmprestimosRepository,
+  ) {}
 
   /**
    * Gera o protocolo EMP-AAAA-0001: sequencial e reiniciado a cada ano.
-   * Usa o MAIOR número do ano + 1 (e não a quantidade de pedidos), para nunca
-   * repetir um protocolo do seed. Com o seed até 0044, o próximo de 2026 é 0045.
+   * O ano é o da ESCOLA (APP_TIMEZONE), e cada chamada recebe um número diferente,
+   * mesmo com pedidos simultâneos. Com o seed até 0045, o próximo de 2026 é 0046.
    */
-  async gerarProtocolo(data: Date = new Date()): Promise<string> {
-    const ano = data.getFullYear();
-    const proximo =
-      (await this.emprestimosRepository.maiorSequencialDoAno(ano)) + 1;
+  async gerarProtocolo(hoje: string = hojeIso()): Promise<string> {
+    const ano = Number(hoje.slice(0, 4));
+    const proximo = await this.emprestimosRepository.reservarSequencial(ano);
     return `EMP-${ano}-${String(proximo).padStart(4, '0')}`;
   }
 }

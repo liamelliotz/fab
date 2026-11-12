@@ -3,12 +3,10 @@
  * ======================================================================================
  * Todos os seeds usam este arquivo. Assim um módulo pode apontar para um registro de outro
  * (ex.: o solicitante e os equipamentos de um empréstimo) sem importar o seed do colega e sem
- * esperar o merge dele: o id é o mesmo em qualquer lugar.
+ * esperar o merge dele: o id é o mesmo em qualquer lugar (memória e banco).
  *
- * Os dados vêm dos exemplos que o front já usa:
- *   - equipamentos: tela Materiais (features/equipamentos/lista/equipamento-lista.ts)
- *   - solicitantes e pedidos: tela Solicitações (features/admin/solicitacoes/admin-solicitacoes.ts)
- *   - contas de entrada: modo demonstração do front (admin@fab.com e professor@fab.com)
+ * Os dados são os MESMOS da demonstração do front (equipamento.service.ts e usuario.service.ts),
+ * para a apresentação mostrar os mesmos itens com o backend ligado.
  *
  * Mudar um valor aqui muda o id em todos os seeds: avise o grupo no card antes.
  * ======================================================================================
@@ -16,55 +14,48 @@
 
 /** Usuários (seed em common/seed/usuarios.seed.ts). */
 export const USUARIO_IDS = {
-  admin: 'usr-admin', //        Administrador FAB       admin@fab.com
+  admin: 'usr-admin', //         Administrador FAB       admin@fab.com
   professor: 'usr-professor', // Professor Demonstração  professor@fab.com
-  joao: 'usr-joao', //          João Silva   (Eletrônica)  front: solicitante u1
-  maria: 'usr-maria', //        Maria Santos (Design)      front: solicitante u2
-  carlos: 'usr-carlos', //      Carlos Souza (Mecânica)    front: solicitante u3
-  ana: 'usr-ana', //            Ana Lima     (Eletrônica)  front: solicitante u4
+  joao: 'usr-joao', //           João Silva    joao@escola.br
+  maria: 'usr-maria', //         Maria Santos  maria@escola.br
+  carlos: 'usr-carlos', //       Carlos Souza  carlos@escola.br
+  ana: 'usr-ana', //             Ana Lima      ana@escola.br   (habilitada na Impressora 3D)
 } as const;
 
-/**
- * Equipamentos (seed no módulo equipamentos, Card 11).
- * Comentário: nome no front, patrimônio, id no front.
- */
+/** Equipamentos (seed em common/seed/equipamentos.seed.ts). Mesma ordem do front (ids '1' a '10'). */
 export const EQUIPAMENTO_IDS = {
-  multimetro: 'eqp-multimetro', //       Multímetro Digital Minipa ET-1002  PAT-0001  (id '1')
-  osciloscopio: 'eqp-osciloscopio', //   Osciloscópio Rigol DS1054Z         PAT-0002  (id '2')
-  parafusadeira: 'eqp-parafusadeira', // Parafusadeira Bosch 12V            PAT-0003  (id '3')
-  impressora3d: 'eqp-impressora-3d', //  Impressora 3D Creality Ender 3     PAT-0004  (id '4')
-  cortadoraLaser: 'eqp-cortadora-laser', // Cortadora a Laser 40W            PAT-0005  (id '5')
-  filamentoPla: 'eqp-filamento-pla', //  Filamento PLA 1kg (branco)         PAT-0006  (id '6')
-  arduinoUno: 'eqp-arduino-uno', //      Arduino Uno R3                     PAT-0007  (id '7')
-  kitChaves: 'eqp-kit-chaves', //        Kit de Chaves de Precisão          PAT-0008  (id '8')
+  notebookDell: 'eqp-notebook-dell', //       PAT-0001  Notebook Dell Inspiron 15
+  projetor: 'eqp-projetor', //                PAT-0002  Projetor Epson PowerLite
+  notebookLenovo: 'eqp-notebook-lenovo', //   PAT-0003  Notebook Lenovo IdeaPad 3
+  caixaDeSom: 'eqp-caixa-de-som', //          PAT-0004  Caixa de som Bluetooth
+  multimetro: 'eqp-multimetro', //            PAT-0005  Multímetro Digital Minipa ET-1002
+  kitFerramentas: 'eqp-kit-ferramentas', //   PAT-0006  Kit de ferramentas de precisão
+  parafusadeira: 'eqp-parafusadeira', //      PAT-0007  Parafusadeira Bosch 12 V (em manutenção)
+  impressora3d: 'eqp-impressora-3d', //       PAT-0008  Impressora 3D Creality Ender 3 V2 (treinamento)
+  cortadoraLaser: 'eqp-cortadora-laser', //   PAT-0009  Cortadora a laser CO2 40 W (inativa)
+  osciloscopio: 'eqp-osciloscopio', //        PAT-0010  Osciloscópio Rigol DS1054Z (emprestado)
 } as const;
 
-/**
- * Empréstimos (seed no módulo emprestimos, Card 17). O seed cobre TODOS os status.
- * O número é o do protocolo (EMP-2026-00NN). Sugestão de cenário para cada um:
- *
- *   0036 devolvido    Ana    (devolveu dentro do prazo)
- *   0037 atrasado     Carlos (devolução prevista no passado, ainda com o item)
- *   0038 em_andamento João   (já retirou, dentro do prazo)
- *   0039 rejeitado    Maria  (com motivoRejeicao)
- *   0040 aprovado     Ana    Arduino Uno x3           (front: pedido id '4')
- *   0041 cancelado    João   (cancelado pelo próprio solicitante)
- *   0042 pendente     João   Multímetro x2            (front: pedido id '1')
- *   0043 pendente     Maria  Cortadora a Laser x1     (front: pedido id '2')
- *   0044 pendente     Carlos Parafusadeira x1 e Kit de Chaves x1 (front: pedido id '3')
- *
- * ATENÇÃO (Card 17): o gerador do protocolo deve usar o MAIOR número já existente no ano + 1
- * (e não a quantidade de pedidos), senão o primeiro pedido novo repetiria um protocolo do seed.
- * Use datas relativas a hoje no seed, para "atrasado" e "no prazo" continuarem corretos.
- */
+/** Empréstimos (seed em emprestimos/emprestimos.seed.ts). Um de cada situação. */
 export const EMPRESTIMO_IDS = {
   devolvido: 'emp-2026-0036',
   atrasado: 'emp-2026-0037',
-  emAndamento: 'emp-2026-0038',
+  emAndamentoProjetor: 'emp-2026-0038',
   rejeitado: 'emp-2026-0039',
-  aprovado: 'emp-2026-0040',
+  aprovadoProfessor: 'emp-2026-0040',
   cancelado: 'emp-2026-0041',
   pendenteJoao: 'emp-2026-0042',
-  pendenteMaria: 'emp-2026-0043',
-  pendenteCarlos: 'emp-2026-0044',
+  pendenteCarlos: 'emp-2026-0043',
+  emAndamentoImpressora: 'emp-2026-0044',
+  aprovadoAna: 'emp-2026-0045',
+} as const;
+
+/** Insumos (seed em insumos/insumos.seed.ts). */
+export const INSUMO_IDS = {
+  filamentoPla: 'ins-filamento-pla', //   abaixo do mínimo (entra na lista de reposição)
+  estanho: 'ins-estanho',
+  resistores: 'ins-resistores',
+  papelA4: 'ins-papel-a4',
+  pincelQuadro: 'ins-pincel-quadro', //   zerado
+  alcoolIsopropilico: 'ins-alcool-isopropilico', // tem validade
 } as const;

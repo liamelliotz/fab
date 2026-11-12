@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module.js';
 import { DashboardModule } from './dashboard/dashboard.module.js';
 import { EmprestimosModule } from './emprestimos/emprestimos.module.js';
 import { EquipamentosModule } from './equipamentos/equipamentos.module.js';
+import { InsumosModule } from './insumos/insumos.module.js';
 import { ManutencoesModule } from './manutencoes/manutencoes.module.js';
 import { RelatoriosModule } from './relatorios/relatorios.module.js';
 import { UsuariosModule } from './usuarios/usuarios.module.js';
@@ -36,6 +37,7 @@ import { UsuariosModule } from './usuarios/usuarios.module.js';
     EquipamentosModule,
     EmprestimosModule,
     ManutencoesModule,
+    InsumosModule,
     DashboardModule,
     RelatoriosModule,
   ],
