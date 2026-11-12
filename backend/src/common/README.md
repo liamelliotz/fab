@@ -86,9 +86,9 @@ export class EquipamentosRepository extends InMemoryRepository<Equipamento> {
     return EQUIPAMENTOS_SEED;               // seed do próprio módulo (ver item 6)
   }
 
-  buscarPorPatrimonio(patrimonio: string) { // consulta específica do módulo
-    const alvo = patrimonio.trim().toLowerCase();
-    return this.encontrar((e) => e.patrimonio.trim().toLowerCase() === alvo);
+  buscarPorCodigoPatrimonio(codigo: string) { // consulta específica do módulo
+    const alvo = codigo.trim().toLowerCase();
+    return this.encontrar((e) => e.codigoPatrimonio.trim().toLowerCase() === alvo);
   }
 }
 ```
@@ -115,3 +115,11 @@ Registre o repositório em `providers` (e em `exports`, se outro módulo for us�
 - Todo item do seed tem `id` fixo. Datas de seed: use valores relativos a hoje (ex.: hoje + 7 dias).
 - Usuários de exemplo (`usuarios.seed.ts`): `admin@fab.com` / `admin123` e `professor@fab.com` / `prof123`, mais os
   quatro solicitantes dos pedidos de exemplo. A senha está em texto só no seed: o hash é gerado no Card 4.
+
+## Utilitários (`common/utils`) e configuração
+
+- `data.util.ts`: `hojeIso()`, `paraIso()`, `somarDias()`, `diferencaEmDias()`, `ehDataIso()`. **Sempre use `hojeIso()` para saber o dia de hoje**:
+  ele respeita o fuso da escola (`APP_TIMEZONE`), e não o do servidor. Nunca use `new Date().toISOString().slice(0, 10)`.
+- `codigo.util.ts`: `gerarCodigo()`, `normalizarCodigo()` e `montarPayloadQr()` (códigos de retirada e devolução).
+- `configurar-app.ts`: prefixo `/api`, helmet, validação e envelope. O `main.ts` e os testes e2e chamam a mesma função.
+- `enums/insumo.enum.ts`: categorias, unidades, tipos e motivos de movimentação de insumos.

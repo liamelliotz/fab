@@ -52,3 +52,11 @@ export class EmprestimosController {
   segredo fixo e avisa no log.
 - O `JwtService` já está configurado no `AuthModule`. O token carrega `JwtPayload`
   (`{ sub, email, perfil }`, em `strategies/jwt.strategy.ts`).
+
+## Login (pronto)
+
+- `POST /api/auth/login` (`@Public`, 5 tentativas por minuto por IP): devolve `{ tokenAcesso, tipoToken, expiraEm, usuario }`.
+  E-mail ou senha errados: **401** com a mesma mensagem. Conta inativa ou bloqueada: **403**.
+- `GET /api/auth/me`: dados de quem está logado.
+- Não existe cadastro público: contas são criadas pelo admin em `POST /usuarios` (card A3).
+- Em produção, `JWT_SECRET` fraco (ausente, de exemplo ou com menos de 32 caracteres) impede a API de subir.
