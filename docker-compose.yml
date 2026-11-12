@@ -1,0 +1,27 @@
+# Banco de dados do FAB para desenvolvimento (PostgreSQL 16).
+#   subir:   docker compose up -d
+#   parar:   docker compose down
+#   apagar os dados e recomeçar:   docker compose down -v
+# Depois de subir: cd backend && npm run db:migrate && npm run db:seed
+services:
+  banco:
+    image: postgres:16-alpine
+    container_name: fab-banco
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: fab
+      POSTGRES_PASSWORD: fab_dev
+      POSTGRES_DB: fab
+      TZ: America/Belem
+    ports:
+      - '5432:5432'
+    volumes:
+      - fab_dados:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U fab -d fab']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  fab_dados:
