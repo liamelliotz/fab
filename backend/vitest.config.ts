@@ -9,5 +9,7 @@ export default defineConfig({
     globals: true,
     root: './',
     include: ['**/*.spec.ts'],
+    // Testes unitários nunca usam o banco, mesmo com PERSISTENCIA=postgres no .env.
+    env: { PERSISTENCIA: 'memoria' },
   },
 });

@@ -4,6 +4,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './auth/auth.module.js';
+import { DatabaseModule } from './common/database/index.js';
 import { DashboardModule } from './dashboard/dashboard.module.js';
 import { EmprestimosModule } from './emprestimos/emprestimos.module.js';
 import { EquipamentosModule } from './equipamentos/equipamentos.module.js';
@@ -24,11 +25,16 @@ import { UsuariosModule } from './usuarios/usuarios.module.js';
     // sem precisar importar o ConfigModule de novo em cada módulo.
     ConfigModule.forRoot({ isGlobal: true }),
 
+    // Banco de dados: só conecta no PostgreSQL com PERSISTENCIA=postgres no .env.
+    // Sem isso, a API roda em memória e não precisa de banco (veja common/database).
+    DatabaseModule.forRoot(),
+
     // Limite de requisições: 100 por minuto por IP. Rotas sensíveis (como o login)
-    // usam um limite menor com @Throttle(), definido no Card 5.
+    // usam um limite menor com @Throttle() no próprio controller.
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
 
-    // Habilita tarefas agendadas (@Cron). Usado no controle de atrasos (Card 25).
+    // Habilita tarefas agendadas (@Cron), para quando algum card precisar.
+    // Atrasos NÃO usam isso: são calculados na leitura (emprestimos/atrasos).
     ScheduleModule.forRoot(),
 
     // Módulos do domínio (um por pasta em src/).

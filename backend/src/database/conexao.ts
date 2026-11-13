@@ -1,5 +1,6 @@
 import { existsSync } from 'node:fs';
 import pg from 'pg';
+import { mensagemDeFalhaDeConexao } from '../common/database/erro-de-conexao.js';
 
 /**
  * Conexão usada pelos scripts de banco (db:migrate e db:seed).
@@ -19,15 +20,14 @@ export function lerUrlDoBanco(): string {
 }
 
 export async function conectar(): Promise<pg.Client> {
-  const cliente = new pg.Client({ connectionString: lerUrlDoBanco() });
+  const cliente = new pg.Client({
+    connectionString: lerUrlDoBanco(),
+    connectionTimeoutMillis: 5_000,
+  });
   try {
     await cliente.connect();
   } catch (erro) {
-    throw new Error(
-      `Não foi possível conectar ao PostgreSQL (${(erro as Error).message}). ` +
-        'O banco está no ar? Na raiz do projeto: docker compose up -d',
-      { cause: erro },
-    );
+    throw new Error(mensagemDeFalhaDeConexao(erro), { cause: erro });
   }
   return cliente;
 }

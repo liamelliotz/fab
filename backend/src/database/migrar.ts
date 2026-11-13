@@ -51,6 +51,6 @@ async function migrar(): Promise<void> {
 }
 
 migrar().catch((erro: Error) => {
-  console.error(`Falha na migration: ${erro.message}`);
+  console.error(`Falha na migration. ${erro.message}`);
   process.exitCode = 1;
 });

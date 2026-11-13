@@ -1,114 +1,223 @@
-# FAB — Backend
+# common/ — padrões que todos os módulos usam
 
-API do FAB (empréstimos de equipamentos e gestão de insumos), feita com **NestJS 12**.
-Contrato da API: [`docs/contrato-api.md`](../docs/contrato-api.md). Banco: [`docs/banco.md`](../docs/banco.md).
+Pasta da Fundação (Cards 2 e 3). **Não edite sem avisar no card**: todos os módulos dependem dela.
+Lembre: todo `import` local termina em `.js`.
 
-## Requisitos
+## 1. Envelope de resposta (automático)
 
-- Node.js 24 LTS (traz o npm 11)
-- Docker Desktop (para o PostgreSQL) ou um PostgreSQL 13+ instalado
+Controllers e services devolvem **só o dado**. O `ResponseInterceptor` monta o envelope:
 
-## Instalar e rodar
-
-```bash
-cd backend
-npm ci                       # instala exatamente o que está no package-lock.json
-cp .env.example .env         # Windows (PowerShell): Copy-Item .env.example .env
-npm run start:dev
+```json
+{ "sucesso": true, "mensagem": "…", "dados": { }, "erros": [], "timestamp": "2026-10-21T10:00:00.000Z" }
 ```
 
-- API: <http://localhost:3000/api>
-- Swagger (documentação e teste das rotas): <http://localhost:3000/api/docs>
+Para colocar uma mensagem no sucesso, use `@Mensagem()`:
 
-Para testar no Swagger: chame `POST /auth/login`, copie o `tokenAcesso`, clique em **Authorize** e cole.
+```ts
+import { Mensagem } from '../common/interceptors/mensagem.decorator.js';
 
-| Conta | E-mail | Senha |
-| --- | --- | --- |
-| Administrador | `admin@fab.com` | `admin123` |
-| Professor | `professor@fab.com` | `prof123` |
-
-> Hoje a API guarda os dados **em memória** (recriados a cada reinício, a partir do seed), então ela roda
-> mesmo sem o banco. As tabelas do PostgreSQL já estão prontas; cada módulo passa a usá-las no seu card.
-
-## Banco de dados
-
-```bash
-docker compose up -d         # na RAIZ do projeto: PostgreSQL 16 na porta 5432
-cd backend
-npm run db:migrate           # cria as tabelas (database/migrations/*.sql)
-npm run db:seed              # APAGA os dados e grava os de exemplo
+@Post()
+@Mensagem('Equipamento cadastrado com sucesso')
+criar(@Body() dto: CriarEquipamentoDto) {
+  return this.equipamentosService.criar(dto); // devolve só o equipamento
+}
 ```
 
-`npm run db:reset` faz migrate e seed de uma vez. Sem Docker, aponte o `DATABASE_URL` do `.env` para o seu PostgreSQL.
+## 2. Erros (automático)
 
-## Variáveis do `.env`
+Lance as exceções do Nest. O `HttpExceptionFilter` devolve `{ sucesso: false, mensagem, dados: null, erros, timestamp }`:
 
-| Variável | Para quê | Padrão |
-| --- | --- | --- |
-| `NODE_ENV` | `production` exige `JWT_SECRET` forte e desliga o Swagger | `development` |
-| `PORT` | porta da API | `3000` |
-| `JWT_SECRET` | assina os tokens. Mínimo de 32 caracteres aleatórios | — |
-| `JWT_EXPIRES_IN` | validade do token | `8h` |
-| `CORS_ORIGINS` | endereços do front, separados por vírgula (nunca `*`) | `http://localhost:4200` |
-| `APP_TIMEZONE` | fuso da escola: define o "hoje" de prazos e atrasos | `America/Belem` |
-| `DATABASE_URL` | conexão do PostgreSQL | a do `docker-compose.yml` |
-| `SWAGGER_ATIVO` | `true` liga o Swagger em produção | desligado |
+```ts
+throw new NotFoundException('Equipamento não encontrado');            // 404
+throw new ConflictException('Já existe um equipamento com este código'); // 409
+throw new ForbiddenException('Você só pode ver os seus pedidos');     // 403
+```
 
-O `.env` **nunca** vai para o Git. Gere um segredo com:
-`node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`
+- Erro de validação do DTO vira **400**, com `mensagem: "Dados inválidos"` e uma frase por campo em `erros`
+  (já traduzidas, por exemplo: `"nome não pode ficar vazio"`).
+- Erro inesperado vira **500** com texto genérico (o detalhe vai só para o log).
+- Para uma lista de erros própria: `new BadRequestException({ message: 'Resumo', erros: ['…', '…'] })`.
 
-## Scripts
+## 3. Paginação
 
-| Comando | O que faz |
+Estenda o `PaginacaoDto` no DTO de filtro da rota (`?pagina=1&itensPorPagina=10`; padrão 1 e 10, máximo 100):
+
+```ts
+import { PaginacaoDto, paginarLista } from '../common/dto/index.js';
+
+export class FiltroEquipamentoDto extends PaginacaoDto {
+  @IsOptional() @IsString() busca?: string;
+}
+
+@Get()
+listar(@Query() filtro: FiltroEquipamentoDto) {
+  const filtrados = this.repositorio.listar().filter(/* … */);
+  return paginarLista(filtrados, filtro); // lista completa em memória -> página pronta
+}
+```
+
+Quando a consulta já devolve só a página, use `montarPagina(itensDaPagina, totalGeral, filtro)`.
+A resposta é `{ itens, totalItens, paginaAtual, totalPaginas, itensPorPagina, temProxima, temAnterior }`.
+
+## 4. Enums
+
+Valores idênticos aos do front (`core/models`). Use em DTOs e entidades:
+
+```ts
+import { StatusEmprestimo } from '../common/enums/index.js';
+
+@IsEnum(StatusEmprestimo) status: StatusEmprestimo;
+```
+
+Disponíveis: `Perfil`, `StatusUsuario`, `CategoriaEquipamento`, `StatusEquipamento`, `StatusEmprestimo`, `StatusManutencao`.
+
+## 5. Repositório em memória (acesso a dados)
+
+Os services falam com o repositório, nunca com o armazenamento. Hoje os dados ficam na memória e
+**somem ao reiniciar a API** (o seed recria tudo); depois a implementação troca para PostgreSQL e os services não mudam.
+Os métodos são assíncronos: use `await`.
+
+```ts
+import { InMemoryRepository } from '../common/repository/index.js';
+
+@Injectable()
+export class EquipamentosRepository extends InMemoryRepository<Equipamento> {
+  protected override dadosIniciais(): Equipamento[] {
+    return EQUIPAMENTOS_SEED;               // seed do próprio módulo (ver item 6)
+  }
+
+  buscarPorCodigoPatrimonio(codigo: string) { // consulta específica do módulo
+    const alvo = codigo.trim().toLowerCase();
+    return this.encontrar((e) => e.codigoPatrimonio.trim().toLowerCase() === alvo);
+  }
+}
+```
+
+| Método | O que faz |
 | --- | --- |
-| `npm run start:dev` | sobe a API e reinicia ao salvar |
-| `npm run build` | compila para `dist/` |
-| `npm run start:prod` | roda a versão compilada |
-| `npm run lint` | verifica o código (oxlint) |
-| `npm run format` | formata com o Prettier |
-| `npm test` | testes unitários (Vitest) |
-| `npm run test:e2e` | testes de ponta a ponta (Vitest + Supertest) |
-| `npm run db:migrate` / `db:seed` / `db:reset` | banco de dados |
+| `criar(dados)` | Guarda; sem `id`, gera um UUID. Devolve o registro salvo |
+| `buscarPorId(id)` | Devolve o registro ou `null` (o **service** lança o 404) |
+| `listar()` | Todos, na ordem de criação (filtros e paginação ficam no service) |
+| `atualizar(id, parcial)` | Muda só os campos informados; devolve o registro ou `null` |
+| `remover(id)` | `true` se apagou, `false` se não existia |
+| `contar()` | Quantidade de registros |
+| `encontrar(fn)` / `filtrar(fn)` | Auxiliares `protected` para as consultas do módulo |
+| `redefinir()` | Apaga tudo e recarrega o seed (útil nos testes) |
 
-**Antes de abrir um Pull Request, rode os quatro:** `npm run format`, `npm run lint`, `npm test` e `npm run test:e2e`.
+O repositório devolve **cópias**: alterar o objeto recebido não muda o que está guardado, é preciso chamar `atualizar()`.
+Registre o repositório em `providers` (e em `exports`, se outro módulo for usá-lo).
 
-## Estrutura
+## 6. Seed (dados de exemplo)
 
-```
-backend/
-  database/migrations/   arquivos .sql que criam e alteram as tabelas
-  src/
-    main.ts              CORS, Swagger e porta
-    app.module.ts        registro de TODOS os módulos (não edite)
-    common/              envelope, erros, paginação, enums, repositório base, seeds, utilitários
-    database/            scripts db:migrate e db:seed
-    auth/  usuarios/  equipamentos/  emprestimos/
-    manutencoes/  insumos/  dashboard/  relatorios/
-  test/                  testes e2e (um arquivo por módulo)
-```
+- Cada módulo tem o **próprio** `<modulo>.seed.ts` e só o repositório dele carrega os dados (no `onModuleInit`).
+- Um seed **não importa o seed de outro módulo**. Para apontar para registros alheios, use os ids de `common/seed/ids.ts`
+  (`USUARIO_IDS`, `EQUIPAMENTO_IDS`, `EMPRESTIMO_IDS`): o id é o mesmo em qualquer lugar, sem esperar o merge do colega.
+- Todo item do seed tem `id` fixo. Datas de seed: use valores relativos a hoje (ex.: hoje + 7 dias).
+- Usuários de exemplo (`usuarios.seed.ts`): `admin@fab.com` / `admin123` e `professor@fab.com` / `prof123`, mais os
+  quatro solicitantes dos pedidos de exemplo. A senha está em texto só no seed: o hash é gerado no Card 4.
 
-## O que já funciona
+## Utilitários (`common/utils`) e configuração
 
-| Rota | Situação |
+- `data.util.ts`: `hojeIso()`, `paraIso()`, `somarDias()`, `diferencaEmDias()`, `ehDataIso()`. **Sempre use `hojeIso()` para saber o dia de hoje**:
+  ele respeita o fuso da escola (`APP_TIMEZONE`), e não o do servidor. Nunca use `new Date().toISOString().slice(0, 10)`.
+- `codigo.util.ts`: `gerarCodigo()`, `normalizarCodigo()` e `montarPayloadQr()` (códigos de retirada e devolução).
+- `configurar-app.ts`: prefixo `/api`, helmet, validação e envelope. O `main.ts` e os testes e2e chamam a mesma função.
+- `enums/insumo.enum.ts`: categorias, unidades, tipos e motivos de movimentação de insumos.
+
+## Banco de dados (`common/database`)
+
+| Arquivo | Para quê |
 | --- | --- |
-| `POST /auth/login`, `GET /auth/me` | prontas e testadas |
-| `GET /equipamentos`, `GET /equipamentos/:id` | prontas e testadas (filtros e paginação) |
-| demais rotas do contrato | esqueleto: cada uma tem um card no Trello |
+| `persistencia.ts` | `lerModoPersistencia()`: `memoria` (padrão) ou `postgres`, lido da variável `PERSISTENCIA` |
+| `database.module.ts` | `DatabaseModule.forRoot()` (já registrado no `app.module.ts`, só conecta com `PERSISTENCIA=postgres`) e `entidadesDoBanco()` |
+| `provedor-de-repositorio.ts` | `provedorDeRepositorio()`: entrega a versão em memória ou a do banco com o mesmo token |
+| `erro-de-conexao.ts` | traduz os erros do PostgreSQL para português (usado pela API e pelos scripts `db:*`) |
 
-## Regras do projeto (importante)
+Regras fixas: `synchronize` é sempre `false` (as tabelas vêm de `database/migrations`), e os testes unitários
+sempre rodam em memória. Para testar com o banco: `npm run test:e2e:postgres`.
 
-- **ESM**: todo `import` de arquivo local termina em `.js` (`import { X } from './x.service.js';`).
-- **Injeção**: use `@Inject(Classe)` em todo parâmetro de construtor, como nos arquivos prontos.
-- **Cada pessoa edita só as pastas do seu card.** `main.ts`, `app.module.ts`, `common/` e `database/` são da Pessoa A.
-- **Datas**: "hoje" é `hojeIso()` (`common/utils/data.util.ts`), que respeita o fuso da escola.
-- **`atrasado` nunca é gravado**: use `statusParaResposta()` ao montar a resposta.
-- Controllers devolvem só o dado; o envelope `{ sucesso, mensagem, dados, erros, timestamp }` é automático.
-- Erros de regra usam as exceções do Nest com mensagem em português: `NotFoundException` (404),
-  `ConflictException` (409), `ForbiddenException` (403), `BadRequestException` (400).
-- Todo card de backend entrega testes: `*.spec.ts` ao lado do service e, para rotas, `test/<modulo>.e2e-spec.ts`.
-- Nos e2e, faça login **uma vez** no `beforeAll` e reaproveite o token (o login aceita 5 tentativas por minuto).
+### Como levar um repositório para o banco (cards A2, B3, C7 e D7)
 
-## Ferramentas
+O exemplo usa usuários. Troque pelos nomes do seu módulo.
 
-O Nest 12 gerou o projeto com **Vitest** (no lugar do Jest), **oxlint** (no lugar do ESLint) e **ESM**.
-O Vitest já injeta `describe`, `it` e `expect`. Supertest: `import request from 'supertest';`.
+1. **Entidade do banco.** Crie `usuarios/orm/usuario.orm-entity.ts` com `@Entity('usuarios')`, mapeando
+   cada coluna da migration. Dê o nome da coluna e o tipo em todo `@Column`, porque o banco usa
+   snake_case e o código usa camelCase:
+
+   ```ts
+   import { Column, Entity, PrimaryColumn } from 'typeorm';
+
+   @Entity('usuarios')
+   export class UsuarioOrm {
+     @PrimaryColumn({ type: 'text' })
+     id!: string;
+
+     @Column({ name: 'senha_hash', type: 'text' })
+     senhaHash!: string;
+
+     @Column({ name: 'criado_em', type: 'timestamptz' })
+     criadoEm!: Date;
+   }
+   ```
+
+   Colunas `NUMERIC` chegam como texto: converta com `Number()`. Datas `DATE` chegam como `AAAA-MM-DD`.
+   Não crie tabela nem coluna pela entidade: se faltar algo, peça ao Leonardo uma migration nova.
+
+2. **Repositório do banco.** Crie `usuarios/usuarios.postgres.repository.ts` com **os mesmos métodos
+   públicos** do repositório em memória (mesmos nomes, parâmetros e retornos). Escreva duas funções
+   pequenas, `paraEntidade(linha)` e `paraLinha(entidade)`, e use-as em todos os métodos:
+
+   ```ts
+   import { Inject, Injectable } from '@nestjs/common';
+   import { InjectRepository } from '@nestjs/typeorm';
+   import { Repository } from 'typeorm';
+   import { UsuarioOrm } from './orm/usuario.orm-entity.js';
+
+   @Injectable()
+   export class UsuariosPostgresRepository {
+     constructor(
+       @InjectRepository(UsuarioOrm) private readonly tabela: Repository<UsuarioOrm>,
+     ) {}
+
+     async buscarPorId(id: string) {
+       const linha = await this.tabela.findOneBy({ id });
+       return linha ? paraEntidade(linha) : null;
+     }
+     // ... os demais métodos, com a mesma assinatura da versão em memória
+   }
+   ```
+
+3. **Registro no módulo.** Registre a entidade com `entidadesDoBanco()` e troque o repositório em
+   memória da lista de `providers` pelo `provedorDeRepositorio()`:
+
+   ```ts
+   import { entidadesDoBanco, provedorDeRepositorio } from '../common/database/index.js';
+
+   @Module({
+     imports: [...entidadesDoBanco([UsuarioOrm])],
+     providers: [
+       UsuariosService,
+       provedorDeRepositorio(UsuariosRepository, UsuariosPostgresRepository),
+     ],
+   })
+   ```
+
+   O service **não muda**: ele continua pedindo `@Inject(UsuariosRepository)`. Não use
+   `TypeOrmModule.forFeature` direto: ele exige o banco e quebraria a API em memória.
+   O `entidadesDoBanco()` só registra as tabelas quando `PERSISTENCIA=postgres`.
+
+4. **Erros do banco viram HTTP.** Violação de índice único (código `23505`) vira `ConflictException`
+   (409). Violação de `CHECK` (código `23514`) vira 409 com a regra em português. Nunca deixe o erro do
+   banco chegar cru ao cliente (vira 500).
+
+5. **Duas ou mais tabelas na mesma operação** rodam em transação:
+   `this.tabela.manager.transaction(async (m) => { ... })`.
+
+6. **Testes.** Os testes em memória continuam iguais e precisam passar. Crie
+   `test/<modulo>.postgres.e2e-spec.ts` com `describe.skipIf(lerModoPersistencia() !== 'postgres')` (veja
+   `test/banco.e2e-spec.ts`) e rode com o banco no ar:
+
+   ```bash
+   npm run db:reset
+   npm run test:e2e:postgres
+   ```
