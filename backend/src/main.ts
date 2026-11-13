@@ -2,8 +2,8 @@ import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { AppModule } from './app.module.js';
 import { configurarApp } from './common/configurar-app.js';
+import { ErroDeConfiguracao } from './common/erro-de-configuracao.js';
 
 // Origem liberada no CORS por padrão: o front-end Angular em desenvolvimento (ng serve).
 // Para liberar outras (ex.: o build com SSR em http://localhost:4000), use CORS_ORIGINS no .env.
@@ -17,7 +17,7 @@ function lerOrigensPermitidas(valor: string | undefined): string[] {
     .filter(Boolean);
 
   if (origens.length === 0 || origens.includes('*')) {
-    throw new Error(
+    throw new ErroDeConfiguracao(
       'CORS_ORIGINS deve listar endereços do front-end e não pode conter "*".',
     );
   }
@@ -25,7 +25,18 @@ function lerOrigensPermitidas(valor: string | undefined): string[] {
 }
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  // Importado aqui dentro para que um erro do .env (ex.: PERSISTENCIA inválida), que acontece
+  // ao carregar os módulos, também caia no tratamento lá embaixo.
+  const { AppModule } = await import('./app.module.js');
+
+  // Os logs da inicialização ficam guardados (bufferLogs) até a API subir. Se ela não subir
+  // por erro de configuração, mostramos só a mensagem em português, sem o stack trace.
+  const app = await NestFactory.create(AppModule, {
+    abortOnError: false,
+    bufferLogs: true,
+    autoFlushLogs: false,
+  });
+  app.flushLogs();
   const config = app.get(ConfigService);
 
   // Prefixo /api, helmet, validação dos DTOs e envelope de resposta (igual nos testes e2e).
@@ -67,4 +78,18 @@ async function bootstrap() {
     logger.log(`Swagger:   http://localhost:${porta}/api/docs`);
   }
 }
-await bootstrap();
+
+try {
+  await bootstrap();
+} catch (erro) {
+  if (erro instanceof ErroDeConfiguracao) {
+    Logger.detachBuffer(); // descarta os logs técnicos guardados
+    Logger.overrideLogger(['error', 'fatal']); // e os que ainda chegarem atrasados
+  } else {
+    Logger.flush(); // erro inesperado: mostra tudo, com stack trace
+  }
+  new Logger('Bootstrap').error(
+    `A API não subiu. ${erro instanceof Error ? erro.message : String(erro)}`,
+  );
+  process.exitCode = 1;
+}

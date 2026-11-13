@@ -173,6 +173,6 @@ async function semear(): Promise<void> {
 }
 
 semear().catch((erro: Error) => {
-  console.error(`Falha no seed: ${erro.message}`);
+  console.error(`Falha no seed. ${erro.message}`);
   process.exitCode = 1;
 });

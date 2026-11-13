@@ -123,3 +123,101 @@ Registre o repositório em `providers` (e em `exports`, se outro módulo for us�
 - `codigo.util.ts`: `gerarCodigo()`, `normalizarCodigo()` e `montarPayloadQr()` (códigos de retirada e devolução).
 - `configurar-app.ts`: prefixo `/api`, helmet, validação e envelope. O `main.ts` e os testes e2e chamam a mesma função.
 - `enums/insumo.enum.ts`: categorias, unidades, tipos e motivos de movimentação de insumos.
+
+## Banco de dados (`common/database`)
+
+| Arquivo | Para quê |
+| --- | --- |
+| `persistencia.ts` | `lerModoPersistencia()`: `memoria` (padrão) ou `postgres`, lido da variável `PERSISTENCIA` |
+| `database.module.ts` | `DatabaseModule.forRoot()` (já registrado no `app.module.ts`, só conecta com `PERSISTENCIA=postgres`) e `entidadesDoBanco()` |
+| `provedor-de-repositorio.ts` | `provedorDeRepositorio()`: entrega a versão em memória ou a do banco com o mesmo token |
+| `erro-de-conexao.ts` | traduz os erros do PostgreSQL para português (usado pela API e pelos scripts `db:*`) |
+
+Regras fixas: `synchronize` é sempre `false` (as tabelas vêm de `database/migrations`), e os testes unitários
+sempre rodam em memória. Para testar com o banco: `npm run test:e2e:postgres`.
+
+### Como levar um repositório para o banco (cards A2, B3, C7 e D7)
+
+O exemplo usa usuários. Troque pelos nomes do seu módulo.
+
+1. **Entidade do banco.** Crie `usuarios/orm/usuario.orm-entity.ts` com `@Entity('usuarios')`, mapeando
+   cada coluna da migration. Dê o nome da coluna e o tipo em todo `@Column`, porque o banco usa
+   snake_case e o código usa camelCase:
+
+   ```ts
+   import { Column, Entity, PrimaryColumn } from 'typeorm';
+
+   @Entity('usuarios')
+   export class UsuarioOrm {
+     @PrimaryColumn({ type: 'text' })
+     id!: string;
+
+     @Column({ name: 'senha_hash', type: 'text' })
+     senhaHash!: string;
+
+     @Column({ name: 'criado_em', type: 'timestamptz' })
+     criadoEm!: Date;
+   }
+   ```
+
+   Colunas `NUMERIC` chegam como texto: converta com `Number()`. Datas `DATE` chegam como `AAAA-MM-DD`.
+   Não crie tabela nem coluna pela entidade: se faltar algo, peça ao Leonardo uma migration nova.
+
+2. **Repositório do banco.** Crie `usuarios/usuarios.postgres.repository.ts` com **os mesmos métodos
+   públicos** do repositório em memória (mesmos nomes, parâmetros e retornos). Escreva duas funções
+   pequenas, `paraEntidade(linha)` e `paraLinha(entidade)`, e use-as em todos os métodos:
+
+   ```ts
+   import { Inject, Injectable } from '@nestjs/common';
+   import { InjectRepository } from '@nestjs/typeorm';
+   import { Repository } from 'typeorm';
+   import { UsuarioOrm } from './orm/usuario.orm-entity.js';
+
+   @Injectable()
+   export class UsuariosPostgresRepository {
+     constructor(
+       @InjectRepository(UsuarioOrm) private readonly tabela: Repository<UsuarioOrm>,
+     ) {}
+
+     async buscarPorId(id: string) {
+       const linha = await this.tabela.findOneBy({ id });
+       return linha ? paraEntidade(linha) : null;
+     }
+     // ... os demais métodos, com a mesma assinatura da versão em memória
+   }
+   ```
+
+3. **Registro no módulo.** Registre a entidade com `entidadesDoBanco()` e troque o repositório em
+   memória da lista de `providers` pelo `provedorDeRepositorio()`:
+
+   ```ts
+   import { entidadesDoBanco, provedorDeRepositorio } from '../common/database/index.js';
+
+   @Module({
+     imports: [...entidadesDoBanco([UsuarioOrm])],
+     providers: [
+       UsuariosService,
+       provedorDeRepositorio(UsuariosRepository, UsuariosPostgresRepository),
+     ],
+   })
+   ```
+
+   O service **não muda**: ele continua pedindo `@Inject(UsuariosRepository)`. Não use
+   `TypeOrmModule.forFeature` direto: ele exige o banco e quebraria a API em memória.
+   O `entidadesDoBanco()` só registra as tabelas quando `PERSISTENCIA=postgres`.
+
+4. **Erros do banco viram HTTP.** Violação de índice único (código `23505`) vira `ConflictException`
+   (409). Violação de `CHECK` (código `23514`) vira 409 com a regra em português. Nunca deixe o erro do
+   banco chegar cru ao cliente (vira 500).
+
+5. **Duas ou mais tabelas na mesma operação** rodam em transação:
+   `this.tabela.manager.transaction(async (m) => { ... })`.
+
+6. **Testes.** Os testes em memória continuam iguais e precisam passar. Crie
+   `test/<modulo>.postgres.e2e-spec.ts` com `describe.skipIf(lerModoPersistencia() !== 'postgres')` (veja
+   `test/banco.e2e-spec.ts`) e rode com o banco no ar:
+
+   ```bash
+   npm run db:reset
+   npm run test:e2e:postgres
+   ```

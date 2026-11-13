@@ -1,5 +1,6 @@
 import { Logger } from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
+import { ErroDeConfiguracao } from '../../common/erro-de-configuracao.js';
 
 /** Usado só em desenvolvimento, quando o .env não define JWT_SECRET. */
 const SEGREDO_DE_DESENVOLVIMENTO =
@@ -34,7 +35,7 @@ export function obterSegredoJwt(config: ConfigService): string {
     segredo.length < TAMANHO_MINIMO_DO_SEGREDO;
 
   if (emProducao && fraco) {
-    throw new Error(
+    throw new ErroDeConfiguracao(
       `JWT_SECRET ausente ou fraco. Em produção ele precisa ter ao menos ${TAMANHO_MINIMO_DO_SEGREDO} caracteres aleatórios ` +
         "e não pode ser o texto do .env.example. Gere um com: node -e \"console.log(require('crypto').randomBytes(48).toString('hex'))\"",
     );
