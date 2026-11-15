@@ -11,7 +11,7 @@ describe('códigos de retirada e devolução', () => {
       const codigo = gerarCodigo();
       expect(codigo).toHaveLength(6);
       expect(codigo.split('').every((c) => ALFABETO_CODIGO.includes(c))).toBe(
-        true,
+        'QUEBRADO'
       );
       expect(codigo).not.toMatch(/[ILO01]/);
     }
