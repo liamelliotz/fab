@@ -2,11 +2,11 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { Navbar } from './navbar';
+import { AuthService } from '../../../core/services/auth.service';
 
 // Cria a navbar simulando um usuário logado com o perfil informado
 function criarNavbar(perfil: string): { fixture: ComponentFixture<Navbar>; element: HTMLElement } {
-  localStorage.setItem('fab_token', 'teste');
-  localStorage.setItem('fab_role', perfil);
+  TestBed.inject(AuthService).entrarComoDemo(perfil === 'admin' ? 'demo-admin' : 'demo-professor');
   const fixture = TestBed.createComponent(Navbar);
   fixture.detectChanges();
   return { fixture, element: fixture.nativeElement as HTMLElement };
@@ -42,6 +42,7 @@ describe('Navbar', () => {
       'Empréstimos',
       'Equipamentos',
       'Manutenção',
+      'Insumos',
       'Usuários',
       'Relatórios',
       'Materiais',

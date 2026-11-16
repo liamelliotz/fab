@@ -17,6 +17,7 @@ export interface Notificacao {
   id: number;
   tipo: TipoNotificacao;
   mensagem: string;
+  erros?: string[];
 }
 
 @Injectable({
@@ -37,12 +38,12 @@ export class NotificationService {
     this.exibir('sucesso', mensagem, duracao);
   }
 
-  erro(mensagem: string, duracao = 7000): void {
-    this.exibir('erro', mensagem, duracao);
+  erro(mensagem: string, duracao = 7000, erros: string[] = []): void {
+    this.exibir('erro', mensagem, duracao, erros);
   }
 
-  aviso(mensagem: string, duracao = 5000): void {
-    this.exibir('aviso', mensagem, duracao);
+  aviso(mensagem: string, duracao = 5000, erros: string[] = []): void {
+    this.exibir('aviso', mensagem, duracao, erros);
   }
 
   info(mensagem: string, duracao = 5000): void {
@@ -75,12 +76,13 @@ export class NotificationService {
     tipo: TipoNotificacao,
     mensagem: string,
     duracao: number,
+    erros: string[] = [],
   ): void {
     const id = ++this.proximoId;
 
     this.lista.update((notificacoes) => [
       ...notificacoes,
-      { id, tipo, mensagem },
+      { id, tipo, mensagem, erros },
     ]);
 
     if (duracao > 0) {

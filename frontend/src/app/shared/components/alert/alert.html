@@ -19,7 +19,14 @@
         }
       </span>
 
-      <p class="alert__message">{{ notificacao.mensagem }}</p>
+      <div class="alert__message">
+        <p>{{ notificacao.mensagem }}</p>
+        @if (notificacao.erros?.length) {
+          <ul>
+            @for (erro of notificacao.erros; track $index) { <li>{{ erro }}</li> }
+          </ul>
+        }
+      </div>
 
       <button
         type="button"
