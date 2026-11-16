@@ -1,4 +1,4 @@
-import { IsBoolean, IsOptional, IsString, MaxLength, ValidateIf, IsNotEmpty } from 'class-validator';
+import { IsBoolean, IsString, MaxLength, ValidateIf, IsNotEmpty } from 'class-validator';
 
 export class AvaliarEmprestimoDto {
   @IsBoolean() aprovado!: boolean;

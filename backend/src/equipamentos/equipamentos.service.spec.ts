@@ -1,6 +1,6 @@
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { beforeEach, describe, expect, it } from 'vitest';
-import {Perfil,
+import {
   CategoriaEquipamento,
   StatusEquipamento,
 } from '../common/enums/index.js';
