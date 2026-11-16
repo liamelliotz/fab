@@ -1,3 +1,5 @@
+import type { EquipamentosService } from '../equipamentos/equipamentos.service.js';
+import type { UsuariosService } from '../usuarios/usuarios.service.js';
 import { EmprestimosRepository } from './emprestimos.repository.js';
 import { EmprestimosService } from './emprestimos.service.js';
 
@@ -8,7 +10,12 @@ describe('EmprestimosService: protocolo', () => {
   beforeEach(async () => {
     repositorio = new EmprestimosRepository();
     await repositorio.onModuleInit(); // carrega o seed (até EMP-AAAA-0045)
-    service = new EmprestimosService(repositorio);
+    // gerarProtocolo só usa o repositório: os outros dois services não são necessários aqui.
+    service = new EmprestimosService(
+      repositorio,
+      null as unknown as UsuariosService,
+      null as unknown as EquipamentosService,
+    );
   });
 
   it('continua depois do maior número do seed', async () => {
