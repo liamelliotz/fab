@@ -1,35 +1,13 @@
 import { PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { CanActivateFn, Router } from '@angular/router';
+import { AuthService } from '../services/auth.service';
 
-/**
- * ADMIN GUARD: só deixa entrar no painel administrativo quem tem o perfil admin.
- */
+/** O guard orienta a navegação; a API continua responsável por validar JWT e permissões. */
 export const adminGuard: CanActivateFn = () => {
   const router = inject(Router);
-  const platformId = inject(PLATFORM_ID);
-
-  // No servidor (SSR) não existe localStorage. Deixa passar e o navegador valida depois.
-  if (!isPlatformBrowser(platformId)) {
-    return true;
-  }
-
-  const token = localStorage.getItem('fab_token');
-  // toLowerCase: aceita 'admin', 'Admin' ou 'ADMIN' (o modelo de dados usa minúsculas)
-  const role = localStorage.getItem('fab_role')?.toLowerCase();
-
-  // Logado e com perfil admin: libera
-  if (token && role === 'admin') {
-    return true;
-  }
-
-  // Logado, mas não é Admin: manda para o painel comum
-  if (token) {
-    router.navigate(['/dashboard']);
-    return false;
-  }
-
-  // Não logado: manda para o login
-  router.navigate(['/login']);
-  return false;
+  const auth = inject(AuthService);
+  if (!isPlatformBrowser(inject(PLATFORM_ID))) return true;
+  if (!auth.obterToken()) return router.createUrlTree(['/login']);
+  return auth.obterPerfil() === 'admin' ? true : router.createUrlTree(['/dashboard']);
 };

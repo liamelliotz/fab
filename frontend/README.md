@@ -53,21 +53,19 @@ O `angular.json` libera o host `localhost` em `security.allowedHosts`. Se public
 
 ## Modo demonstração (sem backend)
 
-Por padrão o app roda **sem API**: o login e o cadastro usam contas guardadas no `localStorage` do navegador, e os dados (equipamentos, solicitações) são mocks em memória, reiniciados a cada recarregamento da página.
+Por padrão os dois environments mantêm `modoDemo: true`, preservando a demonstração local.
+O login usa as contas do `UsuarioService` e os serviços de demonstração persistem os dados no navegador.
+Somente o administrador cria usuários; não existe cadastro público.
 
 | Perfil | E-mail | Senha |
 | --- | --- | --- |
 | Administrador | `admin@fab.com` | `admin123` |
 | Usuário (professor) | `professor@fab.com` | `prof123` |
 
-Quem se cadastra em `/cadastro` vira usuário comum e entra direto no dashboard.
-
-Para usar a API real, edite `src/app/core/services/auth.service.ts`:
-
-```ts
-const API_URL = 'http://localhost:3000/api';
-const MODO_DEMO: boolean = false;
-```
+O campo `modoDemo` fica em `src/environments/environment.ts` e
+`environment.development.ts`. `AuthService` já lê essa opção; use `false` para testar
+login real com o backend. Isso não migra os demais serviços de domínio para HTTP:
+essa integração pertence aos próximos cards.
 
 > **Atenção:** no modo demonstração as senhas ficam em texto puro no navegador. Nunca use em produção.
 
@@ -75,7 +73,7 @@ const MODO_DEMO: boolean = false;
 
 | Rota | Quem acessa | Descrição |
 | --- | --- | --- |
-| `/login`, `/cadastro` | Público | Entrar e criar conta |
+| `/login` | Público | Entrar no sistema |
 | `/dashboard` | Todos | Métricas, atalhos e pedidos recentes |
 | `/materiais` | Todos | Catálogo com filtros e botão *Solicitar empréstimo* |
 | `/meus-emprestimos` | Todos | Acompanhamento dos próprios pedidos |
@@ -85,6 +83,7 @@ const MODO_DEMO: boolean = false;
 | `/admin/emprestimos` | Admin | Controle de devoluções e atrasos |
 | `/admin/equipamentos` | Admin | Cadastro, edição e ativação/desativação de itens |
 | `/admin/manutencao` | Admin | Registro e andamento de manutenções |
+| `/admin/insumos` | Admin | Tela provisória "Em construção" (D8) |
 | `/admin/usuarios` | Admin | Lista de usuários e perfis |
 | `/admin/relatorios` | Admin | Relatório de utilização por período, com exportação CSV |
 
@@ -143,3 +142,57 @@ Assim, o que o admin cadastra aparece no catálogo, e aprovar um pedido reduz o 
 - Liam Elliot Silva da Costa
 
 Orientador: Instrutor especialista Matheus S Santos.
+
+## Base HTTP (E3)
+
+`ApiService` usa `API_URL` do environment e entrega somente `dados` do envelope.
+Métodos: `get<T>(caminho, filtros?)`, `post<T>(caminho, corpo, filtros?)`,
+`patch<T>(caminho, corpo, filtros?)`, `put<T>(caminho, corpo, filtros?)` e
+`delete<T>(caminho, filtros?)`. Filtros ignoram `null`, `undefined` e strings vazias;
+`false` e `0` são preservados. Arrays viram parâmetros repetidos.
+
+Exemplo de serviço de equipamentos em cinco linhas (os imports ficam abaixo):
+
+```ts
+@Injectable({ providedIn: 'root' })
+export class EquipamentosApiService {
+  private readonly api = inject(ApiService);
+  listar(filtros: FiltroEquipamentoDTO = {}) { return this.api.get<RespostaPaginada<Equipamento>>(ENDPOINTS.equipamentos.base, filtros); }
+}
+```
+
+Imports do exemplo:
+
+```ts
+import { Injectable, inject } from '@angular/core';
+import { ApiService } from './api.service';
+import { ENDPOINTS } from '../constants/api.constants';
+import { Equipamento, FiltroEquipamentoDTO } from '../models/equipamento.model';
+import { RespostaPaginada } from '../models/pagination.model';
+```
+
+Um componente assina `listar().subscribe({ next: pagina => ... , error: erro => ... })`.
+Os erros originais continuam chegando ao assinante; o interceptor já exibe `mensagem`
+e a lista `erros` no alerta global (400 com validação permanece até ser fechado).
+429 mostra aviso sem repetir a requisição. 401 encerra a sessão e volta ao login,
+exceto quando já é uma tentativa de login; 403 em operação protegida volta ao dashboard.
+Nenhum erro é escrito pelo interceptor em `console.warn` ou `console.error`.
+
+`adminGuard` e o menu obtêm o perfil do token por `AuthService`; `fab_role` é apenas
+compatibilidade e não concede acesso. O navegador só decodifica o JWT: assinatura e
+permissões devem ser validadas pelo backend em cada requisição. Tokens ausentes,
+malformados ou expirados não liberam a navegação no navegador.
+
+### Conferência local
+
+```bash
+npm run build
+npm test -- --watch=false
+npm start
+```
+
+- Em demonstração, entrar como admin deve mostrar Insumos e abrir `/admin/insumos`.
+- Entrar como professor, definir `localStorage.setItem('fab_role', 'admin')` no console,
+  atualizar a página e abrir `/admin/insumos`: deve voltar ao dashboard.
+- Com `modoDemo: false`, erro 400 de validação deve exibir o resumo e os campos no alerta.
+- Os testes HTTP usam respostas controladas: não precisam de servidor nem alteram o banco.
