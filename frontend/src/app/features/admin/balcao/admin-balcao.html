@@ -11,13 +11,11 @@
       class="bal__aba"
       [class.bal__aba--ativa]="aba() === 'retirada'"
       [attr.aria-selected]="aba() === 'retirada'"
-      (click)="trocarAba('retirada')"
+      [disabled]="salvando()" (click)="trocarAba('retirada')"
     >
       <i class="fa-solid fa-hand-holding" aria-hidden="true"></i>
       Retirada
-      @if (aguardandoRetirada().length > 0) {
-        <span class="bal__contador">{{ aguardandoRetirada().length }}</span>
-      }
+
     </button>
     <button
       type="button"
@@ -25,13 +23,11 @@
       class="bal__aba"
       [class.bal__aba--ativa]="aba() === 'devolucao'"
       [attr.aria-selected]="aba() === 'devolucao'"
-      (click)="trocarAba('devolucao')"
+      [disabled]="salvando()" (click)="trocarAba('devolucao')"
     >
       <i class="fa-solid fa-box-archive" aria-hidden="true"></i>
       Devolução
-      @if (emUso().length > 0) {
-        <span class="bal__contador">{{ emUso().length }}</span>
-      }
+
     </button>
   </div>
 
@@ -48,11 +44,11 @@
             placeholder="Digite o código ou escaneie o QR"
             [value]="codigo()"
             (input)="atualizarCodigo($event)"
-            (keydown.enter)="buscar()"
+            [disabled]="consultando()" (keydown.enter)="$event.preventDefault(); buscar()"
           />
-          <button type="button" class="bal__btn bal__btn--ok" (click)="buscar()">
+          <button type="button" class="bal__btn bal__btn--ok" [disabled]="consultando() || !codigo().trim()" (click)="buscar()">
             <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-            Conferir
+            {{ consultando() ? 'Conferindo...' : 'Conferir' }}
           </button>
         </div>
         <small>
@@ -72,7 +68,8 @@
               <h2>{{ s.responsavel.nome }}</h2>
               <p>{{ s.responsavel.departamento }}</p>
             </div>
-            <a class="bal__link" [routerLink]="['/pedidos', s.id]">{{ s.protocolo }}</a>
+            @if (service.modoDemo) { <a class="bal__link" [routerLink]="['/pedidos', s.id]">{{ s.protocolo }}</a> }
+            @else { <strong>{{ s.protocolo }}</strong> }
           </div>
 
           <p class="bal__itens">{{ itens(s) }}</p>
@@ -91,9 +88,10 @@
               <span>Material devolvido com avaria ou peça faltando</span>
             </label>
             <label class="bal__campo">
-              <span>Observações (opcional)</span>
+              <span>Observações {{ houveAvaria() ? '(obrigatórias)' : '(opcional)' }}</span>
               <textarea
                 rows="2"
+                [required]="houveAvaria()"
                 placeholder="Ex.: falta o cabo HDMI"
                 [value]="observacoes()"
                 (input)="atualizarObservacoes($event)"
@@ -106,10 +104,10 @@
           }
 
           <div class="bal__acoes">
-            <button type="button" class="bal__btn" (click)="limpar()">Cancelar</button>
-            <button type="button" class="bal__btn bal__btn--ok" (click)="confirmar()">
+            <button type="button" class="bal__btn" [disabled]="salvando()" (click)="limpar()">Cancelar</button>
+            <button type="button" class="bal__btn bal__btn--ok" [disabled]="salvando()" (click)="confirmar()">
               <i class="fa-solid fa-check" aria-hidden="true"></i>
-              {{ aba() === 'retirada' ? 'Confirmar entrega' : 'Confirmar devolução' }}
+              {{ salvando() ? 'Registrando...' : aba() === 'retirada' ? 'Confirmar entrega' : 'Confirmar devolução' }}
             </button>
           </div>
         </div>
@@ -117,37 +115,4 @@
     }
   </div>
 
-  @if (aba() === 'retirada') {
-    <div class="bal__lista">
-      <h2>Aguardando retirada ({{ aguardandoRetirada().length }})</h2>
-      @for (s of aguardandoRetirada(); track s.id) {
-        <article class="bal__item">
-          <div>
-            <strong>{{ s.protocolo }}</strong> · {{ s.responsavel.nome }}
-            <p>{{ itens(s) }} · retirada prevista {{ data(s.dataPrevistaRetirada) }}</p>
-          </div>
-          <span class="bal__tag">exige o código</span>
-        </article>
-      } @empty {
-        <p class="bal__vazio">Nenhum pedido aprovado aguardando retirada.</p>
-      }
-    </div>
-  } @else {
-    <div class="bal__lista">
-      <h2>Em uso ({{ emUso().length }})</h2>
-      @for (s of emUso(); track s.id) {
-        <article class="bal__item" [class.bal__item--atraso]="atrasado(s)">
-          <div>
-            <strong>{{ s.protocolo }}</strong> · {{ s.responsavel.nome }}
-            @if (atrasado(s)) { <span class="bal__atraso">atrasado</span> }
-            @if (s.transferenciaPendente) { <span class="bal__tag">transferência pendente</span> }
-            <p>{{ itens(s) }} · devolução até {{ data(s.dataPrevistaDevolucao) }}</p>
-          </div>
-          <span class="bal__tag">exige o código</span>
-        </article>
-      } @empty {
-        <p class="bal__vazio">Nenhum material em uso.</p>
-      }
-    </div>
-  }
 </section>
