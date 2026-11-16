@@ -41,3 +41,12 @@ export function paraPublico(usuario: Usuario): UsuarioPublico {
   delete copia.senhaHash;
   return copia as UsuarioPublico;
 }
+
+/**
+ * Versão enxuta para qualquer logado (GET /usuarios/resumo): o front usa para escolher
+ * o destinatário de uma transferência. Sem e-mail, CPF nem telefone.
+ */
+export type UsuarioResumo = Pick<
+  Usuario,
+  'id' | 'nome' | 'departamento' | 'habilitacoes'
+>;

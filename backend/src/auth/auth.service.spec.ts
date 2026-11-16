@@ -2,6 +2,8 @@ import { ForbiddenException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Perfil, StatusUsuario } from '../common/enums/index.js';
 import { USUARIO_IDS } from '../common/seed/index.js';
+import { EquipamentosRepository } from '../equipamentos/equipamentos.repository.js';
+import { EquipamentosService } from '../equipamentos/equipamentos.service.js';
 import { UsuariosRepository } from '../usuarios/usuarios.repository.js';
 import { UsuariosService } from '../usuarios/usuarios.service.js';
 import { AuthService } from './auth.service.js';
@@ -18,7 +20,10 @@ describe('AuthService', () => {
   beforeAll(async () => {
     const repositorio = new UsuariosRepository();
     await repositorio.onModuleInit(); // gera o hash das senhas do seed
-    usuarios = new UsuariosService(repositorio);
+    usuarios = new UsuariosService(
+      repositorio,
+      new EquipamentosService(new EquipamentosRepository()),
+    );
     auth = new AuthService(usuarios, jwt);
   });
 
