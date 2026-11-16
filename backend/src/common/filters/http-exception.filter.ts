@@ -6,6 +6,7 @@ import {
   type ExceptionFilter,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
+import { erroDoBancoParaHttp } from '../database/erro-do-banco.js';
 import type { RespostaApi } from '../dto/resposta-api.dto.js';
 
 /** Mensagens em português para os códigos que o front trata (veja docs/contrato-api.md). */
@@ -47,6 +48,7 @@ interface ErroInterpretado {
  *
  * - 400 de validação (class-validator): mensagem "Dados inválidos." e a lista de campos em `erros`.
  * - 401, 403, 404, 409 e demais HttpException: usa a mensagem escrita por quem lançou o erro.
+ * - Regra do PostgreSQL quebrada (valor repetido, registro em uso, CHECK): 409 em português.
  * - Erro inesperado: 500 com texto genérico (o detalhe vai só para o log, nunca para o cliente).
  */
 @Catch()
@@ -83,6 +85,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
   private interpretar(exception: unknown): ErroInterpretado {
     if (exception instanceof HttpException) {
       return this.deHttpException(exception);
+    }
+
+    // Regra do banco quebrada (e-mail repetido, registro em uso...): 409 em português.
+    const doBanco = erroDoBancoParaHttp(exception);
+    if (doBanco) {
+      return this.deHttpException(doBanco);
     }
 
     // Erros de bibliotecas (ex.: JSON malformado no corpo) trazem o status HTTP no próprio objeto.
