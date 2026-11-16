@@ -96,7 +96,7 @@ describe('paraResposta', () => {
 
 describe('seed EMP-2026-0037', () => {
   it('sai atrasado na resposta e continua em_andamento no gravado', async () => {
-    const seed = await criarEmprestimosSeed();
+    const seed = criarEmprestimosSeed();
     const emp = seed.find((e) => e.protocolo === 'EMP-2026-0037')!;
     expect(emp).toBeDefined();
     expect(statusParaResposta(emp)).toBe(StatusEmprestimo.Atrasado);
