@@ -14,7 +14,6 @@ export const CATEGORIAS: { valor: CategoriaEquipamento; nome: string }[] = [
   { valor: 'eletronico', nome: 'Eletrônico' },
   { valor: 'impressora_3d', nome: 'Impressora 3D' },
   { valor: 'corte_laser', nome: 'Corte a laser' },
-  { valor: 'consumivel', nome: 'Consumível' },
   { valor: 'outros', nome: 'Outros' },
 ];
 

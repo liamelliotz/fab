@@ -13,11 +13,13 @@ export interface PedidoRecente {
   /** Nome de quem solicitou. */
   solicitante: string;
   status: StatusEmprestimo;
-  /** Data da solicitação (AAAA-MM-DD). */
+  /** Momento da solicitação em ISO 8601 completo. */
   dataSolicitacao: string;
 }
 
 export interface DashboardResumo {
+  /** Somente o administrador recebe a quantidade de insumos a repor. */
+  insumosARepor?: number;
   solicitacoesPendentes: number;
   emprestimosAtivos: number;
   emprestimosAtrasados: number;

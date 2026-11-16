@@ -1,3 +1,4 @@
+export * from './insumo.model';
 export * from './usuario.model';
 export * from './equipamento.model';
 export * from './emprestimo.model';

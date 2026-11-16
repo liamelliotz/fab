@@ -33,6 +33,7 @@ export interface Manutencao {
 export interface RegistrarManutencaoDTO {
   equipamentoId: string;
   descricao: string;
+  quantidade?: number;
   emprestimoId?: string;
   assistencia?: string;
 }

@@ -9,10 +9,9 @@
  * Papéis de acesso disponíveis no sistema.
  *
  * - `admin`: Acesso irrestrito a todas as configurações, relatórios e cadastros.
- * - `responsavel_lab`: Gerencia equipamentos, manutenções e aprova pedidos de empréstimo.
  * - `usuario`: Solicitante padrão (estudante/servidor) com permissão para pedir empréstimos.
  */
-export type PerfilUsuario = 'admin' | 'usuario' | 'responsavel_lab';
+export type PerfilUsuario = 'admin' | 'usuario';
 
 /**
  * Situação cadastral da conta do usuário.
