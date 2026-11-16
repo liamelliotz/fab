@@ -17,13 +17,14 @@ export const API_URL = environment.apiUrl;
 export const ENDPOINTS = {
   auth: {
     login: '/auth/login',
-    cadastro: '/auth/cadastro',
     recuperarSenha: '/auth/recuperar-senha',
     redefinirSenha: '/auth/redefinir-senha',
     me: '/auth/me',
   },
   usuarios: {
     base: '/usuarios',
+    resumo: '/usuarios/resumo',
+    habilitacoes: (id: string) => `/usuarios/${id}/habilitacoes`,
     porId: (id: string) => `/usuarios/${id}`,
     status: (id: string) => `/usuarios/${id}/status`,
   },
@@ -38,12 +39,27 @@ export const ENDPOINTS = {
     porId: (id: string) => `/emprestimos/${id}`,
     avaliar: (id: string) => `/emprestimos/${id}/avaliar`,
     cancelar: (id: string) => `/emprestimos/${id}/cancelar`,
-    retirada: (id: string) => `/emprestimos/${id}/retirada`,
-    devolucao: (id: string) => `/emprestimos/${id}/devolucao`,
+    balcao: {
+      consulta: '/emprestimos/balcao/consulta',
+      retirada: '/emprestimos/balcao/retirada',
+      devolucao: '/emprestimos/balcao/devolucao',
+    },
+    transferencia: (id: string) => `/emprestimos/${id}/transferencia`,
+    aceitarTransferencia: (id: string) => `/emprestimos/${id}/transferencia/aceitar`,
+    recusarTransferencia: (id: string) => `/emprestimos/${id}/transferencia/recusar`,
   },
   manutencoes: {
     base: '/manutencoes',
     porId: (id: string) => `/manutencoes/${id}`,
+  },
+  insumos: {
+    base: '/insumos',
+    aRepor: '/insumos/a-repor',
+    porId: (id: string) => `/insumos/${id}`,
+    ativo: (id: string) => `/insumos/${id}/ativo`,
+    movimentacoes: '/insumos/movimentacoes',
+    movimentar: (id: string) => `/insumos/${id}/movimentacoes`,
+    relatorioConsumo: '/insumos/relatorios/consumo',
   },
   dashboard: {
     resumo: '/dashboard/resumo',

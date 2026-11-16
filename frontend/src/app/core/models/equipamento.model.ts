@@ -23,11 +23,10 @@ export type StatusEquipamento =
  * - `eletronico`: Componentes de bancada e placas (ex.: osciloscópios, fontes, microcontroladores).
  * - `impressora_3d`: Unidades de prototipagem aditiva (FDM, SLA).
  * - `corte_laser`: Maquinário de corte e gravação CNC a laser.
- * - `consumivel`: Materiais com desgaste por uso (ex.: filamentos, brocas, solda).
  * - `outros`: Demais utilitários que não se enquadram nas categorias principais.
  */
 export type CategoriaEquipamento =
-  'ferramenta' | 'eletronico' | 'impressora_3d' | 'corte_laser' | 'consumivel' | 'outros';
+  'ferramenta' | 'eletronico' | 'impressora_3d' | 'corte_laser' | 'outros';
 
 /**
  * Representação completa do Equipamento ou Material no inventário.

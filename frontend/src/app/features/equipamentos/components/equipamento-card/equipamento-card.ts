@@ -24,7 +24,6 @@ const NOME_CATEGORIA: Record<CategoriaEquipamento, string> = {
   eletronico: 'Eletrônico',
   impressora_3d: 'Impressora 3D',
   corte_laser: 'Corte a laser',
-  consumivel: 'Consumível',
   outros: 'Outros',
 };
 
@@ -34,7 +33,6 @@ const ICONE_CATEGORIA: Record<CategoriaEquipamento, string> = {
   eletronico: 'fa-laptop',
   impressora_3d: 'fa-cube',
   corte_laser: 'fa-scissors',
-  consumivel: 'fa-box',
   outros: 'fa-toolbox',
 };
 
