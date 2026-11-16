@@ -1,4 +1,4 @@
-import type { ClassProvider } from '@nestjs/common';
+import { Logger, type ClassProvider } from '@nestjs/common';
 import { provedorDeRepositorio } from './provedor-de-repositorio.js';
 
 class RepoMemoria {
@@ -13,6 +13,13 @@ class RepoPostgres {
 }
 
 describe('provedorDeRepositorio', () => {
+  // Estes testes provocam erros e avisos DE PROPÓSITO: o log fica mudo para não poluir a saída.
+  beforeEach(() => {
+    vi.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
+    vi.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
+  });
+  afterEach(() => vi.restoreAllMocks());
+
   const escolha = (p: ReturnType<typeof provedorDeRepositorio>) =>
     p as ClassProvider;
 

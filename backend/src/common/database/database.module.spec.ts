@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import { Entity, PrimaryColumn } from 'typeorm';
@@ -24,6 +25,13 @@ const montar = (databaseUrl?: string) =>
   }).compile();
 
 describe('DatabaseModule', () => {
+  // Estes testes provocam erros e avisos DE PROPÓSITO: o log fica mudo para não poluir a saída.
+  beforeEach(() => {
+    vi.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
+    vi.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
+  });
+  afterEach(() => vi.restoreAllMocks());
+
   it('em memória, não importa nada (não tenta conectar)', () => {
     expect(DatabaseModule.forRoot('memoria').imports).toBeUndefined();
   });

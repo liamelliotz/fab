@@ -130,15 +130,17 @@ Registre o repositório em `providers` (e em `exports`, se outro módulo for us�
 | --- | --- |
 | `persistencia.ts` | `lerModoPersistencia()`: `memoria` (padrão) ou `postgres`, lido da variável `PERSISTENCIA` |
 | `database.module.ts` | `DatabaseModule.forRoot()` (já registrado no `app.module.ts`, só conecta com `PERSISTENCIA=postgres`) e `entidadesDoBanco()` |
-| `provedor-de-repositorio.ts` | `provedorDeRepositorio()`: entrega a versão em memória ou a do banco com o mesmo token |
-| `erro-de-conexao.ts` | traduz os erros do PostgreSQL para português (usado pela API e pelos scripts `db:*`) |
+| `provedor-de-repositorio.ts` | `provedorDeRepositorio()`: entrega a versão em memória ou a do banco com o mesmo token. `ContratoDoRepositorio<T>`: confere se as duas têm os mesmos métodos |
+| `erro-de-conexao.ts` | traduz os erros de conexão para português (usado pela API e pelos scripts `db:*`) |
+| `erro-do-banco.ts` | `erroDoBancoParaHttp()`: valor repetido, registro em uso e `CHECK` viram 409 em português (já ligado no filtro global) |
 
 Regras fixas: `synchronize` é sempre `false` (as tabelas vêm de `database/migrations`), e os testes unitários
 sempre rodam em memória. Para testar com o banco: `npm run test:e2e:postgres`.
 
 ### Como levar um repositório para o banco (cards A2, B3, C7 e D7)
 
-O exemplo usa usuários. Troque pelos nomes do seu módulo.
+**O módulo `usuarios/` já está no banco (card A2) e é o exemplo completo:** abra
+`usuarios/orm/` e `usuarios/usuarios.postgres.repository.ts` e copie o jeito. Troque pelos nomes do seu módulo.
 
 1. **Entidade do banco.** Crie `usuarios/orm/usuario.orm-entity.ts` com `@Entity('usuarios')`, mapeando
    cada coluna da migration. Dê o nome da coluna e o tipo em todo `@Column`, porque o banco usa
@@ -171,10 +173,13 @@ O exemplo usa usuários. Troque pelos nomes do seu módulo.
    import { Inject, Injectable } from '@nestjs/common';
    import { InjectRepository } from '@nestjs/typeorm';
    import { Repository } from 'typeorm';
+   import type { ContratoDoRepositorio } from '../common/database/index.js';
    import { UsuarioOrm } from './orm/usuario.orm-entity.js';
 
    @Injectable()
-   export class UsuariosPostgresRepository {
+   export class UsuariosPostgresRepository
+     implements ContratoDoRepositorio<UsuariosRepository>
+   {
      constructor(
        @InjectRepository(UsuarioOrm) private readonly tabela: Repository<UsuarioOrm>,
      ) {}
@@ -186,6 +191,9 @@ O exemplo usa usuários. Troque pelos nomes do seu módulo.
      // ... os demais métodos, com a mesma assinatura da versão em memória
    }
    ```
+
+   O `implements ContratoDoRepositorio<...>` faz o TypeScript reclamar se faltar um método ou se a
+   assinatura for diferente da versão em memória.
 
 3. **Registro no módulo.** Registre a entidade com `entidadesDoBanco()` e troque o repositório em
    memória da lista de `providers` pelo `provedorDeRepositorio()`:
@@ -206,16 +214,20 @@ O exemplo usa usuários. Troque pelos nomes do seu módulo.
    `TypeOrmModule.forFeature` direto: ele exige o banco e quebraria a API em memória.
    O `entidadesDoBanco()` só registra as tabelas quando `PERSISTENCIA=postgres`.
 
-4. **Erros do banco viram HTTP.** Violação de índice único (código `23505`) vira `ConflictException`
-   (409). Violação de `CHECK` (código `23514`) vira 409 com a regra em português. Nunca deixe o erro do
-   banco chegar cru ao cliente (vira 500).
+4. **Erros do banco viram HTTP sozinhos.** Valor repetido em índice único (`23505`), registro em uso
+   (`23503`) e `CHECK` quebrado (`23514`) viram **409** pelo filtro global: não use `try/catch` no
+   repositório. Para a mensagem ficar específica, acrescente o nome da restrição em
+   `MENSAGENS_DAS_RESTRICOES` (`common/database/erro-do-banco.ts`). As de equipamentos, empréstimos e
+   insumos já estão lá. Continue checando duplicidade no service (mensagem melhor); o banco é a
+   garantia final quando dois pedidos chegam ao mesmo tempo.
 
 5. **Duas ou mais tabelas na mesma operação** rodam em transação:
    `this.tabela.manager.transaction(async (m) => { ... })`.
 
 6. **Testes.** Os testes em memória continuam iguais e precisam passar. Crie
    `test/<modulo>.postgres.e2e-spec.ts` com `describe.skipIf(lerModoPersistencia() !== 'postgres')` (veja
-   `test/banco.e2e-spec.ts`) e rode com o banco no ar:
+   `test/usuarios.postgres.e2e-spec.ts`: um teste por item do checklist do card, e apaga o que criou)
+   e rode com o banco no ar:
 
    ```bash
    npm run db:reset
