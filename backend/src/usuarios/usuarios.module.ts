@@ -3,6 +3,7 @@ import {
   entidadesDoBanco,
   provedorDeRepositorio,
 } from '../common/database/index.js';
+import { EquipamentosModule } from '../equipamentos/equipamentos.module.js';
 import { UsuarioHabilitacaoOrm } from './orm/usuario-habilitacao.orm-entity.js';
 import { UsuarioOrm } from './orm/usuario.orm-entity.js';
 import { UsuariosController } from './usuarios.controller.js';
@@ -12,7 +13,11 @@ import { UsuariosService } from './usuarios.service.js';
 
 @Module({
   // As tabelas só são registradas com PERSISTENCIA=postgres (em memória não há banco).
-  imports: [...entidadesDoBanco([UsuarioOrm, UsuarioHabilitacaoOrm])],
+  imports: [
+    // Para conferir as habilitações (só equipamentos que exigem treinamento).
+    EquipamentosModule,
+    ...entidadesDoBanco([UsuarioOrm, UsuarioHabilitacaoOrm]),
+  ],
   controllers: [UsuariosController],
   providers: [
     UsuariosService,

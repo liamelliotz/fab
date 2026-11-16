@@ -1,11 +1,22 @@
 import {
+  BadRequestException,
   ConflictException,
   Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import {
+  montarPagina,
+  type PaginacaoDto,
+  type RespostaPaginada,
+} from '../common/dto/index.js';
 import { Perfil, StatusUsuario } from '../common/enums/index.js';
-import { paraPublico, type UsuarioPublico } from './entities/usuario.entity.js';
+import { EquipamentosService } from '../equipamentos/equipamentos.service.js';
+import {
+  paraPublico,
+  type UsuarioPublico,
+  type UsuarioResumo,
+} from './entities/usuario.entity.js';
 import { UsuariosRepository } from './usuarios.repository.js';
 import {
   conferirSenha,
@@ -23,7 +34,7 @@ export interface NovoUsuario {
   telefone?: string;
   matricula?: string;
   departamento?: string;
-  /** Padrão: `usuario`. Quem decide se aceita o perfil enviado é o controller (Card 5). */
+  /** Padrão: `usuario`. Só o admin cria contas, então o perfil enviado é aceito. */
   perfil?: Perfil;
   /** Padrão: `ativo`. */
   status?: StatusUsuario;
@@ -59,12 +70,20 @@ export class UsuariosService {
   constructor(
     @Inject(UsuariosRepository)
     private readonly repositorio: UsuariosRepository,
+    @Inject(EquipamentosService)
+    private readonly equipamentos: EquipamentosService,
   ) {}
 
-  /** Cria o usuário. E-mail ou CPF já cadastrado: 409. */
+  /**
+   * Cria o usuário. E-mail ou CPF já cadastrado: 409. Habilitação para equipamento que
+   * não existe ou que não exige treinamento: 400.
+   */
   async criar(dados: NovoUsuario): Promise<UsuarioPublico> {
     const email = normalizarEmail(dados.email);
     const cpf = normalizarCpf(dados.cpf);
+    const habilitacoes = await this.conferirHabilitacoes(
+      dados.habilitacoes ?? [],
+    );
     // O hash é calculado antes das checagens para a gravação vir logo depois delas.
     const senhaHash = await gerarHash(dados.senha);
 
@@ -83,7 +102,7 @@ export class UsuariosService {
       telefone: dados.telefone?.trim(),
       matricula: dados.matricula?.trim(),
       departamento: dados.departamento?.trim(),
-      habilitacoes: [...new Set(dados.habilitacoes ?? [])],
+      habilitacoes,
       perfil: dados.perfil ?? Perfil.Usuario,
       status: dados.status ?? StatusUsuario.Ativo,
       criadoEm: new Date().toISOString(),
@@ -134,6 +153,61 @@ export class UsuariosService {
           ].some((campo) => campo?.toLowerCase().includes(busca)),
       )
       .map(paraPublico);
+  }
+
+  /**
+   * Página do GET /usuarios: aplica os filtros, ordena pelo nome (A-Z) e recorta a página.
+   */
+  async listarPagina(
+    filtro: FiltroUsuarios & Pick<PaginacaoDto, 'pagina' | 'itensPorPagina'>,
+  ): Promise<RespostaPaginada<UsuarioPublico>> {
+    const lista = await this.listar(filtro);
+    lista.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+    return montarPagina(lista, filtro);
+  }
+
+  /**
+   * GET /usuarios/resumo: só os usuários ATIVOS, em ordem alfabética, com id, nome,
+   * departamento e habilitações. `busca` procura no nome e no departamento.
+   */
+  async resumo(busca?: string): Promise<UsuarioResumo[]> {
+    const alvo = busca?.trim().toLowerCase();
+    const ativos = await this.listar({ status: StatusUsuario.Ativo });
+    return ativos
+      .filter(
+        (u) =>
+          !alvo ||
+          u.nome.toLowerCase().includes(alvo) ||
+          u.departamento?.toLowerCase().includes(alvo),
+      )
+      .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
+      .map(({ id, nome, departamento, habilitacoes }) => ({
+        id,
+        nome,
+        departamento,
+        habilitacoes,
+      }));
+  }
+
+  /**
+   * Confere uma lista de habilitações e devolve sem repetidos. Cada id precisa ser de um
+   * equipamento que existe E que exige treinamento; senão, 400 com o motivo.
+   * Também usada pela troca de habilitações (card A4).
+   */
+  async conferirHabilitacoes(equipamentoIds: string[]): Promise<string[]> {
+    const ids = [...new Set(equipamentoIds)];
+    for (const id of ids) {
+      const equipamento = await this.equipamentos.buscarPorId(id);
+      if (!equipamento) {
+        throw new BadRequestException(`O equipamento "${id}" não existe.`);
+      }
+      if (!equipamento.requerTreinamento) {
+        throw new BadRequestException(
+          `O equipamento "${equipamento.nome}" não exige treinamento: não precisa de habilitação.`,
+        );
+      }
+    }
+    return ids;
   }
 
   /** Altera só os campos informados. Usuário inexistente: 404. */
