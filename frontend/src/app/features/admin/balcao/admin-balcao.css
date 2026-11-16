@@ -269,3 +269,5 @@
   color: #6b7280;
   font-size: 14px;
 }
+
+button:disabled, input:disabled { opacity: .55; cursor: wait; }

@@ -228,3 +228,8 @@ td {
   color: #6b7280;
   text-align: center;
 }
+
+.paginacao-admin { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; margin-top: 20px; }
+.paginacao-admin button { padding: 8px 14px; border: 1px solid #cbd5e1; border-radius: 8px; background: white; cursor: pointer; }
+button:disabled { opacity: .55; cursor: wait; }
+.erro-admin { color: #b91c1c; }

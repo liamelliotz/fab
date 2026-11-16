@@ -10,71 +10,22 @@
     </a>
   </header>
 
-  <section class="resumo">
-    <div class="card">
-      <p>Em uso</p>
-      <strong>{{ totalAtivos() }}</strong>
-    </div>
-    <div class="card card-espera">
-      <p>Aguardando retirada</p>
-      <strong>{{ totalAguardando() }}</strong>
-    </div>
-    <div class="card card-atrasado">
-      <p>Devoluções atrasadas</p>
-      <strong>{{ totalAtrasados() }}</strong>
-    </div>
-    <div class="card card-transf">
-      <p>Transferências pendentes</p>
-      <strong>{{ totalTransferencias() }}</strong>
-    </div>
-    <div class="card card-devolvido">
-      <p>Itens devolvidos</p>
-      <strong>{{ totalDevolvidos() }}</strong>
-    </div>
-  </section>
-
-  <section class="painel">
-    <div class="titulo-painel">
-      <div>
-        <h2>
-          Movimentações recentes
-          @if (naoLidos() > 0) {
-            <span class="novos">{{ naoLidos() }} nova(s)</span>
-          }
-        </h2>
-        <p>Avisos de novas solicitações, transferências e cancelamentos.</p>
-      </div>
-      @if (naoLidos() > 0) {
-        <button type="button" class="btn-sutil" (click)="marcarLidos()">Marcar como lidas</button>
-      }
-    </div>
-    <ul class="avisos">
-      @for (a of avisos(); track a.id) {
-        <li class="aviso" [class.aviso--novo]="!a.lido">
-          <a [routerLink]="['/pedidos', a.pedidoId]">{{ a.texto }}</a>
-          <small>{{ dataHora(a.em) }}</small>
-        </li>
-      } @empty {
-        <li class="aviso"><small>Nenhuma movimentação ainda.</small></li>
-      }
-    </ul>
-  </section>
-
   <section class="painel">
     <div class="titulo-painel">
       <div>
         <h2>Empréstimos</h2>
-        <p>Situação de cada pedido já analisado. Abra um pedido para ver a linha do tempo completa.</p>
+        <p>Lista geral paginada. O responsável indica quem está com cada material.</p>
       </div>
       <div class="filtros">
         <input
           type="search"
-          placeholder="Buscar por protocolo, pessoa ou material"
+          placeholder="Buscar nesta página por protocolo, pessoa ou material"
           aria-label="Buscar empréstimo"
           (input)="atualizarBusca($event)"
         />
-        <select aria-label="Filtrar por situação" (change)="atualizarFiltro($event)">
+        <select [value]="filtro()" aria-label="Filtrar por situação" (change)="atualizarFiltro($event)">
           <option value="todos">Todas as situações</option>
+          <option value="pendente">Pendentes</option>
           <option value="aprovado">Aguardando retirada</option>
           <option value="em_andamento">Em uso</option>
           <option value="atrasado">Atrasados</option>
@@ -82,9 +33,12 @@
           <option value="rejeitado">Reprovados</option>
           <option value="cancelado">Cancelados</option>
         </select>
+        <label><input type="checkbox" [checked]="atrasadosApenas()" (change)="atualizarAtrasados($event)" /> Somente atrasados</label>
       </div>
     </div>
 
+    @if (carregando()) { <p role="status">Carregando empréstimos...</p> }
+    @if (erro()) { <p role="alert" class="erro-admin">{{ erro() }}</p><button type="button" (click)="carregar()">Tentar novamente</button> }
     <div class="tabela-container">
       <table>
         <thead>
@@ -101,7 +55,8 @@
           @for (s of emprestimos(); track s.id) {
             <tr>
               <td>
-                <a class="protocolo" [routerLink]="['/pedidos', s.id]">{{ s.protocolo }}</a>
+                @if (service.modoDemo) { <a class="protocolo" [routerLink]="['/pedidos', s.id]">{{ s.protocolo }}</a> }
+                @else { <strong>{{ s.protocolo }}</strong> }
               </td>
               <td>
                 <strong>{{ itens(s) }}</strong>
@@ -124,16 +79,23 @@
               <td>{{ data(s.dataRetiradaEfetiva ?? s.dataPrevistaRetirada) }}</td>
               <td>{{ data(s.dataDevolucaoEfetiva ?? s.dataPrevistaDevolucao) }}</td>
               <td>
-                <span class="chip chip--{{ statusExibido(s) }}">{{ nomeStatusExibido(s) }}</span>
+                <span class="chip chip--{{ s.status }}">{{ nomeStatus[s.status] }}</span>
               </td>
             </tr>
           } @empty {
             <tr>
-              <td colspan="6" class="sem-resultados">Nenhum empréstimo encontrado.</td>
+              <td colspan="6" class="sem-resultados">{{ carregando() ? 'Carregando...' : erro() ? 'Não foi possível carregar a lista.' : 'Nenhum empréstimo encontrado.' }}</td>
             </tr>
           }
         </tbody>
       </table>
     </div>
+    @if (resposta(); as paginaAtual) {
+      <nav class="paginacao-admin" aria-label="Páginas de empréstimos">
+        <button type="button" [disabled]="!paginaAtual.temAnterior || carregando()" (click)="mudarPagina(-1)">Anterior</button>
+        <span>Página {{ paginaAtual.paginaAtual }} de {{ paginaAtual.totalPaginas || 1 }} · {{ paginaAtual.totalItens }} pedidos</span>
+        <button type="button" [disabled]="!paginaAtual.temProxima || carregando()" (click)="mudarPagina(1)">Próxima</button>
+      </nav>
+    }
   </section>
 </div>
