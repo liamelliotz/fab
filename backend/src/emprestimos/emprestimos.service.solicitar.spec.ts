@@ -74,7 +74,11 @@ describe('EmprestimosService: solicitar', () => {
     const usuariosService = new UsuariosService(usuariosRepo);
 
     await equipamentosRepo.criar(
-      novoEquipamento({ id: 'multimetro', nome: 'Multímetro', prazoMaximoDias: 7 }),
+      novoEquipamento({
+        id: 'multimetro',
+        nome: 'Multímetro',
+        prazoMaximoDias: 7,
+      }),
     );
     await equipamentosRepo.criar(
       novoEquipamento({ id: 'projetor', nome: 'Projetor', prazoMaximoDias: 3 }),

@@ -111,7 +111,10 @@ describe('API (e2e): solicitar empréstimo', () => {
           ],
         },
       ],
-      ['quantidade 0', { itens: [{ equipamentoId: MULTIMETRO, quantidade: 0 }] }],
+      [
+        'quantidade 0',
+        { itens: [{ equipamentoId: MULTIMETRO, quantidade: 0 }] },
+      ],
       [
         'quantidade 1.5',
         { itens: [{ equipamentoId: MULTIMETRO, quantidade: 1.5 }] },

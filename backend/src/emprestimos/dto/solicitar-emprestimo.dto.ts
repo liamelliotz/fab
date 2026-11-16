@@ -1,7 +1,16 @@
 import { Type } from 'class-transformer';
 import {
-  ArrayMinSize, ArrayUnique, IsArray, IsInt, IsNotEmpty,
-  IsOptional, IsString, Length, Matches, Min, ValidateNested,
+  ArrayMinSize,
+  ArrayUnique,
+  IsArray,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Length,
+  Matches,
+  Min,
+  ValidateNested,
 } from 'class-validator';
 
 export class ItemSolicitadoDto {
@@ -11,11 +20,13 @@ export class ItemSolicitadoDto {
 }
 
 export class SolicitarEmprestimoDto {
-  @IsArray() @ArrayMinSize(1)
+  @IsArray()
+  @ArrayMinSize(1)
   @ArrayUnique((item: ItemSolicitadoDto) => item.equipamentoId, {
     message: 'Equipamento repetido na lista de itens',
   })
-  @ValidateNested({ each: true }) @Type(() => ItemSolicitadoDto)
+  @ValidateNested({ each: true })
+  @Type(() => ItemSolicitadoDto)
   itens!: ItemSolicitadoDto[];
 
   @IsString() @Length(10, 500) justificativa!: string;
