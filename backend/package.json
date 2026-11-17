@@ -23,10 +23,11 @@
     "test:cov": "vitest run --coverage",
     "test:debug": "vitest --inspect-brk --no-file-parallelism",
     "test:e2e": "vitest run --config ./vitest.config.e2e.ts",
-    "test:e2e:postgres": "vitest run --config ./vitest.config.e2e.ts --mode postgres",
+    "test:e2e:postgres": "node scripts/testar-postgres.mjs",
     "db:migrate": "nest build && node dist/database/migrar.js",
     "db:seed": "nest build && node dist/database/semear.js",
-    "db:reset": "nest build && node dist/database/migrar.js && node dist/database/semear.js"
+    "db:reset": "nest build && node dist/database/migrar.js && node dist/database/semear.js",
+    "test:e2e:ciclos": "vitest run --config ./vitest.config.e2e.ts test/ciclo-completo.e2e-spec.ts test/ciclo-insumos.e2e-spec.ts"
   },
   "dependencies": {
     "@nestjs/common": "^12.0.1",
