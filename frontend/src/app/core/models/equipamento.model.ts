@@ -74,6 +74,12 @@ export interface Equipamento {
   /** Quantidade total cadastrada no acervo */
   quantidadeTotal: number;
 
+  /**
+   * Unidades fora do estoque por avaria (moderada/grave) ou extravio, aguardando conserto,
+   * localização ou baixa. Não podem ser emprestadas. Emprestadas = total - disponível - esta.
+   */
+  quantidadeEmManutencao?: number;
+
   /** Registro cronológico de inserção no sistema */
   criadoEm: string;
 

@@ -1,7 +1,7 @@
 import { Injectable, computed, effect, signal } from '@angular/core';
 import { Resultado, falha, sucesso } from '../models/resultado.model';
 import { CriarUsuarioDTO, PerfilUsuario, StatusUsuario, Usuario, UsuarioResumo } from '../models/usuario.model';
-import { gravarJson, lerJson } from '../utils/armazenamento.utils';
+import { gravarJson, lerJson, ouvirOutrasAbas } from '../utils/armazenamento.utils';
 import { somenteNumeros } from '../utils/validation.utils';
 
 /**
@@ -12,7 +12,7 @@ export interface UsuarioDemo extends Usuario {
   senha: string;
 }
 
-const CHAVE_USUARIOS = 'fab_demo_v3_usuarios';
+const CHAVE_USUARIOS = 'fab_demo_v5_usuarios';
 
 /** Contas de exemplo. Os ids 'u1' a 'u4' são os mesmos dos pedidos de exemplo. Todos os CPFs são fictícios. */
 export function criarUsuariosDemo(): UsuarioDemo[] {
@@ -24,7 +24,7 @@ export function criarUsuariosDemo(): UsuarioDemo[] {
     },
     {
       // Habilitado na Impressora 3D (id '8'): serve para mostrar o bloqueio por treinamento nas transferências.
-      ...base, id: 'demo-professor', nome: 'Professor Demonstração', email: 'professor@fab.com', senha: 'prof123',
+      ...base, id: 'demo-professor', nome: 'Pedro Almeida', email: 'professor@fab.com', senha: 'prof123',
       cpf: '11144477735', telefone: '96991110002', departamento: 'Docência', perfil: 'usuario', habilitacoes: ['8'],
     },
     {
@@ -67,6 +67,7 @@ export class UsuarioService {
 
   constructor() {
     effect(() => gravarJson(CHAVE_USUARIOS, this.todos()));
+    ouvirOutrasAbas<UsuarioDemo[]>(CHAVE_USUARIOS, (v) => v && this.todos.set(v));
   }
 
   buscarPorId(id: string): UsuarioDemo | undefined {
