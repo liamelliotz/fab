@@ -6,6 +6,8 @@
 
 Legenda da coluna Situação: **pronto** (já funciona no código) ou o **card** do Trello que entrega.
 
+**Conferência E6 (18/11/2026, commit `9afefa6`, modo memória):** o Swagger expôs 8 das 43 operações deste contrato: login, sessão atual, listagem, resumo, detalhe e criação de usuários, além de listagem e detalhe de equipamentos. As outras 35 operações do contrato não apareceram nessa versão. Esta conferência compara métodos e caminhos no OpenAPI. A validação funcional de cada rota e a atualização da coluna Situação ficam para a versão com as dependências integradas.
+
 ## 1. Regras gerais
 
 | Item | Regra |
