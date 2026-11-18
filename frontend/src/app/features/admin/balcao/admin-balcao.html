@@ -86,10 +86,68 @@
           }
 
           @if (aba() === 'devolucao') {
-            <label class="bal__check">
-              <input type="checkbox" [checked]="houveAvaria()" (change)="atualizarAvaria($event)" />
-              <span>Material devolvido com avaria ou peça faltando</span>
-            </label>
+            <div class="dev" role="group" aria-label="Como o material voltou">
+              <span class="dev__titulo">Como o material voltou?</span>
+              <div class="dev__opcoes">
+                <button type="button" class="dev__opcao" [class.dev__opcao--ativa]="!comProblema()" (click)="definirProblema(false)">
+                  <i class="fa-solid fa-circle-check" aria-hidden="true"></i> Tudo em ordem
+                </button>
+                <button type="button" class="dev__opcao dev__opcao--problema" [class.dev__opcao--ativa]="comProblema()" (click)="definirProblema(true)">
+                  <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Com avaria ou falta
+                </button>
+              </div>
+
+              @if (comProblema()) {
+                @for (item of s.itens; track item.equipamentoId) {
+                  @let r = registro(item.equipamentoId);
+                  <div class="dev__item">
+                    <div class="dev__item-topo">
+                      <strong>{{ nomeItem(item.equipamentoId) }}</strong>
+                      <span>{{ item.quantidade }} emprestada(s)</span>
+                    </div>
+                    <div class="dev__qtds">
+                      <div class="dev__qtd">
+                        <span>Voltaram com avaria</span>
+                        <div class="dev__passo">
+                          <button type="button" aria-label="Menos uma avariada" (click)="mudarQuantidade(item, 'avariadas', -1)" [disabled]="r.avariadas === 0">−</button>
+                          <output>{{ r.avariadas }}</output>
+                          <button type="button" aria-label="Mais uma avariada" (click)="mudarQuantidade(item, 'avariadas', 1)" [disabled]="r.avariadas + r.faltando >= item.quantidade">+</button>
+                        </div>
+                      </div>
+                      <div class="dev__qtd">
+                        <span>Não voltaram (falta)</span>
+                        <div class="dev__passo">
+                          <button type="button" aria-label="Menos uma faltando" (click)="mudarQuantidade(item, 'faltando', -1)" [disabled]="r.faltando === 0">−</button>
+                          <output>{{ r.faltando }}</output>
+                          <button type="button" aria-label="Mais uma faltando" (click)="mudarQuantidade(item, 'faltando', 1)" [disabled]="r.avariadas + r.faltando >= item.quantidade">+</button>
+                        </div>
+                      </div>
+                    </div>
+                    @if (r.avariadas > 0) {
+                      <app-avaria-campos [dados]="r" (mudou)="mudarAvaria(item.equipamentoId, $event)" />
+                    }
+                    @if (r.faltando > 0) {
+                      <p class="dev__falta">
+                        <i class="fa-solid fa-circle-question" aria-hidden="true"></i>
+                        A falta fica registrada em nome de <strong>{{ s.responsavel.nome }}</strong> e a unidade sai do estoque até ser encontrada.
+                      </p>
+                    }
+                  </div>
+                }
+              }
+
+              @if (resumo(); as rs) {
+                <div class="dev__resumo" aria-live="polite">
+                  <span class="dev__chip dev__chip--ok"><i class="fa-solid fa-box-open" aria-hidden="true"></i> {{ rs.aoEstoque }} de volta ao estoque</span>
+                  @if (rs.emManutencao) {
+                    <span class="dev__chip dev__chip--manut"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i> {{ rs.emManutencao }} para manutenção</span>
+                  }
+                  @if (rs.faltando) {
+                    <span class="dev__chip dev__chip--falta"><i class="fa-solid fa-circle-question" aria-hidden="true"></i> {{ rs.faltando }} faltando</span>
+                  }
+                </div>
+              }
+            </div>
             <label class="bal__campo">
               <span>Observações (opcional)</span>
               <textarea

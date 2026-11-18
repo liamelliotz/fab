@@ -130,3 +130,6 @@ app-card,
   color: #8a948e;
   cursor: not-allowed;
 }
+
+/* Unidades fora do estoque por avaria ou extravio */
+.equip__manutencao, .equip__manutencao i { color: #b45309 !important; font-weight: 600; }

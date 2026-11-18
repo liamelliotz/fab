@@ -6,6 +6,8 @@ import {
   NOME_STATUS_EMPRESTIMO,
 } from '../../../core/services/emprestimo.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { ManutencaoService, NOME_GRAVIDADE, NOME_STATUS_MANUTENCAO, NOME_TIPO_AVARIA } from '../../../core/services/manutencao.service';
+import { Manutencao } from '../../../core/models/manutencao.model';
 import { formatarCodigo, montarPayloadQr } from '../../../core/utils/codigo.utils';
 import { formatarData, formatarDataHora } from '../../../core/utils/date.utils';
 import { LinhaDoTempo, PassoFuturo } from '../../../shared/components/linha-do-tempo/linha-do-tempo';
@@ -29,6 +31,7 @@ export class EmprestimoDetalhes {
   private readonly service = inject(EmprestimoService);
   private readonly auth = inject(AuthService);
   private readonly notificacoes = inject(NotificationService);
+  private readonly manutencoes = inject(ManutencaoService);
 
   private readonly id = this.route.snapshot.paramMap.get('id') ?? '';
 
@@ -44,6 +47,20 @@ export class EmprestimoDetalhes {
   readonly eu = computed(() => this.auth.usuarioAtual());
   readonly ehAdmin = computed(() => this.eu().perfil === 'admin');
   readonly pedido = computed(() => this.service.buscarPorId(this.id));
+
+  /** Avarias e faltas registradas na devolução deste pedido (com foto, quando houver). */
+  readonly ocorrencias = computed(() => this.manutencoes.doPedido(this.id));
+  readonly nomeTipoAvaria = NOME_TIPO_AVARIA;
+  readonly nomeStatusOc = NOME_STATUS_MANUTENCAO;
+  fotoOc(m: Manutencao): string | undefined {
+    return m.temFoto ? this.manutencoes.foto(m.id) : undefined;
+  }
+  rotuloOc(m: Manutencao): string {
+    return m.tipo === 'extravio' ? 'Falta' : `Avaria ${NOME_GRAVIDADE[m.gravidade ?? 'moderada'].toLowerCase()}`;
+  }
+  seloOc(m: Manutencao): string {
+    return m.tipo === 'extravio' ? 'falta' : (m.gravidade ?? 'moderada');
+  }
 
   /** A coordenação vê tudo; o professor só vê pedidos em que participa. */
   readonly podeVer = computed(() => {

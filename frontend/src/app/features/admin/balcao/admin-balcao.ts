@@ -1,7 +1,10 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { Emprestimo } from '../../../core/models/emprestimo.model';
-import { EmprestimoService } from '../../../core/services/emprestimo.service';
+import { Emprestimo, ItemEmprestimo } from '../../../core/models/emprestimo.model';
+import { RegistroAvariaDTO } from '../../../core/models/manutencao.model';
+import { EmprestimoService, OpcoesDevolucao } from '../../../core/services/emprestimo.service';
+import { EquipamentoService } from '../../../core/services/equipamento.service';
+import { AvariaCampos, DadosAvaria } from '../../../shared/components/avaria-campos/avaria-campos';
 import { NotificationService } from '../../../core/services/notification.service';
 import { formatarData } from '../../../core/utils/date.utils';
 
@@ -16,13 +19,14 @@ type Aba = 'retirada' | 'devolucao';
 @Component({
   selector: 'app-admin-balcao',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, AvariaCampos],
   templateUrl: './admin-balcao.html',
   styleUrl: './admin-balcao.css',
 })
 export class AdminBalcao {
   private readonly service = inject(EmprestimoService);
   private readonly notificacoes = inject(NotificationService);
+  private readonly equipamentos = inject(EquipamentoService);
 
   readonly data = formatarData;
 
@@ -34,8 +38,23 @@ export class AdminBalcao {
   readonly alvo = signal<Emprestimo | null>(null);
 
   // Conferência da devolução
-  readonly houveAvaria = signal(false);
+  /** false = tudo em ordem; true = abre o registro de avaria/falta por item. */
+  readonly comProblema = signal(false);
+  /** Avarias e faltas por equipamento do pedido (chave = equipamentoId). */
+  readonly registros = signal<Record<string, RegistroAvariaDTO>>({});
   readonly observacoes = signal('');
+
+  /** O que será enviado ao confirmar a devolução. */
+  readonly opcoes = computed<OpcoesDevolucao>(() => ({
+    observacoes: this.observacoes(),
+    ocorrencias: this.comProblema() ? Object.values(this.registros()) : [],
+  }));
+
+  /** Quantas unidades voltam ao estoque, vão para manutenção ou ficam como falta. */
+  readonly resumo = computed(() => {
+    const s = this.alvo();
+    return s ? this.service.resumoDevolucao(s, this.opcoes()) : null;
+  });
 
   readonly aguardandoRetirada = computed(() =>
     this.service.todas().filter((s) => s.status === 'aprovado'),
@@ -63,8 +82,37 @@ export class AdminBalcao {
     this.observacoes.set((evento.target as HTMLTextAreaElement).value);
   }
 
-  atualizarAvaria(evento: Event): void {
-    this.houveAvaria.set((evento.target as HTMLInputElement).checked);
+  nomeItem(equipamentoId: string): string {
+    return this.equipamentos.buscarPorId(equipamentoId)?.nome ?? 'Item removido';
+  }
+
+  registro(equipamentoId: string): RegistroAvariaDTO {
+    return this.registros()[equipamentoId] ?? { equipamentoId, avariadas: 0, faltando: 0 };
+  }
+
+  definirProblema(valor: boolean): void {
+    this.comProblema.set(valor);
+    this.erro.set('');
+  }
+
+  /** Botões − e + de "avariadas" e "faltando". A soma nunca passa do que foi emprestado. */
+  mudarQuantidade(item: ItemEmprestimo, campo: 'avariadas' | 'faltando', delta: number): void {
+    const r = this.registro(item.equipamentoId);
+    const outro = campo === 'avariadas' ? r.faltando : r.avariadas;
+    const valor = Math.max(0, Math.min(item.quantidade - outro, r[campo] + delta));
+    this.salvarRegistro(item.equipamentoId, { [campo]: valor });
+  }
+
+  mudarAvaria(equipamentoId: string, mudanca: Partial<DadosAvaria>): void {
+    this.salvarRegistro(equipamentoId, mudanca);
+  }
+
+  private salvarRegistro(equipamentoId: string, mudanca: Partial<RegistroAvariaDTO>): void {
+    this.erro.set('');
+    this.registros.update((atual) => ({
+      ...atual,
+      [equipamentoId]: { ...this.registro(equipamentoId), ...mudanca },
+    }));
   }
 
   /** Procura o pedido pelo código (não altera nada ainda). */
@@ -87,7 +135,8 @@ export class AdminBalcao {
     this.codigo.set('');
     this.erro.set('');
     this.alvo.set(null);
-    this.houveAvaria.set(false);
+    this.comProblema.set(false);
+    this.registros.set({});
     this.observacoes.set('');
   }
 
@@ -99,21 +148,26 @@ export class AdminBalcao {
     const resultado =
       this.aba() === 'retirada'
         ? this.service.confirmarRetirada(this.codigo())
-        : this.service.confirmarDevolucao(this.codigo(), {
-            houveAvaria: this.houveAvaria(),
-            observacoes: this.observacoes(),
-          });
+        : this.service.confirmarDevolucao(this.codigo(), this.opcoes());
 
     if (!resultado.ok) {
       this.erro.set(resultado.erro);
       return;
     }
     const concluido = resultado.valor;
-    this.notificacoes.sucesso(
-      this.aba() === 'retirada'
-        ? `Retirada registrada: ${concluido.protocolo} entregue a ${concluido.responsavel.nome}.`
-        : `Devolução registrada: ${concluido.protocolo} voltou ao estoque.`,
-    );
+    const r = this.resumo();
+    if (this.aba() === 'retirada') {
+      this.notificacoes.sucesso(`Retirada registrada: ${concluido.protocolo} entregue a ${concluido.responsavel.nome}.`);
+    } else if (r && (r.emManutencao > 0 || r.faltando > 0)) {
+      const partes = [
+        `${r.aoEstoque} de volta ao estoque`,
+        r.emManutencao ? `${r.emManutencao} para manutenção` : '',
+        r.faltando ? `${r.faltando} faltando` : '',
+      ].filter(Boolean);
+      this.notificacoes.aviso(`Devolução registrada: ${concluido.protocolo}. ${partes.join(' · ')}. Veja em Manutenção.`, 8000);
+    } else {
+      this.notificacoes.sucesso(`Devolução registrada: ${concluido.protocolo}. Tudo de volta ao estoque.`);
+    }
     this.limpar();
   }
 }
