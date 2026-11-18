@@ -65,7 +65,7 @@ export class Login {
     this.erroApi.set('');
     this.carregando.set(true);
 
-    // O AuthService chama a API e, se der certo, guarda o token e o perfil no localStorage
+    // O AuthService chama a API e, se der certo, guarda o token e o perfil na sessão desta aba
     this.auth.login(this.form.getRawValue()).subscribe({
       next: () => {
         this.carregando.set(false);

@@ -1,14 +1,15 @@
 /* 1. IMPORTAÇÃO DA TIPOGRAFIA OFICIAL
-   Importa a família de fontes 'Inter' do Google Fonts com os pesos definidos no projeto:
-   - 400: Inter Regular (Corpo de texto)
-   - 500: Inter Medium (Botões e etiquetas)
-   - 600: Inter SemiBold (Subtítulos e destaques)
-   - 700: Inter Bold (Títulos principais) */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+   Fonte 'Inter' instalada pelo npm (@fontsource-variable/inter): vem junto no build e
+   funciona SEM internet (antes vinha do Google Fonts e o build falhava offline).
+   Pesos usados no projeto: 400 (corpo), 500 (botões), 600 (subtítulos), 700 (títulos). */
+@import '@fontsource-variable/inter/index.css';
 
 /* Ícones Font Awesome (pacote npm @fortawesome/fontawesome-free).
    O builder do Angular resolve o caminho em node_modules e copia as fontes (webfonts) sozinho. */
 @import '@fortawesome/fontawesome-free/css/all.min.css';
+
+/* Animações e feedback visual (entrada das telas, cliques, diálogos). */
+@import './styles/animacoes.css';
 
 /* 2. VARIÁVEIS GLOBAIS DE TEMA (DESIGN TOKENS)
    Centralizadas no :root para que qualquer componente do Angular possa reutilizar via var(--...) */
@@ -60,7 +61,7 @@
    Define a tipografia Inter em toda a árvore DOM e o background neutro padrão */
 html, body {
   height: 100%;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background-color: var(--bg-light);
   color: var(--text-primary);
   font-size: 16px;

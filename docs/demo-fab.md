@@ -34,16 +34,45 @@ entregar para virar produção. A demo roda **só no front** (sem backend), com 
 | Conta | E-mail | Senha | Papel na demo |
 | --- | --- | --- | --- |
 | Administrador | `admin@fab.com` | `admin123` | Aprova, usa o balcão, gerencia usuários |
-| Professor Demonstração | `professor@fab.com` | `prof123` | Tem pedidos em todas as situações; habilitado na Impressora 3D |
+| Pedro Almeida (professor) | `professor@fab.com` | `prof123` | Tem pedidos em todas as situações; habilitado na Impressora 3D |
 | João, Maria, Carlos, Ana | `joao@`, `maria@`, `carlos@`, `ana@escola.br` | `prof123` | Colegas para receber transferências (só a **Ana** é habilitada na Impressora 3D) |
 
-A barra amarela **"Modo demonstração"** (topo das telas internas) troca de usuário com um clique, sem digitar
-senha, e tem o botão **Reiniciar dados**. Use-o para mostrar os dois lados de cada fluxo.
+**Antes de apresentar:** em qualquer tela do sistema (inclusive no login), aperte
+**Ctrl + Alt + Shift + R** e confirme: tudo volta ao estado inicial e as outras abas abertas são
+atualizadas na hora. Não há botão na tela, de propósito. (*Ctrl + Shift + R* não serve: o navegador
+usa esse atalho para recarregar a página.)
+
+**Duas abas, um perfil em cada:** o login vale **por aba** e é feito digitando e-mail e senha.
+Abra uma aba como professor e outra como coordenação; o que uma faz aparece na outra sem recarregar,
+e o F5 não troca quem está logado.
 
 Pedidos prontos para o professor: um **aprovado** (código `H3Q8ZW`, para retirar), dois **em andamento**
 (Projetor e Impressora 3D, para transferir), uma **transferência recebida** de Carlos (para aceitar), um devolvido e um reprovado.
 Outros: pedido da **Ana** aprovado (código `K7M4PX`), pedido **atrasado** da Maria (não transfere) e o **EMP-2026-0036**
 já devolvido com cadeia João → Maria (para mostrar a linha do tempo completa).
+
+## 3.1 Avarias e faltas (gestão de manutenção)
+
+| Situação na devolução (Balcão) | O que acontece com a unidade |
+| --- | --- |
+| Tudo em ordem | Volta ao estoque |
+| Avaria **leve** | Fica registrada e **volta ao estoque** (pode ser emprestada) |
+| Avaria **moderada** ou **grave** | Vai para **manutenção**: sai do estoque e fica **bloqueada** para empréstimo |
+| **Falta** (não voltou) | Vira **extravio**: sai do estoque até ser encontrada ou ter baixa |
+
+- Cada avaria tem **tipo, gravidade, descrição e foto opcional** (a foto é reduzida para caber no navegador).
+- Só a **unidade** com problema sai do estoque: um notebook avariado não bloqueia os outros 9.
+  O item só fica "Em manutenção" quando **todas** as unidades estão fora.
+- **Quem estava com o item** fica gravado na ocorrência, na **linha do tempo do pedido** e no
+  **histórico do equipamento** (*Equipamentos → Histórico*).
+- Na tela **Manutenção**, a coordenação envia para conserto, marca como **consertado/encontrado**
+  (a unidade volta ao estoque) ou **dá baixa** (sai do acervo, com motivo). O desfecho também entra
+  na linha do tempo do pedido.
+- Dados de exemplo: a **Parafusadeira** (2 unidades) está no conserto, então não aparece para pedir;
+  a **Caixa de som** tem uma avaria leve antiga (EMP-2026-0035).
+
+**Para o backend:** contrato em `frontend/src/app/core/models/manutencao.model.ts`
+(`Manutencao`, `RegistroAvariaDTO`) e novo campo `quantidadeEmManutencao` no equipamento.
 
 ## 4. Roteiro de apresentação (≈ 6 minutos)
 
@@ -53,7 +82,7 @@ já devolvido com cadeia João → Maria (para mostrar a linha do tempo completa
 4. **Realocação:** como professor, abra o **Projetor** (em andamento) → *Transferir* → Maria, com motivo. Tente a **Impressora 3D**: João, Maria e Carlos aparecem bloqueados (sem habilitação) e a Ana está liberada.
 5. **Entre como Maria** (barra de demonstração) → aceite. Mostre que o **prazo continuou o mesmo** e que o código de devolução mudou.
 6. **Entre como admin** → *Empréstimos*: aviso da transferência, atrasos e quem está com cada coisa. Abra o **EMP-2026-0036**: **linha do tempo** e cadeia de responsáveis.
-7. **Devolução** no Balcão com o código novo (marque "avaria" para mostrar o registro).
+7. **Devolução** no Balcão com o código novo: escolha *Com avaria ou falta*, marque 1 avariada (gravidade **grave**, com foto) e mostre em **Manutenção** a unidade bloqueada; depois *Consertado* e ela volta ao estoque.
 
 ## 5. O que o backend precisa para virar produção
 

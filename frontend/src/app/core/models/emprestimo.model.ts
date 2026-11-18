@@ -55,7 +55,11 @@ export type TipoEventoEmprestimo =
   | 'transferencia_aceita'
   | 'transferencia_recusada'
   | 'transferencia_cancelada'
-  | 'devolvido';
+  | 'devolvido'
+  | 'avaria_registrada'
+  | 'falta_registrada'
+  | 'manutencao_concluida'
+  | 'manutencao_baixa';
 
 /** Um registro da linha do tempo. Nunca é apagado nem alterado depois de criado. */
 export interface EventoEmprestimo {
@@ -143,6 +147,9 @@ export interface Emprestimo {
 
   /** Checklist ou registro de avarias/ressalvas anotadas na devolução */
   observacoesDevolucao?: string;
+
+  /** Ocorrências (avarias e faltas) abertas na devolução deste pedido. Veja manutencao.model.ts. */
+  ocorrenciaIds?: string[];
 }
 
 /**

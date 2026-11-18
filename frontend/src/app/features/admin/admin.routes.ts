@@ -38,6 +38,12 @@ export const ADMIN_ROUTES: Routes = [
       import('./equipamentos/admin-equipamentos-form').then((m) => m.AdminEquipamentosForm),
   },
   {
+    path: 'equipamentos/:id/historico',
+    title: 'Histórico do equipamento | FAB',
+    loadComponent: () =>
+      import('./equipamentos/admin-equipamento-historico').then((m) => m.AdminEquipamentoHistorico),
+  },
+  {
     path: 'manutencao',
     title: 'Manutenção | FAB',
     loadComponent: () =>

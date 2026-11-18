@@ -10,7 +10,8 @@ import { AuthResponse, JwtPayload, LoginCredenciaisDTO } from '../models/auth.mo
 import { PerfilUsuario, UsuarioResumo } from '../models/usuario.model';
 import { UsuarioDemo, UsuarioService } from './usuario.service';
 
-// Chaves usadas no localStorage. fab_token e fab_role são as MESMAS lidas pelos guards.
+// Chaves da sessão. Ficam no sessionStorage, que é SEPARADO por aba: dá para deixar uma aba
+// como professor e outra como coordenação (roteiro da apresentação), e o F5 não troca quem está logado.
 const CHAVE_TOKEN = 'fab_token';
 const CHAVE_PERFIL = 'fab_role';
 const CHAVE_NOME = 'fab_nome';
@@ -29,7 +30,7 @@ export class AuthService {
   private http = inject(HttpClient);
   private usuarios = inject(UsuarioService);
   private platformId = inject(PLATFORM_ID);
-  // No servidor (SSR) não existe localStorage, então só usamos no navegador
+  // No servidor (SSR) não existe armazenamento do navegador, então só usamos no navegador
   private ehNavegador = isPlatformBrowser(this.platformId);
 
   // ---------- Estado da sessão (signals: a tela atualiza sozinha quando mudam) ----------
@@ -102,7 +103,7 @@ export class AuthService {
     return true;
   }
 
-  /** Encerra a sessão: apaga token, perfil e nome (memória e localStorage). */
+  /** Encerra a sessão: apaga token, perfil e nome (memória e sessionStorage). */
   logout(): void {
     this.limparSessao();
   }
@@ -175,7 +176,7 @@ export class AuthService {
 
   // ---------- Persistência ----------
 
-  /** Guarda token, perfil (lido de dentro do JWT) e nome na memória e no localStorage. */
+  /** Guarda token, perfil (lido de dentro do JWT) e nome na memória e no sessionStorage. */
   private salvarSessao(token: string, nome?: string): void {
     const perfil = this.decodificarToken(token)?.perfil ?? null;
 
@@ -225,11 +226,11 @@ export class AuthService {
     return exp ? exp * 1000 < Date.now() : false;
   }
 
-  // Acesso seguro ao localStorage (ignora quando está no servidor ou quando o navegador bloqueia)
+  // Acesso seguro ao sessionStorage (ignora quando está no servidor ou quando o navegador bloqueia)
   private lerStorage(chave: string): string | null {
     if (!this.ehNavegador) return null;
     try {
-      return localStorage.getItem(chave);
+      return sessionStorage.getItem(chave);
     } catch {
       return null;
     }
@@ -238,7 +239,7 @@ export class AuthService {
   private escreverStorage(chave: string, valor: string): void {
     if (!this.ehNavegador) return;
     try {
-      localStorage.setItem(chave, valor);
+      sessionStorage.setItem(chave, valor);
     } catch {
       /* armazenamento indisponível: a sessão fica só na memória */
     }
@@ -247,7 +248,7 @@ export class AuthService {
   private removerStorage(chave: string): void {
     if (!this.ehNavegador) return;
     try {
-      localStorage.removeItem(chave);
+      sessionStorage.removeItem(chave);
     } catch {
       /* ignora */
     }

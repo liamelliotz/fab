@@ -43,11 +43,16 @@
 
       <!-- type="submit" dispara o (ngSubmit) do formulário; fica desabilitado enquanto envia -->
       <app-button type="submit" [fullWidth]="true" [disabled]="carregando()">
-        {{ carregando() ? 'Entrando...' : 'Entrar' }}
+        @if (carregando()) {
+          <span class="login__spinner" aria-hidden="true"></span> Entrando...
+        } @else {
+          Entrar
+        }
       </app-button>
 
       <!-- Não há cadastro público: as contas são criadas pelo administrador (tela Usuários) -->
       <p class="login__register">Não tem acesso? Procure a coordenação do laboratório.</p>
+
     </form>
   </section>
 </main>

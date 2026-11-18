@@ -52,13 +52,21 @@
                 }
               </td>
               <td>{{ nomeCategoria(e.categoria) }}</td>
-              <td>{{ e.quantidadeDisponivel }}/{{ e.quantidadeTotal }}</td>
+              <td>
+                {{ e.quantidadeDisponivel }}/{{ e.quantidadeTotal }}
+                @if (e.quantidadeEmManutencao) {
+                  <span class="selo selo-manutencao" title="Unidades em manutenção">{{ e.quantidadeEmManutencao }} em manut.</span>
+                }
+              </td>
               <td>{{ e.prazoMaximoDias }} dia(s)</td>
               <td>
                 <span class="status status-{{ e.status }}">{{ nomeStatus(e.status) }}</span>
               </td>
               <td>
                 <div class="acoes">
+                  <a class="botao botao-secundario" [routerLink]="['/admin/equipamentos', e.id, 'historico']" title="Histórico do item">
+                    <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> Histórico
+                  </a>
                   <a class="botao botao-secundario" [routerLink]="['/admin/equipamentos', e.id, 'editar']">
                     <i class="fa-solid fa-pen" aria-hidden="true"></i>
                     Editar

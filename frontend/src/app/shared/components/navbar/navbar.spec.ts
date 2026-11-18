@@ -5,8 +5,8 @@ import { Navbar } from './navbar';
 
 // Cria a navbar simulando um usuário logado com o perfil informado
 function criarNavbar(perfil: string): { fixture: ComponentFixture<Navbar>; element: HTMLElement } {
-  localStorage.setItem('fab_token', 'teste');
-  localStorage.setItem('fab_role', perfil);
+  sessionStorage.setItem('fab_token', 'teste'); // a sessão fica por aba (sessionStorage)
+  sessionStorage.setItem('fab_role', perfil);
   const fixture = TestBed.createComponent(Navbar);
   fixture.detectChanges();
   return { fixture, element: fixture.nativeElement as HTMLElement };
@@ -19,14 +19,14 @@ const rotulos = (element: HTMLElement) =>
 
 describe('Navbar', () => {
   beforeEach(async () => {
-    localStorage.clear();
+    sessionStorage.clear();
     await TestBed.configureTestingModule({
       imports: [Navbar],
       providers: [provideRouter([]), provideHttpClient()],
     }).compileComponents();
   });
 
-  afterEach(() => localStorage.clear());
+  afterEach(() => sessionStorage.clear());
 
   it('should create', () => {
     const { fixture } = criarNavbar('admin');

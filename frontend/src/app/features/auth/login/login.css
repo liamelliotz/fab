@@ -55,6 +55,23 @@
 .login__register a { color: #2e7d32; font-weight: 600; text-decoration: none; }
 .login__register a:hover { text-decoration: underline; }
 
+/* Indicador de carregamento no botão Entrar */
+.login__spinner {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 6px;
+  vertical-align: -0.15em;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: fab-girar 0.7s linear infinite;
+}
+
+/* Entrada suave do painel e da marca */
+.login__brand-content { animation: fab-surgir 600ms ease-out backwards; }
+.login__form { animation: fab-surgir 500ms 120ms ease-out backwards; }
+
 /* ---------- Responsivo: em telas pequenas, esconde o painel verde ---------- */
 @media (max-width: 768px) {
   .login { grid-template-columns: 1fr; }
