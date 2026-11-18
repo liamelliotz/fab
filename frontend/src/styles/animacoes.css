@@ -1,0 +1,123 @@
+/* =============================================================================================
+   ANIMAÇÕES E FEEDBACK VISUAL (só CSS, sem biblioteca)
+   - Entrada suave das páginas e dos cartões (em sequência)
+   - Botões que "afundam" ao clicar e anel de foco para teclado
+   - Caixas de diálogo que surgem com um leve zoom
+   - Quem prefere menos movimento (configuração do sistema) vê tudo sem animação
+   ============================================================================================= */
+
+@keyframes fab-surgir {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes fab-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes fab-pop-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.96); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes fab-girar {
+  to { transform: rotate(360deg); }
+}
+@keyframes fab-badge {
+  0%   { transform: scale(0.4); }
+  60%  { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+@keyframes fab-destaque {
+  0%   { box-shadow: 0 0 0 0 rgba(0, 184, 169, 0.45); }
+  100% { box-shadow: 0 0 0 14px rgba(0, 184, 169, 0); }
+}
+
+/* ---------- Páginas: cada tela entra com um leve deslize ---------- */
+/* "backwards" (e não "both"): depois de terminar, a animação não deixa nenhum transform aplicado.
+   Um transform que ficasse "preso" na página prenderia as janelas de diálogo (position: fixed)
+   dentro dela, em vez de cobrirem a tela inteira. */
+main.content > :not(router-outlet) {
+  animation: fab-surgir 320ms ease-out backwards;
+}
+
+/* ---------- Cartões e itens de lista: surgem em sequência ---------- */
+app-equipamento-card,
+.sol__item,
+.bal__item,
+.item,
+.dashboard-page app-card {
+  animation: fab-surgir 380ms ease-out backwards;
+}
+:is(app-equipamento-card, .sol__item, .bal__item, .item):nth-child(2) { animation-delay: 40ms; }
+:is(app-equipamento-card, .sol__item, .bal__item, .item):nth-child(3) { animation-delay: 80ms; }
+:is(app-equipamento-card, .sol__item, .bal__item, .item):nth-child(4) { animation-delay: 120ms; }
+:is(app-equipamento-card, .sol__item, .bal__item, .item):nth-child(5) { animation-delay: 160ms; }
+:is(app-equipamento-card, .sol__item, .bal__item, .item):nth-child(6) { animation-delay: 200ms; }
+:is(app-equipamento-card, .sol__item, .bal__item, .item):nth-child(n + 7) { animation-delay: 240ms; }
+
+/* Cartões de material levantam um pouco ao passar o mouse */
+app-equipamento-card > app-card > * {
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+app-equipamento-card:hover > app-card > * {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.1);
+}
+
+/* ---------- Botões e links de ação: resposta ao clique ---------- */
+button,
+a[class*='btn'],
+.btn {
+  transition:
+    transform 120ms ease,
+    filter 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+button:not(:disabled):active,
+a[class*='btn']:active,
+.btn:not(:disabled):active {
+  transform: scale(0.97);
+}
+button:disabled {
+  cursor: not-allowed;
+}
+:is(button, a, input, select, textarea):focus-visible {
+  outline: 3px solid rgba(0, 184, 169, 0.45);
+  outline-offset: 2px;
+}
+
+/* Bolinhas de novidade do menu aparecem com um "pulo" */
+.navbar__badge {
+  animation: fab-badge 360ms cubic-bezier(0.2, 0.9, 0.3, 1.4) both;
+}
+
+/* ---------- Caixas de diálogo ---------- */
+.sol__fundo,
+.td__fundo,
+.fundo {
+  animation: fab-fade-in 160ms ease-out both;
+}
+.sol__painel,
+.td__painel,
+.fundo > .modal {
+  animation: fab-pop-in 220ms cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
+}
+
+/* ---------- Balcão: o pedido encontrado aparece com destaque ---------- */
+.bal__confere {
+  animation:
+    fab-pop-in 260ms cubic-bezier(0.2, 0.9, 0.3, 1.15) backwards,
+    fab-destaque 900ms 120ms ease-out;
+}
+
+/* ---------- Menos movimento para quem pediu isso no sistema ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}
