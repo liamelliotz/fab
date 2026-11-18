@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Inject,
   Injectable,
   NotFoundException,
@@ -8,6 +9,12 @@ import {
 import { randomUUID } from 'node:crypto';
 import type { UsuarioAutenticado } from '../auth/decorators/usuario-atual.decorator.js';
 import {
+  montarPagina,
+  type PaginacaoDto,
+  type RespostaPaginada,
+} from '../common/dto/paginacao.dto.js';
+import {
+  Perfil,
   StatusEmprestimo,
   StatusEquipamento,
   TipoEventoEmprestimo,
@@ -16,18 +23,28 @@ import {
   diferencaEmDias,
   ehDataIso,
   hojeIso,
+  paraIso,
   somarDias,
 } from '../common/utils/data.util.js';
 import type { Equipamento } from '../equipamentos/entities/equipamento.entity.js';
 import { EquipamentosService } from '../equipamentos/equipamentos.service.js';
 import type { Usuario } from '../usuarios/entities/usuario.entity.js';
 import { UsuariosService } from '../usuarios/usuarios.service.js';
+import {
+  calcularAtraso,
+  statusParaResposta,
+} from './atrasos/calcular-atraso.js';
+import type { FiltroEmprestimoDto } from './dto/filtro-emprestimo.dto.js';
 import type { SolicitarEmprestimoDto } from './dto/solicitar-emprestimo.dto.js';
 import {
   paraResposta,
   type EmprestimoResposta,
 } from './emprestimo.resposta.js';
-import { EmprestimosRepository } from './emprestimos.repository.js';
+import {
+  EmprestimosRepository,
+  maisRecentesPrimeiro,
+} from './emprestimos.repository.js';
+import type { Emprestimo } from './entities/emprestimo.entity.js';
 
 @Injectable()
 export class EmprestimosService {
@@ -149,6 +166,191 @@ export class EmprestimosService {
         usuarios: new Map([[solicitante.id, solicitante as Usuario]]),
         equipamentos: new Map(equipamentos.map((e) => [e.id, e])),
       },
+    );
+  }
+
+  /**
+   * GET /emprestimos (admin): todos os pedidos, com filtros e paginação.
+   * Mais recentes primeiro. `status=atrasado` e `atrasadosApenas` usam a regra de
+   * atrasos/calcular-atraso.ts (a mesma do status da resposta).
+   * As datas filtram o dia da solicitação (no fuso da escola).
+   * `busca` procura no protocolo e no nome do solicitante ou do responsável.
+   */
+  async listarTodos(
+    filtro: FiltroEmprestimoDto,
+    usuario: UsuarioAutenticado,
+  ): Promise<RespostaPaginada<EmprestimoResposta>> {
+    if (usuario.perfil !== Perfil.Admin) {
+      throw new ForbiddenException(
+        'Apenas administradores podem listar todos os empréstimos.',
+      );
+    }
+
+    const { dataInicio, dataFim } = filtro;
+    if (
+      (dataInicio !== undefined && !ehDataIso(dataInicio)) ||
+      (dataFim !== undefined && !ehDataIso(dataFim))
+    ) {
+      throw new BadRequestException(
+        'dataInicio e dataFim devem ser datas válidas no formato AAAA-MM-DD.',
+      );
+    }
+    if (dataInicio && dataFim && dataFim < dataInicio) {
+      throw new BadRequestException(
+        'dataFim não pode ser anterior a dataInicio.',
+      );
+    }
+
+    const agora = new Date();
+    const todos = await this.emprestimosRepository.listar();
+
+    const termo = filtro.busca?.trim().toLowerCase();
+    const nomes = termo
+      ? await this.nomesDosEnvolvidos(todos)
+      : new Map<string, string>();
+
+    const filtrados = todos
+      .filter((e) => {
+        if (filtro.status && statusParaResposta(e, agora) !== filtro.status) {
+          return false;
+        }
+        if (filtro.solicitanteId && e.solicitanteId !== filtro.solicitanteId) {
+          return false;
+        }
+        if (filtro.responsavelId && e.responsavelId !== filtro.responsavelId) {
+          return false;
+        }
+        if (termo) {
+          const textos = [
+            e.protocolo,
+            nomes.get(e.solicitanteId) ?? '',
+            nomes.get(e.responsavelId) ?? '',
+          ];
+          if (!textos.some((t) => t.toLowerCase().includes(termo))) {
+            return false;
+          }
+        }
+        const diaDaSolicitacao = paraIso(new Date(e.dataSolicitacao));
+        if (dataInicio && diaDaSolicitacao < dataInicio) return false;
+        if (dataFim && diaDaSolicitacao > dataFim) return false;
+        if (filtro.atrasadosApenas && !calcularAtraso(e, agora)) {
+          return false;
+        }
+        return true;
+      })
+      .sort(maisRecentesPrimeiro);
+
+    const pagina = montarPagina(filtrados, filtro);
+    return {
+      ...pagina,
+      itens: await this.paraRespostas(pagina.itens, usuario),
+    };
+  }
+
+  /** GET /emprestimos/meus: pedidos em que o usuário é solicitante, responsável ou destinatário de transferência. */
+  async listarMeus(
+    paginacao: PaginacaoDto,
+    usuario: UsuarioAutenticado,
+  ): Promise<RespostaPaginada<EmprestimoResposta>> {
+    const meus = await this.emprestimosRepository.listarDoUsuario(usuario.sub);
+    const pagina = montarPagina(meus, paginacao);
+    return {
+      ...pagina,
+      itens: await this.paraRespostas(pagina.itens, usuario),
+    };
+  }
+
+  /**
+   * GET /emprestimos/:id: participante ou admin. Pedido inexistente dá 404;
+   * pedido de outra pessoa dá 403.
+   */
+  async buscarPorId(
+    id: string,
+    usuario: UsuarioAutenticado,
+  ): Promise<EmprestimoResposta> {
+    const emprestimo = await this.emprestimosRepository.buscarPorId(id);
+    if (!emprestimo) {
+      throw new NotFoundException('Empréstimo não encontrado.');
+    }
+    if (!this.podeVer(emprestimo, usuario)) {
+      throw new ForbiddenException('Você não tem acesso a este empréstimo.');
+    }
+    const [resposta] = await this.paraRespostas([emprestimo], usuario);
+    return resposta;
+  }
+
+  /** Admin, solicitante, responsável atual ou envolvido na transferência pendente. */
+  private podeVer(emprestimo: Emprestimo, usuario: UsuarioAutenticado): boolean {
+    if (usuario.perfil === Perfil.Admin) return true;
+    const id = usuario.sub;
+    return (
+      emprestimo.solicitanteId === id ||
+      emprestimo.responsavelId === id ||
+      emprestimo.transferenciaPendente?.deId === id ||
+      emprestimo.transferenciaPendente?.paraId === id
+    );
+  }
+
+  /** Nomes (id -> nome) de quem solicitou ou está com cada pedido. Usado só na `busca`. */
+  private async nomesDosEnvolvidos(
+    emprestimos: Emprestimo[],
+  ): Promise<Map<string, string>> {
+    const ids = new Set<string>();
+    for (const e of emprestimos) {
+      ids.add(e.solicitanteId);
+      ids.add(e.responsavelId);
+    }
+    const nomes = new Map<string, string>();
+    await Promise.all(
+      [...ids].map(async (id) => {
+        const encontrado = await this.usuariosService.buscarPorId(id);
+        if (encontrado) nomes.set(id, encontrado.nome);
+      }),
+    );
+    return nomes;
+  }
+
+  /**
+   * Troca os ids por objetos resumidos (regra do card C2): busca só os usuários e
+   * equipamentos que aparecem nos pedidos recebidos e delega ao `paraResposta`.
+   */
+  private async paraRespostas(
+    emprestimos: Emprestimo[],
+    quemPede: UsuarioAutenticado,
+  ): Promise<EmprestimoResposta[]> {
+    const idsUsuarios = new Set<string>();
+    const idsEquipamentos = new Set<string>();
+    for (const e of emprestimos) {
+      idsUsuarios.add(e.solicitanteId);
+      idsUsuarios.add(e.responsavelId);
+      if (e.avaliadoPorId) idsUsuarios.add(e.avaliadoPorId);
+      if (e.transferenciaPendente) {
+        idsUsuarios.add(e.transferenciaPendente.deId);
+        idsUsuarios.add(e.transferenciaPendente.paraId);
+      }
+      for (const evento of e.historico) idsUsuarios.add(evento.porId);
+      for (const item of e.itens) idsEquipamentos.add(item.equipamentoId);
+    }
+
+    const usuarios = new Map<string, Usuario>();
+    await Promise.all(
+      [...idsUsuarios].map(async (id) => {
+        const encontrado = await this.usuariosService.buscarPorId(id);
+        if (encontrado) usuarios.set(id, encontrado as Usuario);
+      }),
+    );
+
+    const equipamentos = new Map<string, Equipamento>();
+    await Promise.all(
+      [...idsEquipamentos].map(async (id) => {
+        const encontrado = await this.equipamentosService.buscarPorId(id);
+        if (encontrado) equipamentos.set(id, encontrado);
+      }),
+    );
+
+    const solicitante = { id: quemPede.sub, perfil: quemPede.perfil };
+    return emprestimos.map((e) =>
+      paraResposta(e, solicitante, { usuarios, equipamentos }),
     );
   }
 

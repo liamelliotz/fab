@@ -1,12 +1,16 @@
 import { Perfil, StatusEmprestimo } from '../common/enums/index.js';
 import type { Equipamento } from '../equipamentos/entities/equipamento.entity.js';
 import type { Usuario } from '../usuarios/entities/usuario.entity.js';
+import { statusParaResposta } from './atrasos/calcular-atraso.js';
 import type {
   Emprestimo,
   EventoEmprestimo,
   ItemEmprestimo,
   TransferenciaPendente,
 } from './entities/emprestimo.entity.js';
+
+// A regra de atraso mora em atrasos/calcular-atraso.ts. Reexportada aqui para quem já importava daqui.
+export { statusParaResposta };
 
 export interface UsuarioResumo {
   id: string;
@@ -53,26 +57,6 @@ export type EmprestimoResposta = Omit<
   historico: EventoResposta[];
   transferenciaPendente?: TransferenciaResposta;
 };
-
-function dataLocal(d: Date): string {
-  const dois = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${dois(d.getMonth() + 1)}-${dois(d.getDate())}`;
-}
-
-/**
- * Status que vai na resposta. O banco guarda "em_andamento"; se o prazo de devolução
- * já passou, a resposta diz "atrasado". Não altera o objeto gravado.
- */
-export function statusParaResposta(
-  emprestimo: Emprestimo,
-  agora: Date = new Date(),
-): StatusEmprestimo {
-  const vencido = emprestimo.dataPrevistaDevolucao < dataLocal(agora);
-  if (emprestimo.status === StatusEmprestimo.EmAndamento && vencido) {
-    return StatusEmprestimo.Atrasado;
-  }
-  return emprestimo.status;
-}
 
 function resumir(
   id: string | undefined,
