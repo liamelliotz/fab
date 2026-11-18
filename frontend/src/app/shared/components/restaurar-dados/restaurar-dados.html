@@ -1,0 +1,22 @@
+@if (confirmando()) {
+  <div class="rd-fundo" (click)="fechar()">
+    <div
+      class="rd-dialogo"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="rd-titulo"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="rd-dialogo__icone" aria-hidden="true"><i class="fa-solid fa-rotate-left"></i></div>
+      <h2 id="rd-titulo">Restaurar dados iniciais?</h2>
+      <p>
+        Pedidos, estoque, avarias e usuários voltam ao estado inicial. Tudo o que foi feito depois
+        será apagado. Quem está logado continua logado.
+      </p>
+      <div class="rd-dialogo__acoes">
+        <button type="button" class="rd-botao rd-botao--secundario" (click)="fechar()">Cancelar</button>
+        <button type="button" class="rd-botao" (click)="confirmar()" autofocus>Sim, restaurar</button>
+      </div>
+    </div>
+  </div>
+}
