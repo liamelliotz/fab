@@ -173,4 +173,119 @@ describe('UsuariosService', () => {
       expect(await service.buscarPorEmail(novo(2).email)).toBeNull();
     });
   });
+
+  // ---------------------------------------------------------------------------------------
+  // Card A4: edição, status, habilitações e as três travas
+  // Cada teste usa dados novos (o seed é recarregado), para um não interferir no outro.
+  // ---------------------------------------------------------------------------------------
+  describe('edição e travas (A4)', () => {
+    let s: UsuariosService;
+
+    beforeEach(async () => {
+      const usuarios = new UsuariosRepository();
+      const equipamentos = new EquipamentosRepository();
+      await usuarios.onModuleInit();
+      await equipamentos.onModuleInit();
+      s = new UsuariosService(usuarios, new EquipamentosService(equipamentos));
+    });
+
+    const admin = USUARIO_IDS.admin;
+
+    it('atualizar muda só o que foi enviado e dá 404 para quem não existe', async () => {
+      const antes = await s.obterPorId(USUARIO_IDS.ana);
+      const depois = await s.atualizar(
+        USUARIO_IDS.ana,
+        { departamento: '  Mecânica ' },
+        admin,
+      );
+      expect(depois).toMatchObject({
+        departamento: 'Mecânica',
+        nome: antes.nome,
+        email: antes.email,
+      });
+      await expect(
+        s.atualizar('nao-existe', { nome: 'X' }, admin),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('trava 1: ninguém muda o status da própria conta', async () => {
+      await expect(
+        s.alterarStatus(admin, StatusUsuario.Bloqueado, admin),
+      ).rejects.toThrow(
+        new ConflictException(
+          'Você não pode alterar o status da sua própria conta.',
+        ),
+      );
+    });
+
+    it('trava 2: ninguém rebaixa o próprio perfil de admin', async () => {
+      await expect(
+        s.atualizar(admin, { perfil: Perfil.Usuario }, admin),
+      ).rejects.toThrow(
+        new ConflictException(
+          'Você não pode rebaixar o seu próprio perfil de administrador.',
+        ),
+      );
+      // Mudar outros campos de si mesmo continua liberado.
+      await expect(
+        s.atualizar(admin, { telefone: '96991110000' }, admin),
+      ).resolves.toMatchObject({
+        perfil: Perfil.Admin,
+      });
+    });
+
+    it('trava 3: sempre resta pelo menos um admin ativo', async () => {
+      const ultimo = new ConflictException(
+        'É preciso manter pelo menos um administrador ativo.',
+      );
+      // O seed tem um único admin: tirá-lo de cena (por qualquer caminho) é barrado.
+      await expect(
+        s.alterarStatus(admin, StatusUsuario.Inativo),
+      ).rejects.toThrow(ultimo);
+      await expect(
+        s.atualizar(admin, { perfil: Perfil.Usuario }),
+      ).rejects.toThrow(ultimo);
+
+      // Com um segundo admin ativo, o primeiro pode ser rebaixado ou bloqueado.
+      await s.atualizar(USUARIO_IDS.carlos, { perfil: Perfil.Admin }, admin);
+      await expect(
+        s.alterarStatus(admin, StatusUsuario.Bloqueado, USUARIO_IDS.carlos),
+      ).resolves.toMatchObject({
+        status: StatusUsuario.Bloqueado,
+      });
+      // Agora o Carlos é o único admin ativo: ele não pode ser rebaixado.
+      await expect(
+        s.atualizar(USUARIO_IDS.carlos, { perfil: Perfil.Usuario }),
+      ).rejects.toThrow(ultimo);
+      // Reativar um admin nunca é barrado.
+      await expect(
+        s.alterarStatus(admin, StatusUsuario.Ativo, USUARIO_IDS.carlos),
+      ).resolves.toMatchObject({
+        status: StatusUsuario.Ativo,
+      });
+    });
+
+    it('definirHabilitacoes substitui a lista e confere cada equipamento', async () => {
+      const ana = await s.definirHabilitacoes(USUARIO_IDS.ana, [
+        EQUIPAMENTO_IDS.osciloscopio,
+        EQUIPAMENTO_IDS.osciloscopio,
+      ]);
+      expect(ana.habilitacoes).toEqual([EQUIPAMENTO_IDS.osciloscopio]);
+      expect(
+        (await s.definirHabilitacoes(USUARIO_IDS.ana, [])).habilitacoes,
+      ).toEqual([]);
+
+      await expect(
+        s.definirHabilitacoes(USUARIO_IDS.ana, [EQUIPAMENTO_IDS.projetor]),
+      ).rejects.toBeInstanceOf(BadRequestException);
+      await expect(
+        s.definirHabilitacoes(USUARIO_IDS.ana, ['eqp-fantasma']),
+      ).rejects.toThrow('O equipamento "eqp-fantasma" não existe.');
+      await expect(
+        s.definirHabilitacoes('nao-existe', []),
+      ).rejects.toBeInstanceOf(NotFoundException);
+      // Nada mudou com as tentativas que falharam.
+      expect((await s.obterPorId(USUARIO_IDS.ana)).habilitacoes).toEqual([]);
+    });
+  });
 });
