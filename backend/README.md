@@ -61,6 +61,7 @@ Enquanto um módulo não for levado para o banco (cards A2, B3, C7, D7), ele con
 | `JWT_SECRET` | assina os tokens. Mínimo de 32 caracteres aleatórios | — |
 | `JWT_EXPIRES_IN` | validade do token | `8h` |
 | `CORS_ORIGINS` | endereços do front, separados por vírgula (nunca `*`) | `http://localhost:4200` |
+| `FRONTEND_URL` | endereço do front usado no link de "esqueci minha senha" (vazio: o primeiro de `CORS_ORIGINS`) | `http://localhost:4200` |
 | `APP_TIMEZONE` | fuso da escola: define o "hoje" de prazos e atrasos | `America/Belem` |
 | `DATABASE_URL` | conexão do PostgreSQL (usada com `PERSISTENCIA=postgres` e pelos scripts `db:*`) | a do `docker-compose.yml` |
 | `SWAGGER_ATIVO` | `true` liga o Swagger em produção | desligado |
@@ -107,6 +108,7 @@ backend/
 | Conexão com o PostgreSQL (`PERSISTENCIA=postgres`) | pronta e testada |
 | Usuários gravados no PostgreSQL (login, `/auth/me`, habilitações) | pronto e testado |
 | `POST /auth/login`, `GET /auth/me` | prontas e testadas |
+| `POST /auth/recuperar-senha`, `POST /auth/redefinir-senha` | prontas e testadas (sem e-mail: fora de produção o link aparece no log da API) |
 | `GET /usuarios`, `GET /usuarios/resumo`, `GET /usuarios/:id`, `POST /usuarios` | prontas e testadas |
 | `GET /equipamentos`, `GET /equipamentos/:id` | prontas e testadas (filtros e paginação) |
 | demais rotas do contrato | esqueleto: cada uma tem um card no Trello |

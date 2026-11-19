@@ -71,8 +71,8 @@ Parâmetros: `pagina` (padrão 1) e `itensPorPagina` (padrão 10, máximo 100).
 | --- | --- | --- | --- | --- | --- |
 | `POST /auth/login` | público | `{ email, senha }` | `{ tokenAcesso, tipoToken: "Bearer", expiraEm, usuario }` | 400, 401, 403, 429 | pronto |
 | `GET /auth/me` | logado | — | `Usuario` | 401 | pronto |
-| `POST /auth/recuperar-senha` | público | `{ email }` | mensagem sempre igual | 400, 429 | A5 |
-| `POST /auth/redefinir-senha` | público | `{ token, novaSenha }` (mínimo 8) | mensagem | 400 | A5 |
+| `POST /auth/recuperar-senha` | público | `{ email }` | mensagem sempre igual (o link vai para o log da API fora de produção) | 400, 429 | pronto |
+| `POST /auth/redefinir-senha` | público | `{ token, novaSenha }` (mínimo 8) | mensagem (token de uso único, vale 30 min) | 400, 429 | pronto |
 | `GET /usuarios` | admin | `busca`, `perfil`, `status`, paginação | página de `Usuario` | 400 | pronto |
 | `GET /usuarios/resumo` | logado | `busca?` | lista de `{ id, nome, departamento, habilitacoes }` dos ativos | — | pronto |
 | `GET /usuarios/:id` | admin | — | `Usuario` | 404 | pronto |
