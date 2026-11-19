@@ -108,6 +108,7 @@ backend/
 | Usuários gravados no PostgreSQL (login, `/auth/me`, habilitações) | pronto e testado |
 | `POST /auth/login`, `GET /auth/me` | prontas e testadas |
 | `GET /usuarios`, `GET /usuarios/resumo`, `GET /usuarios/:id`, `POST /usuarios` | prontas e testadas |
+| `PATCH /usuarios/:id`, `PATCH /usuarios/:id/status`, `PUT /usuarios/:id/habilitacoes` (com as travas do admin) | prontas e testadas |
 | `GET /equipamentos`, `GET /equipamentos/:id` | prontas e testadas (filtros e paginação) |
 | demais rotas do contrato | esqueleto: cada uma tem um card no Trello |
 
