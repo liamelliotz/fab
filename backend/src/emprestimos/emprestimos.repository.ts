@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { StatusEmprestimo } from '../common/enums/index.js';
 import { InMemoryRepository } from '../common/repository/in-memory.repository.js';
 import { criarEmprestimosSeed } from './emprestimos.seed.js';
 import type { Emprestimo } from './entities/emprestimo.entity.js';
@@ -14,6 +15,15 @@ export class EmprestimosRepository extends InMemoryRepository<Emprestimo> {
 
   buscarPorProtocolo(protocolo: string): Promise<Emprestimo | null> {
     return this.encontrar((e) => e.protocolo === protocolo);
+  }
+
+  /** Pedidos com código de retirada/devolução ainda valendo (aprovados e em andamento). */
+  buscarComCodigoAtivo(): Promise<Emprestimo[]> {
+    return this.filtrar(
+      (e) =>
+        e.status === StatusEmprestimo.Aprovado ||
+        e.status === StatusEmprestimo.EmAndamento,
+    );
   }
 
   /** Maior número de protocolo gravado no ano (0 se não houver nenhum). */
