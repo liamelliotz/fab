@@ -1,3 +1,4 @@
+import type { EquipamentosService } from '../equipamentos/equipamentos.service.js';
 import { EmprestimosRepository } from './emprestimos.repository.js';
 import { EmprestimosService } from './emprestimos.service.js';
 
@@ -8,7 +9,9 @@ describe('EmprestimosService: protocolo', () => {
   beforeEach(async () => {
     repositorio = new EmprestimosRepository();
     await repositorio.onModuleInit(); // carrega o seed (até EMP-AAAA-0045)
-    service = new EmprestimosService(repositorio);
+    // Os testes de protocolo não mexem em estoque, então o EquipamentosService é só um enchimento.
+    const equipamentos = {} as unknown as EquipamentosService;
+    service = new EmprestimosService(repositorio, equipamentos);
   });
 
   it('continua depois do maior número do seed', async () => {
