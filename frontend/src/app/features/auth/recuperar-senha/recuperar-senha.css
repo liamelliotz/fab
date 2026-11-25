@@ -1,0 +1,14 @@
+/* O layout vem do login (login.css). Aqui só o que é próprio das telas de senha. */
+.senha__voltar { align-self: center; margin-top: 4px; }
+.senha__dica {
+  margin: 0;
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #f3f4f6;
+  color: #374151;
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+.senha__dica i { margin-top: 3px; }

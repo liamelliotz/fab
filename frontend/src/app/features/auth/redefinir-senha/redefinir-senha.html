@@ -1,0 +1,61 @@
+<main class="login">
+  <section class="login__brand">
+    <div class="login__brand-content">
+      <h1 class="login__logo">FAB</h1>
+      <p class="login__slogan">Aprender, Organizar e Evoluir</p>
+      <p class="login__description">
+        Gestão e controle do empréstimo de materiais e equipamentos escolares.
+      </p>
+    </div>
+  </section>
+
+  <section class="login__panel">
+    @if (!token) {
+      <div class="login__form">
+        <h2 class="login__title">Link incompleto</h2>
+        <p class="login__error" role="alert">
+          Este endereço não tem o código de redefinição. Abra o link completo ou peça um novo.
+        </p>
+        <a class="login__esqueci senha__voltar" routerLink="/recuperar-senha">Pedir um novo link</a>
+      </div>
+    } @else {
+      <form class="login__form" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+        <h2 class="login__title">Criar nova senha</h2>
+        <p class="login__subtitle">Escolha uma senha com pelo menos 8 caracteres.</p>
+
+        <app-input
+          formControlName="novaSenha"
+          label="Nova senha"
+          type="password"
+          placeholder="Mínimo de 8 caracteres"
+          [error]="getError('novaSenha')"
+        />
+
+        <app-input
+          formControlName="confirmacao"
+          label="Repita a nova senha"
+          type="password"
+          placeholder="Digite de novo"
+          [error]="getError('confirmacao')"
+        />
+
+        @if (erroApi()) {
+          <p class="login__error" role="alert">
+            {{ erroApi() }}
+            <a routerLink="/recuperar-senha">Pedir um novo link</a>
+          </p>
+        }
+
+        <app-button type="submit" [fullWidth]="true" [disabled]="carregando()">
+          @if (carregando()) {
+            <span class="login__spinner" aria-hidden="true"></span> Salvando...
+          } @else {
+            Salvar nova senha
+          }
+        </app-button>
+
+        <a class="login__esqueci senha__voltar" routerLink="/login">Voltar para o login</a>
+      </form>
+    }
+  </section>
+</main>
