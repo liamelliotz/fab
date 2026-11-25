@@ -9,9 +9,11 @@ import { API_URL, ENDPOINTS } from '../constants/api.constants';
 import { AuthResponse, JwtPayload, LoginCredenciaisDTO } from '../models/auth.model';
 import { PerfilUsuario, UsuarioResumo } from '../models/usuario.model';
 import { UsuarioDemo, UsuarioService } from './usuario.service';
+import { environment } from '../../../environments/environment';
 
 // Chaves da sessão. Ficam no sessionStorage, que é SEPARADO por aba: dá para deixar uma aba
 // como professor e outra como coordenação (roteiro da apresentação), e o F5 não troca quem está logado.
+// fab_role é mantido só por compatibilidade: o perfil vale o que está dentro do token.
 const CHAVE_TOKEN = 'fab_token';
 const CHAVE_PERFIL = 'fab_role';
 const CHAVE_NOME = 'fab_nome';
@@ -23,7 +25,7 @@ const CHAVE_NOME = 'fab_nome';
  * false = usa a API real (API_URL, definida em environments/).
  * ATENÇÃO: no modo demonstração as senhas ficam em texto puro no navegador. Nunca use em produção.
  */
-const MODO_DEMO: boolean = true;
+
 
 @Injectable({ providedIn: 'root' }) // um único AuthService para o app inteiro
 export class AuthService {
@@ -36,11 +38,11 @@ export class AuthService {
   // ---------- Estado da sessão (signals: a tela atualiza sozinha quando mudam) ----------
   // Ao iniciar o app, recupera a sessão salva (o usuário continua logado após F5)
   private token = signal<string | null>(this.lerStorage(CHAVE_TOKEN));
-  private perfil = signal<string | null>(this.lerStorage(CHAVE_PERFIL));
+  private perfil = computed(() => this.perfilDoToken(this.token()));
   private nome = signal<string | null>(this.lerStorage(CHAVE_NOME));
 
   /** Perfil do usuário logado (ex.: 'admin') ou null. */
-  readonly perfilAtual = this.perfil.asReadonly();
+  readonly perfilAtual = this.perfil;
 
   /** Nome do usuário logado (para mostrar em saudações) ou null. */
   readonly nomeAtual = this.nome.asReadonly();
@@ -58,7 +60,7 @@ export class AuthService {
    * Se falhar (ex.: 401), o erro sobe para o componente exibir a mensagem.
    */
   login(credenciais: LoginCredenciaisDTO): Observable<AuthResponse> {
-    const resposta$ = MODO_DEMO
+    const resposta$ = this.modoDemo
       ? this.loginDemo(credenciais)
       : this.http
           .post<ApiResponse<AuthResponse>>(`${API_URL}${ENDPOINTS.auth.login}`, credenciais)
@@ -88,7 +90,7 @@ export class AuthService {
   }
 
   /** true quando o app roda no modo demonstração (sem backend). A barra amarela de demonstração só aparece assim. */
-  readonly modoDemo: boolean = MODO_DEMO;
+  readonly modoDemo: boolean = environment.modoDemo;
 
   /**
    * Modo demonstração: entra como uma das contas do UsuarioService sem digitar senha
@@ -96,7 +98,7 @@ export class AuthService {
    * Devolve false se a conta não existe, está inativa ou se o modo demonstração está desligado.
    */
   entrarComoDemo(id: string): boolean {
-    if (!MODO_DEMO) return false;
+    if (!this.modoDemo) return false;
     const conta = this.usuarios.buscarPorId(id);
     if (!conta || conta.status !== 'ativo') return false;
     this.salvarSessao(this.gerarTokenDemo(conta), conta.nome);
@@ -112,12 +114,13 @@ export class AuthService {
 
   /** Token atual (o auth.interceptor usa este método para montar o "Bearer"). */
   obterToken(): string | null {
-    return this.token();
+    const token = this.token();
+    return token && !this.tokenExpirado(token) ? token : null;
   }
 
   /** Perfil atual (ex.: 'admin'). */
   obterPerfil(): string | null {
-    return this.perfil();
+    return this.perfilDoToken(this.token());
   }
 
   // ---------- Modo demonstração (sem backend) ----------
@@ -181,7 +184,6 @@ export class AuthService {
     const perfil = this.decodificarToken(token)?.perfil ?? null;
 
     this.token.set(token);
-    this.perfil.set(perfil);
     this.nome.set(nome ?? null);
 
     this.escreverStorage(CHAVE_TOKEN, token);
@@ -200,7 +202,6 @@ export class AuthService {
   /** Apaga tudo que identifica o usuário logado. */
   private limparSessao(): void {
     this.token.set(null);
-    this.perfil.set(null);
     this.nome.set(null);
     this.removerStorage(CHAVE_TOKEN);
     this.removerStorage(CHAVE_PERFIL);
@@ -223,7 +224,13 @@ export class AuthService {
   /** true se o token tem data de expiração (exp, em segundos) e ela já passou. */
   private tokenExpirado(token: string): boolean {
     const exp = this.decodificarToken(token)?.exp;
-    return exp ? exp * 1000 < Date.now() : false;
+    return typeof exp !== 'number' || !Number.isFinite(exp) || exp * 1000 <= Date.now();
+  }
+
+  private perfilDoToken(token: string | null): PerfilUsuario | null {
+    if (!token || this.tokenExpirado(token)) return null;
+    const perfil = this.decodificarToken(token)?.perfil;
+    return perfil === 'admin' || perfil === 'usuario' ? perfil : null;
   }
 
   // Acesso seguro ao sessionStorage (ignora quando está no servidor ou quando o navegador bloqueia)

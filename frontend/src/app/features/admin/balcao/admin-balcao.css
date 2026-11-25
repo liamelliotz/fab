@@ -347,3 +347,5 @@
 @media (max-width: 700px) {
   .dev__qtds, .dev__opcoes { grid-template-columns: 1fr; }
 }
+
+button:disabled, input:disabled { opacity: .55; cursor: wait; }

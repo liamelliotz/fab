@@ -5,7 +5,8 @@ import { AuthService } from '../services/auth.service';
 
 /**
  * AUTH GUARD: impede que quem não fez login acesse páginas privadas.
- * Pergunta ao AuthService, que guarda a sessão desta aba (e confere se o token não venceu).
+ * Pergunta ao AuthService, que guarda a sessão desta aba e só devolve token que ainda não venceu.
+ * O guard só orienta a navegação: quem valida o JWT de verdade é a API.
  */
 export const authGuard: CanActivateFn = () => {
   const router = inject(Router);
@@ -15,9 +16,5 @@ export const authGuard: CanActivateFn = () => {
     return true;
   }
 
-  if (inject(AuthService).estaAutenticado()) {
-    return true; // logado: libera a página
-  }
-
-  return router.createUrlTree(['/login']); // não logado: vai para o login
+  return inject(AuthService).obterToken() ? true : router.createUrlTree(['/login']);
 };

@@ -26,6 +26,7 @@ export const routes: Routes = [
       {
         path: 'admin',
         canActivate: [adminGuard],
+        canActivateChild: [adminGuard],
         loadChildren: () => import('./features/admin/admin.routes').then((m) => m.ADMIN_ROUTES),
       },
 

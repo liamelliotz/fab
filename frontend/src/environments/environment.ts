@@ -4,6 +4,8 @@
  * TODO: ao hospedar o backend, troque pelo endereço real.
  */
 export const environment = {
+  // Mantém a demonstração até a integração dos serviços de domínio.
+  modoDemo: true,
   production: true,
   apiUrl: 'http://localhost:3000/api',
 };

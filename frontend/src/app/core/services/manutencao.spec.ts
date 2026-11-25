@@ -18,7 +18,7 @@ describe('Avarias e faltas na devolução', () => {
   };
 
   beforeEach(() => {
-    localStorage.clear();
+    localStorage.clear(); sessionStorage.clear();
     TestBed.configureTestingModule({ providers: [provideHttpClient()] });
     TestBed.inject(AuthService).entrarComoDemo('demo-admin');
     emprestimos = TestBed.inject(EmprestimoService);

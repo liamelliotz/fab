@@ -5,6 +5,8 @@ import { AuthService } from '../services/auth.service';
 
 /**
  * ADMIN GUARD: só deixa entrar no painel administrativo quem tem o perfil admin.
+ * O perfil vem do próprio token (não de uma chave solta no navegador).
+ * O guard só orienta a navegação: a API continua validando JWT e permissões.
  */
 export const adminGuard: CanActivateFn = () => {
   const router = inject(Router);
@@ -15,12 +17,8 @@ export const adminGuard: CanActivateFn = () => {
   }
 
   const auth = inject(AuthService);
-  if (!auth.estaAutenticado()) {
+  if (!auth.obterToken()) {
     return router.createUrlTree(['/login']); // não logado: vai para o login
   }
-
-  // toLowerCase: aceita 'admin', 'Admin' ou 'ADMIN' (o modelo de dados usa minúsculas)
-  return auth.obterPerfil()?.toLowerCase() === 'admin'
-    ? true
-    : router.createUrlTree(['/dashboard']); // logado, mas não é admin
+  return auth.obterPerfil() === 'admin' ? true : router.createUrlTree(['/dashboard']);
 };
