@@ -51,7 +51,7 @@ const multiplicar = (a: number, b: number): number =>
   a === 0 || b === 0 ? 0 : EXP[LOG[a] + LOG[b]];
 
 function divisorReedSolomon(grau: number): number[] {
-  const divisor = new Array<number>(grau).fill(0);
+  const divisor = Array.from({ length: grau }, () => 0);
   divisor[grau - 1] = 1;
   let raiz = 1;
   for (let i = 0; i < grau; i++) {
@@ -65,7 +65,7 @@ function divisorReedSolomon(grau: number): number[] {
 }
 
 function restoReedSolomon(dados: number[], divisor: number[]): number[] {
-  const resto = new Array<number>(divisor.length).fill(0);
+  const resto = Array.from({ length: divisor.length }, () => 0);
   for (const byte of dados) {
     const fator = byte ^ (resto.shift() as number);
     resto.push(0);
@@ -121,7 +121,7 @@ function codificarTexto(texto: string): number[] {
 type Matriz = boolean[][];
 
 function criarMatriz(lado: number): Matriz {
-  return Array.from({ length: lado }, () => new Array<boolean>(lado).fill(false));
+  return Array.from({ length: lado }, () => Array.from({ length: lado }, () => false));
 }
 
 function bit(valor: number, i: number): boolean {
