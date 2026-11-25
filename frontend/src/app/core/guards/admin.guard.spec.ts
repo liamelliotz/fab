@@ -6,7 +6,7 @@ import { authGuard } from './auth.guard';
 import { AuthService } from '../services/auth.service';
 
 function token(perfil: string, exp = Math.floor(Date.now() / 1000) + 3600): string {
-  return `e30.${btoa(JSON.stringify({ sub: 'u1', perfil, exp }))}.teste`;
+  return `e30.${btoa(JSON.stringify({ sub: 'usr-joao', perfil, exp }))}.teste`;
 }
 function executar(guard = adminGuard) {
   return TestBed.runInInjectionContext(() => guard({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot));

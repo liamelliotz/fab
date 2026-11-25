@@ -77,3 +77,25 @@
   .login { grid-template-columns: 1fr; }
   .login__brand { display: none; }
 }
+
+/* Link "Esqueci minha senha", alinhado à direita logo abaixo da senha */
+.login__esqueci {
+  align-self: flex-end;
+  margin-top: -6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1b5e20;
+  text-decoration: none;
+}
+.login__esqueci:hover,
+.login__esqueci:focus-visible { text-decoration: underline; }
+
+/* Aviso informativo (senha redefinida, sessão terminada) */
+.login__aviso {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #ecfdf5;
+  color: #065f46;
+  font-size: 0.9rem;
+}

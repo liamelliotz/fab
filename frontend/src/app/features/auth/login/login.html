@@ -18,6 +18,10 @@
       <h2 class="login__title">Entrar</h2>
       <p class="login__subtitle">Acesse sua conta para continuar</p>
 
+      @if (aviso()) {
+        <p class="login__aviso" role="status">{{ aviso() }}</p>
+      }
+
       <!-- formControlName liga este campo ao controle "email" do formulário.
            [error] recebe a mensagem de validação (vazia = sem erro). -->
       <app-input
@@ -35,6 +39,8 @@
         placeholder="Digite sua senha"
         [error]="getError('senha')"
       />
+
+      <a class="login__esqueci" routerLink="/recuperar-senha">Esqueci minha senha</a>
 
       <!-- Mensagem de erro da API (ex.: senha incorreta) -->
       @if (erroApi()) {

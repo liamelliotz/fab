@@ -5,6 +5,11 @@ import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
 import { API_URL } from '../constants/api.constants';
 
+// Estes testes usam as contas da demonstração (entrarComoDemo): rodam com o modo demonstração ligado.
+const modoDemoDoAmbiente = environment.modoDemo;
+beforeEach(() => { environment.modoDemo = true; });
+afterEach(() => { environment.modoDemo = modoDemoDoAmbiente; });
+
 const modoOriginal = environment.modoDemo;
 describe('Modo de autenticação por environment', () => {
   beforeEach(() => {
@@ -20,8 +25,8 @@ describe('Modo de autenticação por environment', () => {
     environment.modoDemo = false;
     const auth = TestBed.inject(AuthService);
     expect(auth.modoDemo).toBe(false);
-    expect(auth.entrarComoDemo('demo-admin')).toBe(false);
-    const payload = btoa(JSON.stringify({ sub: 'u1', email: 'ana@example.com', perfil: 'usuario', exp: Math.floor(Date.now() / 1000) + 3600 }));
+    expect(auth.entrarComoDemo('usr-admin')).toBe(false);
+    const payload = btoa(JSON.stringify({ sub: 'usr-joao', email: 'ana@example.com', perfil: 'usuario', exp: Math.floor(Date.now() / 1000) + 3600 }));
     const token = `e30.${payload}.assinatura`;
     const receber = vi.fn();
     auth.login({ email: 'ana@example.com', senha: 'exemplo123' }).subscribe(receber);
@@ -37,7 +42,7 @@ describe('Modo de autenticação por environment', () => {
   it('modoDemo=true mantém a troca de contas e a sessão local', () => {
     environment.modoDemo = true;
     const auth = TestBed.inject(AuthService);
-    expect(auth.entrarComoDemo('demo-professor')).toBe(true);
+    expect(auth.entrarComoDemo('usr-professor')).toBe(true);
     expect(auth.obterPerfil()).toBe('usuario');
     expect(sessionStorage.getItem('fab_token')).toBe(auth.obterToken());
   });

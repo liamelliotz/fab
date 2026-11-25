@@ -158,10 +158,10 @@ Em **outro terminal**:
 ```bash
 cd frontend
 npm ci
-npm start
+npm start        # login real pela API (deixe o backend do passo 4.3 rodando)
 ```
 
-Abra <http://localhost:4200>.
+Abra <http://localhost:4200>. Para apresentar **sem** backend, use `npm run demo` no lugar de `npm start`.
 
 ### 4.5 Contas de teste
 
@@ -219,7 +219,8 @@ protocolo sem repetição e histórico que não pode ser alterado. O diagrama co
 
 | Comando | O que faz |
 | :--- | :--- |
-| `npm start` | Sobe o front e recarrega ao salvar |
+| `npm start` | Sobe o front com login real pela API e recarrega ao salvar |
+| `npm run demo` | Sobe o front no modo demonstração (sem backend), para apresentar |
 | `npm run build` | Gera a versão de produção |
 | `npm test` | Testes unitários |
 
@@ -321,6 +322,8 @@ git push -u origin feature/d2-movimentacoes
 | :--- | :--- |
 | Pesquisa, ideação e protótipo no Figma | ✅ Pronto |
 | Telas do frontend (em modo demonstração, com dados no navegador) | ✅ Pronto |
+| Login do front pela API (JWT) e telas de "esqueci minha senha" | ✅ Pronto |
+| Telas de Usuários e Configurações ligadas à API | ✅ Pronto |
 | Base da API: login com JWT, permissões, envelope de resposta, catálogo de equipamentos | ✅ Pronto |
 | Banco de dados modelado e testado (13 tabelas) | ✅ Pronto |
 | Rotas de usuários, empréstimos, balcão, transferência e manutenção | 🚧 Em desenvolvimento |

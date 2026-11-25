@@ -4,6 +4,12 @@ import { AuthService } from './auth.service';
 import { EmprestimoService } from './emprestimo.service';
 import { EquipamentoService } from './equipamento.service';
 import { ManutencaoService } from './manutencao.service';
+import { environment } from '../../../environments/environment';
+
+// Estes testes usam as contas da demonstração (entrarComoDemo): rodam com o modo demonstração ligado.
+const modoDemoDoAmbiente = environment.modoDemo;
+beforeEach(() => { environment.modoDemo = true; });
+afterEach(() => { environment.modoDemo = modoDemoDoAmbiente; });
 
 // Avarias e faltas: a gravidade decide o bloqueio, e só a unidade com problema sai do estoque.
 describe('Avarias e faltas na devolução', () => {
@@ -20,7 +26,7 @@ describe('Avarias e faltas na devolução', () => {
   beforeEach(() => {
     localStorage.clear(); sessionStorage.clear();
     TestBed.configureTestingModule({ providers: [provideHttpClient()] });
-    TestBed.inject(AuthService).entrarComoDemo('demo-admin');
+    TestBed.inject(AuthService).entrarComoDemo('usr-admin');
     emprestimos = TestBed.inject(EmprestimoService);
     equipamentos = TestBed.inject(EquipamentoService);
     manutencoes = TestBed.inject(ManutencaoService);
@@ -54,7 +60,7 @@ describe('Avarias e faltas na devolução', () => {
     const fim = emprestimos.buscarPorId('p38')!;
     expect(fim.historico.map((e) => e.tipo).slice(-2)).toEqual(['avaria_registrada', 'devolvido']);
     const oc = manutencoes.doPedido('p38')[0];
-    expect(oc).toMatchObject({ status: 'aberta', bloqueia: true, responsavel: { id: 'demo-professor' } });
+    expect(oc).toMatchObject({ status: 'aberta', bloqueia: true, responsavel: { id: 'usr-professor' } });
 
     // Consertada: volta ao estoque e o pedido ganha o evento
     expect(manutencoes.concluir(oc.id, 'Lâmpada trocada.')).toBeNull();
@@ -94,7 +100,7 @@ describe('Avarias e faltas na devolução', () => {
     expect(estoque('7')[3]).toBe('em_manutencao');
     const erro = emprestimos.validarSolicitacao(
       { itens: [{ equipamentoId: '7', quantidade: 1 }], justificativa: 'Aula', dataPrevistaRetirada: '2099-01-01', dataPrevistaDevolucao: '2099-01-02' },
-      'demo-professor',
+      'usr-professor',
     );
     expect(erro).toBe('Este material não está mais disponível.');
   });
