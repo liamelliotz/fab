@@ -7,8 +7,8 @@ import { Observable, defer, delay, map, of, tap, throwError } from 'rxjs';
 import { ApiResponse } from '../models/api-response.model';
 import { API_URL, ENDPOINTS } from '../constants/api.constants';
 import { AuthResponse, JwtPayload, LoginCredenciaisDTO } from '../models/auth.model';
-import { PerfilUsuario, UsuarioResumo } from '../models/usuario.model';
-import { UsuarioDemo, UsuarioService } from './usuario.service';
+import { PerfilUsuario, Usuario, UsuarioResumo } from '../models/usuario.model';
+import { UsuarioService } from './usuario.service';
 import { environment } from '../../../environments/environment';
 
 // Chaves da sessão. Ficam no sessionStorage, que é SEPARADO por aba: dá para deixar uma aba
@@ -192,7 +192,7 @@ export class AuthService {
   }
 
   /** Monta um "token" de mentira (sem assinatura) só para o modo demonstração. */
-  private gerarTokenDemo(conta: Pick<UsuarioDemo, 'id' | 'email' | 'perfil'>): string {
+  private gerarTokenDemo(conta: Pick<Usuario, 'id' | 'email' | 'perfil'>): string {
     const agora = Math.floor(Date.now() / 1000);
     const codificar = (obj: object) =>
       btoa(JSON.stringify(obj)).replace(/\+/g, '-').replace(/\//g, '_'); // base64url

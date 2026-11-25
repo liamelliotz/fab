@@ -64,6 +64,9 @@ Com o login real (card A6), a sessão fica no `sessionStorage` (uma por aba, sob
 nenhuma senha é gravada no navegador. As telas que ainda não foram ligadas à API continuam usando os
 dados de exemplo do navegador; os ids das contas de exemplo são os mesmos do seed da API
 (`usr-admin`, `usr-professor`, `usr-joao`...), então o professor logado de verdade vê os seus pedidos.
+Usuários e Configurações (card A7) já usam a API: lista, busca e paginação no servidor, criar,
+editar perfil, ativar, desativar, bloquear, habilitações e `GET /auth/me`. Com a API, nenhuma conta
+nem senha fica no navegador.
 As telas de Solicitações, Balcão e Empréstimos do admin já chamam a API: só funcionam com `npm start`
 quando as rotas de empréstimos (cards C3 a C5) estiverem no backend; até lá, use `npm run demo`.
 

@@ -323,6 +323,7 @@ git push -u origin feature/d2-movimentacoes
 | Pesquisa, ideação e protótipo no Figma | ✅ Pronto |
 | Telas do frontend (em modo demonstração, com dados no navegador) | ✅ Pronto |
 | Login do front pela API (JWT) e telas de "esqueci minha senha" | ✅ Pronto |
+| Telas de Usuários e Configurações ligadas à API | ✅ Pronto |
 | Base da API: login com JWT, permissões, envelope de resposta, catálogo de equipamentos | ✅ Pronto |
 | Banco de dados modelado e testado (13 tabelas) | ✅ Pronto |
 | Rotas de usuários, empréstimos, balcão, transferência e manutenção | 🚧 Em desenvolvimento |

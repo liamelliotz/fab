@@ -378,3 +378,17 @@ td {
     grid-template-columns: 1fr;
   }
 }
+
+/* Paginação da tabela (busca e páginas vêm da API) */
+.paginacao {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 16px;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+button:disabled { opacity: 0.55; cursor: not-allowed; }
+
