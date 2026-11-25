@@ -1,7 +1,16 @@
 import { Type } from 'class-transformer';
 import {
-  ArrayMinSize, IsArray, IsDateString, IsInt, IsNotEmpty,
-  IsOptional, IsString, Min, ValidateNested,
+  ArrayMinSize,
+  ArrayUnique,
+  IsArray,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Length,
+  Matches,
+  Min,
+  ValidateNested,
 } from 'class-validator';
 
 export class ItemSolicitadoDto {
@@ -11,11 +20,24 @@ export class ItemSolicitadoDto {
 }
 
 export class SolicitarEmprestimoDto {
-  @IsArray() @ArrayMinSize(1)
-  @ValidateNested({ each: true }) @Type(() => ItemSolicitadoDto)
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayUnique((item: ItemSolicitadoDto) => item.equipamentoId, {
+    message: 'Equipamento repetido na lista de itens',
+  })
+  @ValidateNested({ each: true })
+  @Type(() => ItemSolicitadoDto)
   itens!: ItemSolicitadoDto[];
 
-  @IsString() @IsNotEmpty() justificativa!: string;
-  @IsDateString() dataPrevistaRetirada!: string;
-  @IsDateString() dataPrevistaDevolucao!: string;
+  @IsString() @Length(10, 500) justificativa!: string;
+
+  @Matches(/^\d{4}-\d{2}-\d{2}$/, {
+    message: 'dataPrevistaRetirada deve estar no formato AAAA-MM-DD',
+  })
+  dataPrevistaRetirada!: string;
+
+  @Matches(/^\d{4}-\d{2}-\d{2}$/, {
+    message: 'dataPrevistaDevolucao deve estar no formato AAAA-MM-DD',
+  })
+  dataPrevistaDevolucao!: string;
 }
