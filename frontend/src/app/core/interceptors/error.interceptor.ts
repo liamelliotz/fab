@@ -24,10 +24,15 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       : erro.status >= 500 ? 'Não foi possível concluir a operação. Tente novamente mais tarde.'
       : 'Não foi possível concluir a operação.';
     const mensagem = typeof corpo?.mensagem === 'string' && corpo.mensagem.trim() ? corpo.mensagem : padrao;
+    const caminho = req.url.split('?')[0];
+    const login = caminho === `${base}${ENDPOINTS.auth.login}`;
+    // Login e telas de senha mostram o erro no próprio formulário: o aviso global seria repetido.
+    const telaDeAcesso = [ENDPOINTS.auth.login, ENDPOINTS.auth.recuperarSenha, ENDPOINTS.auth.redefinirSenha]
+      .some((rota) => caminho === `${base}${rota}`);
     // Validações ficam visíveis até o usuário fechar, para permitir a leitura de todos os campos.
-    if (erro.status === 429) notificacoes.aviso(mensagem, erros.length ? 0 : 10000, erros);
+    if (telaDeAcesso) { /* a própria tela avisa */ }
+    else if (erro.status === 429) notificacoes.aviso(mensagem, erros.length ? 0 : 10000, erros);
     else notificacoes.erro(mensagem, erros.length ? 0 : 7000, erros);
-    const login = req.url.split('?')[0] === `${base}${ENDPOINTS.auth.login}`;
     if (erro.status === 401) {
       auth.logout();
       if (!login) void router.navigate(['/login'], { queryParams: { sessaoExpirada: 'true' } });

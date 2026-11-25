@@ -3,6 +3,7 @@ import { Resultado, falha, sucesso } from '../models/resultado.model';
 import { CriarUsuarioDTO, PerfilUsuario, StatusUsuario, Usuario, UsuarioResumo } from '../models/usuario.model';
 import { gravarJson, lerJson, ouvirOutrasAbas } from '../utils/armazenamento.utils';
 import { somenteNumeros } from '../utils/validation.utils';
+import { environment } from '../../../environments/environment';
 
 /**
  * Usuário da demonstração. A `senha` fica em texto SÓ aqui, porque não há backend: com a API
@@ -12,35 +13,38 @@ export interface UsuarioDemo extends Usuario {
   senha: string;
 }
 
-const CHAVE_USUARIOS = 'fab_demo_v5_usuarios';
+const CHAVE_USUARIOS = 'fab_demo_v6_usuarios';
 
-/** Contas de exemplo. Os ids 'u1' a 'u4' são os mesmos dos pedidos de exemplo. Todos os CPFs são fictícios. */
+/**
+ * Contas de exemplo. Os ids são os mesmos do seed da API (usr-admin, usr-professor, usr-joao...):
+ * assim, quem entra pelo login real continua vendo os pedidos de exemplo. Todos os CPFs são fictícios.
+ */
 export function criarUsuariosDemo(): UsuarioDemo[] {
   const base = { status: 'ativo' as StatusUsuario, criadoEm: '2026-08-01T10:00:00.000Z' };
   return [
     {
-      ...base, id: 'demo-admin', nome: 'Administrador FAB', email: 'admin@fab.com', senha: 'admin123',
+      ...base, id: 'usr-admin', nome: 'Administrador FAB', email: 'admin@fab.com', senha: 'admin123',
       cpf: '52998224725', telefone: '96991110001', departamento: 'Coordenação', perfil: 'admin',
     },
     {
       // Habilitado na Impressora 3D (id '8'): serve para mostrar o bloqueio por treinamento nas transferências.
-      ...base, id: 'demo-professor', nome: 'Pedro Almeida', email: 'professor@fab.com', senha: 'prof123',
+      ...base, id: 'usr-professor', nome: 'Pedro Almeida', email: 'professor@fab.com', senha: 'prof123',
       cpf: '11144477735', telefone: '96991110002', departamento: 'Docência', perfil: 'usuario', habilitacoes: ['8'],
     },
     {
-      ...base, id: 'u1', nome: 'João Silva', email: 'joao@escola.br', senha: 'prof123',
+      ...base, id: 'usr-joao', nome: 'João Silva', email: 'joao@escola.br', senha: 'prof123',
       cpf: '39053344705', telefone: '96991110003', departamento: 'Informática', perfil: 'usuario', habilitacoes: [],
     },
     {
-      ...base, id: 'u2', nome: 'Maria Santos', email: 'maria@escola.br', senha: 'prof123',
+      ...base, id: 'usr-maria', nome: 'Maria Santos', email: 'maria@escola.br', senha: 'prof123',
       cpf: '16899535009', telefone: '96991110004', departamento: 'Secretaria', perfil: 'usuario', habilitacoes: [],
     },
     {
-      ...base, id: 'u3', nome: 'Carlos Souza', email: 'carlos@escola.br', senha: 'prof123',
+      ...base, id: 'usr-carlos', nome: 'Carlos Souza', email: 'carlos@escola.br', senha: 'prof123',
       cpf: '93541134780', telefone: '96991110005', departamento: 'Eletrônica', perfil: 'usuario', habilitacoes: [],
     },
     {
-      ...base, id: 'u4', nome: 'Ana Lima', email: 'ana@escola.br', senha: 'prof123',
+      ...base, id: 'usr-ana', nome: 'Ana Lima', email: 'ana@escola.br', senha: 'prof123',
       cpf: '74685426002', telefone: '96991110006', departamento: 'Informática', perfil: 'usuario', habilitacoes: ['8'],
     },
   ];
@@ -66,7 +70,13 @@ export class UsuarioService {
   readonly ativos = computed(() => this.todos().filter((u) => u.status === 'ativo'));
 
   constructor() {
-    effect(() => gravarJson(CHAVE_USUARIOS, this.todos()));
+    // Com a API (modoDemo false), nenhuma senha vai para o navegador: quem confere a senha é o servidor.
+    effect(() =>
+      gravarJson(
+        CHAVE_USUARIOS,
+        environment.modoDemo ? this.todos() : this.todos().map(({ senha: _senha, ...conta }) => conta),
+      ),
+    );
     ouvirOutrasAbas<UsuarioDemo[]>(CHAVE_USUARIOS, (v) => v && this.todos.set(v));
   }
 

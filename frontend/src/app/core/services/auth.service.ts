@@ -19,13 +19,16 @@ const CHAVE_PERFIL = 'fab_role';
 const CHAVE_NOME = 'fab_nome';
 
 /**
- * MODO DEMONSTRAÇÃO
- * true  = não precisa de backend: o login usa as contas do UsuarioService (que o administrador
- *         gerencia na tela de Usuários) e tudo fica salvo só neste navegador. Serve para apresentar o protótipo.
- * false = usa a API real (API_URL, definida em environments/).
+ * MODO DEMONSTRAÇÃO (environment.modoDemo, definido em src/environments/)
+ * false = usa a API real (API_URL): o token é o JWT de verdade. É o padrão do `npm start`.
+ * true  = não precisa de backend: o login usa as contas do UsuarioService e tudo fica só neste
+ *         navegador. Só no `npm run demo`, para apresentar o protótipo.
  * ATENÇÃO: no modo demonstração as senhas ficam em texto puro no navegador. Nunca use em produção.
  */
 
+/** Resposta do "esqueci minha senha": a mesma da API, exista o e-mail ou não. */
+export const MENSAGEM_RECUPERACAO =
+  'Se o e-mail estiver cadastrado, você receberá um link para redefinir a senha.';
 
 @Injectable({ providedIn: 'root' }) // um único AuthService para o app inteiro
 export class AuthService {
@@ -68,6 +71,33 @@ export class AuthService {
 
     // Persiste token, perfil e nome
     return resposta$.pipe(tap((auth) => this.salvarSessao(auth.tokenAcesso, auth.usuario?.nome)));
+  }
+
+  /**
+   * "Esqueci minha senha" (POST /auth/recuperar-senha). A API responde sempre a mesma mensagem.
+   * Nesta versão não há e-mail: fora de produção, o link aparece no log da API.
+   */
+  recuperarSenha(email: string): Observable<string> {
+    if (this.modoDemo) return of(MENSAGEM_RECUPERACAO).pipe(delay(400));
+    return this.http
+      .post<ApiResponse<null>>(`${API_URL}${ENDPOINTS.auth.recuperarSenha}`, { email })
+      .pipe(map((resposta) => resposta.mensagem || MENSAGEM_RECUPERACAO));
+  }
+
+  /** Troca a senha com o token do link (POST /auth/redefinir-senha). O token vale uma vez só. */
+  redefinirSenha(token: string, novaSenha: string): Observable<string> {
+    if (this.modoDemo) {
+      return throwError(
+        () =>
+          new HttpErrorResponse({
+            status: 400,
+            error: { mensagem: 'Na demonstração não há redefinição de senha. Peça à coordenação.' },
+          }),
+      );
+    }
+    return this.http
+      .post<ApiResponse<null>>(`${API_URL}${ENDPOINTS.auth.redefinirSenha}`, { token, novaSenha })
+      .pipe(map((resposta) => resposta.mensagem || 'Senha redefinida. Entre com a nova senha.'));
   }
 
   /**

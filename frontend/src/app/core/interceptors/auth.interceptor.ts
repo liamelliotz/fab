@@ -1,6 +1,7 @@
 import { HttpInterceptorFn, HttpRequest, HttpHandlerFn, HttpEvent } from '@angular/common/http';
-import { inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { PLATFORM_ID, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { EMPTY, Observable } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { API_URL } from '../constants/api.constants';
 
@@ -31,6 +32,12 @@ export const authInterceptor: HttpInterceptorFn = (
   const base = API_URL.replace(/\/+$/, '');
   const daApi = req.url === base || req.url.startsWith(`${base}/`) || req.url.startsWith(`${base}?`);
   const ehRotaPublica = RotasPublicas.some((rota) => req.url.split('?')[0] === `${base}${rota}`);
+
+  // No servidor (SSR) não existe a sessão da aba: uma rota protegida voltaria 401 e o
+  // error.interceptor mandaria para o login. Essas chamadas ficam para o navegador, que tem o token.
+  if (daApi && !ehRotaPublica && !isPlatformBrowser(inject(PLATFORM_ID))) {
+    return EMPTY;
+  }
 
   // Obtém o token JWT ativo (geralmente persistido em localStorage/sessionStorage ou signal no AuthService)
   const token = authService.obterToken();

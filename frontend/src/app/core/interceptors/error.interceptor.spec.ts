@@ -8,6 +8,12 @@ import { AuthService } from '../services/auth.service';
 import { NotificationService } from '../services/notification.service';
 import { API_URL } from '../constants/api.constants';
 import { Alert } from '../../shared/components/alert/alert';
+import { environment } from '../../../environments/environment';
+
+// Estes testes usam as contas da demonstração (entrarComoDemo): rodam com o modo demonstração ligado.
+const modoDemoDoAmbiente = environment.modoDemo;
+beforeEach(() => { environment.modoDemo = true; });
+afterEach(() => { environment.modoDemo = modoDemoDoAmbiente; });
 
 describe('Erros HTTP no alerta global', () => {
   let http: HttpTestingController;
@@ -50,7 +56,7 @@ describe('Erros HTTP no alerta global', () => {
   });
   it('401 limpa a sessão e vai ao login', () => {
     const auth = TestBed.inject(AuthService);
-    auth.entrarComoDemo('demo-admin');
+    auth.entrarComoDemo('usr-admin');
     falhar(401, { mensagem: 'Token expirado' });
     expect(auth.obterToken()).toBeNull();
     expect(navegar).toHaveBeenCalledWith(['/login'], { queryParams: { sessaoExpirada: 'true' } });
