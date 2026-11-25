@@ -3,6 +3,7 @@ import { Emprestimo } from '../../../../core/models/emprestimo.model';
 import { EmprestimoService } from '../../../../core/services/emprestimo.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { formatarData } from '../../../../core/utils/date.utils';
+import { DialogoDirective } from '../../../../shared/directives/dialogo.directive';
 
 /**
  * Janela "Transferir pedido": o responsável escolhe outro professor e explica o motivo.
@@ -11,6 +12,7 @@ import { formatarData } from '../../../../core/utils/date.utils';
 @Component({
   selector: 'app-transferir-dialog',
   standalone: true,
+  imports: [DialogoDirective],
   templateUrl: './transferir-dialog.html',
   styleUrl: './transferir-dialog.css',
 })

@@ -1,6 +1,7 @@
 import { Component, HostListener, inject, signal } from '@angular/core';
 import { DemoService } from '../../../core/services/demo.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { DialogoDirective } from '../../directives/dialogo.directive';
 
 /**
  * Restaurar os dados iniciais. NÃO aparece na tela: só abre com o atalho
@@ -10,6 +11,7 @@ import { NotificationService } from '../../../core/services/notification.service
 @Component({
   selector: 'app-restaurar-dados',
   standalone: true,
+  imports: [DialogoDirective],
   templateUrl: './restaurar-dados.html',
   styleUrl: './restaurar-dados.css',
 })

@@ -184,7 +184,8 @@
 .campo input:focus,
 .campo select:focus {
   border-color: #24845c;
-  outline: none;
+  outline: 2px solid #1b6b47;
+  outline-offset: 1px;
   box-shadow: 0 0 0 3px rgb(36 132 92 / 12%);
 }
 

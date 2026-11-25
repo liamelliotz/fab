@@ -6,7 +6,7 @@
 
 .navbar {
   --navbar-bg: #2e7d32;
-  --navbar-fg: rgba(255, 255, 255, 0.82);
+  --navbar-fg: #ffffff; /* branco puro: com 82% de opacidade o contraste era 4,0:1 (WCAG pede 4,5:1) */
   --navbar-fg-strong: #ffffff;
   --navbar-hover: rgba(255, 255, 255, 0.12);
   --navbar-active-bg: #ffffff;

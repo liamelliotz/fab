@@ -11,6 +11,7 @@ import {
 import { NotificationService } from '../../../core/services/notification.service';
 import { formatarData } from '../../../core/utils/date.utils';
 import { AvariaCampos, DadosAvaria } from '../../../shared/components/avaria-campos/avaria-campos';
+import { DialogoDirective } from '../../../shared/directives/dialogo.directive';
 
 type Filtro = 'pendentes' | 'resolvidas' | 'todas';
 type Acao = 'assistencia' | 'concluir' | 'baixa';
@@ -23,7 +24,7 @@ type Acao = 'assistencia' | 'concluir' | 'baixa';
 @Component({
   selector: 'app-admin-manutencao',
   standalone: true,
-  imports: [RouterLink, AvariaCampos],
+  imports: [RouterLink, AvariaCampos, DialogoDirective],
   templateUrl: './admin-manutencao.html',
   styleUrl: './admin-manutencao.css',
 })

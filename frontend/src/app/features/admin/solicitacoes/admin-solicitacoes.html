@@ -31,7 +31,7 @@
         <article class="sol__item">
           <div class="sol__topo">
             <div>
-              <h3 class="sol__protocolo">{{ s.protocolo }}</h3>
+              <h2 class="sol__protocolo">{{ s.protocolo }}</h2>
               <p class="sol__info">{{ s.solicitante.nome }} · {{ s.solicitante.departamento }}</p>
             </div>
             <span class="chip chip--{{ s.status }}">{{ nomeStatus(s.status) }}</span>
@@ -80,8 +80,8 @@
   }
   @if (selecionada(); as alvo) {
     <div class="sol__fundo">
-      <div class="sol__painel" role="dialog" aria-modal="true" aria-label="Registrar decisão">
-        <h2>
+      <div class="sol__painel" role="dialog" aria-modal="true" aria-labelledby="sol-decisao-titulo" appDialogo (fecharDialogo)="!salvando() && cancelar()">
+        <h2 id="sol-decisao-titulo">
           {{ decisao() === 'aprovar' ? 'Aprovar' : 'Reprovar' }} {{ alvo.protocolo }}
         </h2>
         @if (decisao() === 'reprovar') {

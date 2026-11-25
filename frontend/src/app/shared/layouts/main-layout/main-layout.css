@@ -19,3 +19,27 @@
     padding: 10px;
   }
 }
+
+/* Link "Pular para o conteúdo": fica fora da tela e aparece ao receber o foco pelo Tab. */
+.pular-conteudo {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 1000;
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: #0b3d2e;
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+  transform: translateY(-200%);
+}
+
+.pular-conteudo:focus {
+  transform: none;
+}
+
+/* O <main> recebe foco pelo link acima; o contorno ali só atrapalharia. */
+.content:focus {
+  outline: none;
+}

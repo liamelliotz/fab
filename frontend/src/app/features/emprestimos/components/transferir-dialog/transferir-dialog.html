@@ -4,6 +4,8 @@
     role="dialog"
     aria-modal="true"
     aria-labelledby="td-titulo"
+    appDialogo
+    (fecharDialogo)="fechar.emit()"
     (click)="$event.stopPropagation()"
   >
     <h2 id="td-titulo">

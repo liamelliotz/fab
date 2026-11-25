@@ -146,7 +146,7 @@
 <!-- Diálogo: conserto, conclusão ou baixa -->
 @if (acao(); as a) {
   <div class="man__fundo" (click)="fecharAcao()">
-    <div class="man__dialogo" role="dialog" aria-modal="true" aria-labelledby="man-acao-titulo" (click)="$event.stopPropagation()">
+    <div class="man__dialogo" role="dialog" aria-modal="true" aria-labelledby="man-acao-titulo" appDialogo (fecharDialogo)="fecharAcao()" (click)="$event.stopPropagation()">
       @switch (a.tipo) {
         @case ('assistencia') {
           <h2 id="man-acao-titulo">Enviar para conserto</h2>
@@ -201,7 +201,7 @@
 <!-- Registro direto -->
 @if (registrando()) {
   <div class="man__fundo" (click)="registrando.set(false)">
-    <div class="man__dialogo man__dialogo--largo" role="dialog" aria-modal="true" aria-labelledby="man-novo-titulo" (click)="$event.stopPropagation()">
+    <div class="man__dialogo man__dialogo--largo" role="dialog" aria-modal="true" aria-labelledby="man-novo-titulo" appDialogo (fecharDialogo)="registrando.set(false)" (click)="$event.stopPropagation()">
       <h2 id="man-novo-titulo">Registrar avaria</h2>
       <p>Para um item que está no laboratório (fora de empréstimo). Avarias de devolução são registradas no Balcão.</p>
       <div class="man__linha">
@@ -236,7 +236,15 @@
 
 <!-- Foto ampliada -->
 @if (fotoAberta(); as f) {
-  <div class="man__fundo man__fundo--foto" (click)="fotoAberta.set(null)">
+  <div
+    class="man__fundo man__fundo--foto"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Foto da avaria ampliada. Esc ou clique para fechar."
+    appDialogo
+    (fecharDialogo)="fotoAberta.set(null)"
+    (click)="fotoAberta.set(null)"
+  >
     <img [src]="f" alt="Foto da avaria ampliada" />
   </div>
 }
