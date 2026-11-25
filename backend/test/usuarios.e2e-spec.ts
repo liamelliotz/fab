@@ -209,3 +209,216 @@ describe('Usuários (e2e, card A3)', () => {
     }
   });
 });
+
+describe('Usuários (e2e, card A4): editar, status e habilitações', () => {
+  let app: INestApplication;
+  let http: ReturnType<typeof request>;
+  let tokenAdmin: string;
+  let tokenProfessor: string;
+  const criados: string[] = [];
+
+  const sufixoA4 = Date.now().toString().slice(-7);
+  const contaA4 = {
+    nome: 'Conta Teste A4',
+    email: `conta.a4.${sufixoA4}@escola.br`,
+    cpf: gerarCpf(`81${sufixoA4}`),
+    senha: 'senha-forte-123',
+  };
+
+  const entrar = (email: string, senha: string) =>
+    http.post('/api/auth/login').send({ email, senha });
+  const comToken = (token: string) => ({
+    get: (rota: string) =>
+      http.get(rota).set('Authorization', `Bearer ${token}`),
+    patch: (rota: string, corpo: object) =>
+      http.patch(rota).set('Authorization', `Bearer ${token}`).send(corpo),
+    put: (rota: string, corpo: object) =>
+      http.put(rota).set('Authorization', `Bearer ${token}`).send(corpo),
+  });
+
+  beforeAll(async () => {
+    const modulo = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+    app = modulo.createNestApplication();
+    configurarApp(app);
+    await app.init();
+    http = request(app.getHttpServer());
+    tokenAdmin = (await entrar('admin@fab.com', 'admin123')).body.dados
+      .tokenAcesso;
+    tokenProfessor = (await entrar('professor@fab.com', 'prof123')).body.dados
+      .tokenAcesso;
+  });
+
+  afterAll(async () => {
+    const repositorio = app.get(UsuariosRepository);
+    for (const id of criados) await repositorio.remover(id);
+    await app.close();
+  });
+
+  it('PATCH /usuarios/:id edita os campos; professor 403; id inexistente 404; perfil inválido 400', async () => {
+    const admin = comToken(tokenAdmin);
+    const criado = await http
+      .post('/api/usuarios')
+      .set('Authorization', `Bearer ${tokenAdmin}`)
+      .send(contaA4);
+    expect(criado.status).toBe(201);
+    criados.push(criado.body.dados.id);
+    const id = criado.body.dados.id as string;
+
+    const editado = await admin.patch(`/api/usuarios/${id}`, {
+      nome: 'Conta Teste A4 Editada',
+      telefone: '(96) 98888-7777',
+      departamento: 'Mecânica',
+    });
+    expect(editado.status).toBe(200);
+    expect(editado.body.mensagem).toBe('Usuário atualizado.');
+    expect(editado.body.dados).toMatchObject({
+      nome: 'Conta Teste A4 Editada',
+      telefone: '96988887777',
+      departamento: 'Mecânica',
+      email: contaA4.email, // e-mail não muda por aqui
+    });
+    expect(JSON.stringify(editado.body)).not.toMatch(/senhaHash/);
+
+    expect(
+      (
+        await comToken(tokenProfessor).patch(`/api/usuarios/${id}`, {
+          nome: 'X',
+        })
+      ).status,
+    ).toBe(403);
+    expect(
+      (await admin.patch('/api/usuarios/nao-existe', { nome: 'X' })).status,
+    ).toBe(404);
+    const invalido = await admin.patch(`/api/usuarios/${id}`, {
+      perfil: 'chefe',
+    });
+    expect(invalido.status).toBe(400);
+  });
+
+  it('usuário bloqueado recebe 401 na próxima requisição, mesmo com token ainda válido', async () => {
+    const id = criados[0];
+    const token = (await entrar(contaA4.email, contaA4.senha)).body.dados
+      .tokenAcesso as string;
+    const conta = comToken(token);
+    expect((await conta.get('/api/auth/me')).status).toBe(200);
+
+    const bloqueio = await comToken(tokenAdmin).patch(
+      `/api/usuarios/${id}/status`,
+      {
+        status: 'bloqueado',
+      },
+    );
+    expect(bloqueio.status).toBe(200);
+    expect(bloqueio.body.dados.status).toBe('bloqueado');
+
+    // O mesmo token, sem esperar ele vencer:
+    expect((await conta.get('/api/auth/me')).status).toBe(401);
+    expect((await conta.get('/api/usuarios/resumo')).status).toBe(401);
+
+    // Reativada, a conta volta a funcionar com o mesmo token.
+    await comToken(tokenAdmin).patch(`/api/usuarios/${id}/status`, {
+      status: 'ativo',
+    });
+    expect((await conta.get('/api/auth/me')).status).toBe(200);
+
+    const statusInvalido = await comToken(tokenAdmin).patch(
+      `/api/usuarios/${id}/status`,
+      {
+        status: 'suspenso',
+      },
+    );
+    expect(statusInvalido.status).toBe(400);
+  });
+
+  it('travas: o admin não muda o próprio status nem rebaixa o próprio perfil (409)', async () => {
+    const admin = comToken(tokenAdmin);
+    const proprioStatus = await admin.patch(
+      `/api/usuarios/${USUARIO_IDS.admin}/status`,
+      {
+        status: 'inativo',
+      },
+    );
+    expect(proprioStatus.status).toBe(409);
+    expect(proprioStatus.body.mensagem).toBe(
+      'Você não pode alterar o status da sua própria conta.',
+    );
+
+    const proprioPerfil = await admin.patch(
+      `/api/usuarios/${USUARIO_IDS.admin}`,
+      {
+        perfil: 'usuario',
+      },
+    );
+    expect(proprioPerfil.status).toBe(409);
+    expect(proprioPerfil.body.mensagem).toBe(
+      'Você não pode rebaixar o seu próprio perfil de administrador.',
+    );
+
+    // O admin continua admin e ativo.
+    expect((await admin.get('/api/auth/me')).body.dados).toMatchObject({
+      perfil: 'admin',
+      status: 'ativo',
+    });
+    // A trava "sempre um admin ativo" é testada no usuarios.service.spec.ts: pela API ela
+    // nunca dispara sozinha, porque quem chama é um admin ativo que não pode mexer em si mesmo.
+  });
+
+  it('PUT /usuarios/:id/habilitacoes substitui a lista; sem treinamento ou inexistente dá 400', async () => {
+    const admin = comToken(tokenAdmin);
+    const id = criados[0];
+    const trocou = await admin.put(`/api/usuarios/${id}/habilitacoes`, {
+      equipamentoIds: [
+        EQUIPAMENTO_IDS.impressora3d,
+        EQUIPAMENTO_IDS.osciloscopio,
+      ],
+    });
+    expect(trocou.status).toBe(200);
+    expect(trocou.body.mensagem).toBe('Habilitações atualizadas.');
+    expect(trocou.body.dados.habilitacoes).toEqual(
+      expect.arrayContaining([
+        EQUIPAMENTO_IDS.impressora3d,
+        EQUIPAMENTO_IDS.osciloscopio,
+      ]),
+    );
+
+    const substituiu = await admin.put(`/api/usuarios/${id}/habilitacoes`, {
+      equipamentoIds: [EQUIPAMENTO_IDS.osciloscopio],
+    });
+    expect(substituiu.body.dados.habilitacoes).toEqual([
+      EQUIPAMENTO_IDS.osciloscopio,
+    ]);
+
+    const semTreinamento = await admin.put(`/api/usuarios/${id}/habilitacoes`, {
+      equipamentoIds: [EQUIPAMENTO_IDS.projetor],
+    });
+    expect(semTreinamento.status).toBe(400);
+    expect(semTreinamento.body.mensagem).toMatch(/não exige treinamento/);
+
+    const inexistente = await admin.put(`/api/usuarios/${id}/habilitacoes`, {
+      equipamentoIds: ['eqp-fantasma'],
+    });
+    expect(inexistente.status).toBe(400);
+    expect(inexistente.body.mensagem).toBe(
+      'O equipamento "eqp-fantasma" não existe.',
+    );
+
+    const formato = await admin.put(`/api/usuarios/${id}/habilitacoes`, {
+      equipamentoIds: 'x',
+    });
+    expect(formato.status).toBe(400);
+    expect(
+      (
+        await admin.put('/api/usuarios/nao-existe/habilitacoes', {
+          equipamentoIds: [],
+        })
+      ).status,
+    ).toBe(404);
+
+    // As tentativas que falharam não mudaram nada.
+    expect(
+      (await admin.get(`/api/usuarios/${id}`)).body.dados.habilitacoes,
+    ).toEqual([EQUIPAMENTO_IDS.osciloscopio]);
+  });
+});

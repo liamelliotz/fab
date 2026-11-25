@@ -12,6 +12,10 @@ export const ROTULO_EVENTO: Record<TipoEventoEmprestimo, string> = {
   transferencia_recusada: 'Transferência recusada',
   transferencia_cancelada: 'Transferência cancelada',
   devolvido: 'Material devolvido',
+  avaria_registrada: 'Avaria registrada',
+  falta_registrada: 'Falta registrada',
+  manutencao_concluida: 'Unidade de volta ao estoque',
+  manutencao_baixa: 'Baixa no acervo',
 };
 
 /** Ícone (Font Awesome) de cada acontecimento. */
@@ -26,6 +30,10 @@ export const ICONE_EVENTO: Record<TipoEventoEmprestimo, string> = {
   transferencia_recusada: 'fa-hand',
   transferencia_cancelada: 'fa-rotate-left',
   devolvido: 'fa-box-archive',
+  avaria_registrada: 'fa-screwdriver-wrench',
+  falta_registrada: 'fa-circle-question',
+  manutencao_concluida: 'fa-circle-check',
+  manutencao_baixa: 'fa-trash-can',
 };
 
 /** Tom de cor de cada acontecimento (vira a classe `tom-<valor>` na linha do tempo). */
@@ -40,4 +48,8 @@ export const TOM_EVENTO: Record<TipoEventoEmprestimo, 'ok' | 'erro' | 'info' | '
   transferencia_recusada: 'erro',
   transferencia_cancelada: 'neutro',
   devolvido: 'ok',
+  avaria_registrada: 'aviso',
+  falta_registrada: 'erro',
+  manutencao_concluida: 'ok',
+  manutencao_baixa: 'neutro',
 };

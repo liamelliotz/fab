@@ -3,15 +3,21 @@ import { provideHttpClient } from '@angular/common/http';
 import { AuthService } from './auth.service';
 import { EmprestimoService } from './emprestimo.service';
 import { normalizarCodigo } from '../utils/codigo.utils';
+import { environment } from '../../../environments/environment';
+
+// Estes testes usam as contas da demonstração (entrarComoDemo): rodam com o modo demonstração ligado.
+const modoDemoDoAmbiente = environment.modoDemo;
+beforeEach(() => { environment.modoDemo = true; });
+afterEach(() => { environment.modoDemo = modoDemoDoAmbiente; });
 
 // Balcão: retirada e devolução só acontecem com o código (não existe registro sem código)
 describe('Balcão: retirada e devolução com código', () => {
   let service: EmprestimoService;
 
   beforeEach(() => {
-    localStorage.clear();
+    localStorage.clear(); sessionStorage.clear();
     TestBed.configureTestingModule({ providers: [provideHttpClient()] });
-    TestBed.inject(AuthService).entrarComoDemo('demo-admin'); // quem está no balcão
+    TestBed.inject(AuthService).entrarComoDemo('usr-admin'); // quem está no balcão
     service = TestBed.inject(EmprestimoService);
   });
 

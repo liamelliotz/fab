@@ -7,9 +7,10 @@ import {
   StatusEmprestimo,
   TipoEventoEmprestimo,
 } from '../models/emprestimo.model';
+import { RegistroAvariaDTO } from '../models/manutencao.model';
 import { Resultado, falha, sucesso } from '../models/resultado.model';
 import { UsuarioResumo } from '../models/usuario.model';
-import { gravarJson, lerJson } from '../utils/armazenamento.utils';
+import { gravarJson, lerJson, ouvirOutrasAbas } from '../utils/armazenamento.utils';
 import { gerarCodigo, normalizarCodigo } from '../utils/codigo.utils';
 import {
   agoraISO,
@@ -21,6 +22,7 @@ import {
 } from '../utils/date.utils';
 import { AuthService } from './auth.service';
 import { EquipamentoService } from './equipamento.service';
+import { ManutencaoService, NOME_GRAVIDADE, NOME_TIPO_AVARIA } from './manutencao.service';
 import { resumoDemo, UsuarioService } from './usuario.service';
 
 export const NOME_STATUS_EMPRESTIMO: Record<StatusEmprestimo, string> = {
@@ -33,8 +35,8 @@ export const NOME_STATUS_EMPRESTIMO: Record<StatusEmprestimo, string> = {
   cancelado: 'Cancelado',
 };
 
-const CHAVE_EMPRESTIMOS = 'fab_demo_v3_emprestimos';
-const CHAVE_AVISOS = 'fab_demo_v3_avisos';
+const CHAVE_EMPRESTIMOS = 'fab_demo_v6_emprestimos';
+const CHAVE_AVISOS = 'fab_demo_v6_avisos';
 
 /** Aviso mostrado à coordenação (substitui o e-mail/notificação do sistema real). */
 export interface AvisoAdmin {
@@ -52,8 +54,18 @@ export interface CandidatoTransferencia {
 }
 
 export interface OpcoesDevolucao {
-  houveAvaria: boolean;
   observacoes: string;
+  /** Itens que voltaram com avaria ou faltando (um registro por equipamento do pedido). */
+  ocorrencias?: RegistroAvariaDTO[];
+  /** Forma antiga (só uma marcação, sem detalhes). Continua aceita. */
+  houveAvaria?: boolean;
+}
+
+/** Quantas unidades voltaram ao estoque, foram para manutenção ou ficaram como falta. */
+export interface ResumoDevolucao {
+  aoEstoque: number;
+  emManutencao: number;
+  faltando: number;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -63,12 +75,12 @@ export interface OpcoesDevolucao {
 export function criarEmprestimosDemo(): Emprestimo[] {
   const hoje = hojeISO();
   const d = (n: number) => somarDias(hoje, n);
-  const admin = resumoDemo('demo-admin');
-  const prof = resumoDemo('demo-professor');
-  const joao = resumoDemo('u1');
-  const maria = resumoDemo('u2');
-  const carlos = resumoDemo('u3');
-  const ana = resumoDemo('u4');
+  const admin = resumoDemo('usr-admin');
+  const prof = resumoDemo('usr-professor');
+  const joao = resumoDemo('usr-joao');
+  const maria = resumoDemo('usr-maria');
+  const carlos = resumoDemo('usr-carlos');
+  const ana = resumoDemo('usr-ana');
 
   const ev = (
     tipo: TipoEventoEmprestimo,
@@ -136,13 +148,13 @@ export function criarEmprestimosDemo(): Emprestimo[] {
       dataRetiradaEfetiva: d(-2), responsavelAprovacao: admin, codigoDevolucao: 'C3D6FG',
       transferenciaPendente: {
         de: carlos, para: prof, solicitadaEm: horasDepoisISO(-2),
-        motivo: 'Vou viajar para o curso de capacitação e o Professor Demonstração dará continuidade ao projeto.',
+        motivo: 'Vou viajar para o curso de capacitação e o Pedro dará continuidade ao projeto.',
       },
       historico: [
         ev('solicitado', carlos, 3), ev('aprovado', admin, 3, undefined, 2), ev('retirado', admin, 2, 'Entregue a Carlos Souza · código conferido'),
         {
           id: crypto.randomUUID(), tipo: 'transferencia_solicitada', em: horasDepoisISO(-2), por: carlos,
-          detalhe: 'Para Professor Demonstração: Vou viajar para o curso de capacitação e o Professor Demonstração dará continuidade ao projeto.',
+          detalhe: 'Para Pedro Almeida: Vou viajar para o curso de capacitação e o Pedro dará continuidade ao projeto.',
         },
       ],
     },
@@ -153,7 +165,7 @@ export function criarEmprestimosDemo(): Emprestimo[] {
       status: 'em_andamento', justificativa: 'Impressão das peças do projeto integrador.',
       dataSolicitacao: d(-3), dataPrevistaRetirada: d(-2), dataPrevistaDevolucao: d(3),
       dataRetiradaEfetiva: d(-2), responsavelAprovacao: admin, codigoDevolucao: 'W5X8YZ',
-      historico: [ev('solicitado', prof, 3), ev('aprovado', admin, 3, undefined, 2), ev('retirado', admin, 2, 'Entregue a Professor Demonstração · código conferido')],
+      historico: [ev('solicitado', prof, 3), ev('aprovado', admin, 3, undefined, 2), ev('retirado', admin, 2, 'Entregue a Pedro Almeida · código conferido')],
     },
     // Em andamento com o professor: Projetor -> transferir para qualquer professor
     {
@@ -162,7 +174,7 @@ export function criarEmprestimosDemo(): Emprestimo[] {
       status: 'em_andamento', justificativa: 'Aulas de apresentação de trabalhos do 3º módulo.',
       dataSolicitacao: d(-3), dataPrevistaRetirada: d(-1), dataPrevistaDevolucao: d(2),
       dataRetiradaEfetiva: d(-1), responsavelAprovacao: admin, codigoDevolucao: 'P4R7ST',
-      historico: [ev('solicitado', prof, 3), ev('aprovado', admin, 3, undefined, 2), ev('retirado', admin, 1, 'Entregue a Professor Demonstração · código conferido')],
+      historico: [ev('solicitado', prof, 3), ev('aprovado', admin, 3, undefined, 2), ev('retirado', admin, 1, 'Entregue a Pedro Almeida · código conferido')],
     },
     // ATRASADO (Maria, Caixa de som): não pode ser transferido
     {
@@ -195,7 +207,13 @@ export function criarEmprestimosDemo(): Emprestimo[] {
       status: 'devolvido', justificativa: 'Som para a apresentação da feira de ciências.',
       dataSolicitacao: d(-25), dataPrevistaRetirada: d(-23), dataPrevistaDevolucao: d(-21),
       dataRetiradaEfetiva: d(-23), dataDevolucaoEfetiva: d(-21), responsavelAprovacao: admin,
-      historico: [ev('solicitado', prof, 25), ev('aprovado', admin, 24), ev('retirado', admin, 23, 'Entregue a Professor Demonstração · código conferido'), ev('devolvido', admin, 21)],
+      ocorrenciaIds: ['oc2'],
+      observacoesDevolucao: 'Risco leve na lateral.',
+      historico: [
+        ev('solicitado', prof, 25), ev('aprovado', admin, 24), ev('retirado', admin, 23, 'Entregue a Pedro Almeida · código conferido'),
+        ev('avaria_registrada', admin, 21, 'Caixa de som Bluetooth × 1 · Desgaste ou sujeira · gravidade leve: Risco leve na lateral. Funciona normalmente. · voltou ao estoque · OC-2026-0002'),
+        ev('devolvido', admin, 21, 'Devolvido COM AVARIA · Risco leve na lateral. · código conferido'),
+      ],
     },
     // Reprovado do professor
     {
@@ -213,7 +231,7 @@ function criarAvisosDemo(): AvisoAdmin[] {
   return [
     {
       id: 'av1', em: horasDepoisISO(-2), pedidoId: 'p40', lido: false,
-      texto: 'Carlos Souza pediu para transferir o pedido EMP-2026-0040 a Professor Demonstração.',
+      texto: 'Carlos Souza pediu para transferir o pedido EMP-2026-0040 a Pedro Almeida.',
     },
     {
       id: 'av2', em: horasDepoisISO(-5), pedidoId: 'p45', lido: false,
@@ -231,6 +249,7 @@ export class EmprestimoService {
   private readonly equipamentos = inject(EquipamentoService);
   private readonly usuarios = inject(UsuarioService);
   private readonly auth = inject(AuthService);
+  private readonly manutencoes = inject(ManutencaoService);
 
   readonly todas = signal<Emprestimo[]>(
     lerJson<Emprestimo[]>(CHAVE_EMPRESTIMOS) ?? criarEmprestimosDemo(),
@@ -253,6 +272,9 @@ export class EmprestimoService {
     // Grava a cada mudança: a demonstração continua de onde parou depois de recarregar a página.
     effect(() => gravarJson(CHAVE_EMPRESTIMOS, this.todas()));
     effect(() => gravarJson(CHAVE_AVISOS, this.avisos()));
+    // Duas abas abertas (professor e coordenação): uma vê na hora o que a outra fez.
+    ouvirOutrasAbas<Emprestimo[]>(CHAVE_EMPRESTIMOS, (v) => v && this.todas.set(v));
+    ouvirOutrasAbas<AvisoAdmin[]>(CHAVE_AVISOS, (v) => v && this.avisos.set(v));
   }
 
   // ===========================================================================================
@@ -533,27 +555,111 @@ export class EmprestimoService {
     return this.registrarDevolucao(alvo.id, opcoes);
   }
 
+  /**
+   * Confere as avarias e faltas informadas na devolução. Devolve a mensagem do 1º problema, ou null.
+   * Regras: o item precisa ser do pedido, a soma (faltando + avariadas) não passa do que foi
+   * emprestado e cada avaria tem tipo, gravidade e descrição.
+   */
+  validarDevolucao(s: Emprestimo, opcoes: OpcoesDevolucao): string | null {
+    for (const oc of opcoes.ocorrencias ?? []) {
+      const item = s.itens.find((i) => i.equipamentoId === oc.equipamentoId);
+      const nome = this.equipamentos.buscarPorId(oc.equipamentoId)?.nome ?? 'item';
+      if (!item) return `"${nome}" não faz parte deste pedido.`;
+      if (oc.faltando < 0 || oc.avariadas < 0) return `Quantidade inválida em "${nome}".`;
+      if (oc.faltando + oc.avariadas > item.quantidade) {
+        return `"${nome}": foram emprestadas ${item.quantidade} unidade(s); avariadas + faltando não pode passar disso.`;
+      }
+      if (oc.avariadas > 0) {
+        const erro = this.manutencoes.validar(
+          { tipo: 'avaria', quantidade: oc.avariadas, tipoAvaria: oc.tipoAvaria, gravidade: oc.gravidade, descricao: oc.descricao ?? '' },
+          nome,
+        );
+        if (erro) return erro;
+      }
+    }
+    return null;
+  }
+
+  /** O que vai acontecer com cada unidade nesta devolução (para mostrar antes de confirmar). */
+  resumoDevolucao(s: Emprestimo, opcoes: OpcoesDevolucao): ResumoDevolucao {
+    let emManutencao = 0;
+    let faltando = 0;
+    for (const oc of opcoes.ocorrencias ?? []) {
+      faltando += oc.faltando;
+      if (oc.avariadas > 0 && this.manutencoes.bloqueia('avaria', oc.gravidade)) emManutencao += oc.avariadas;
+    }
+    return { aoEstoque: this.totalUnidades(s) - emManutencao - faltando, emManutencao, faltando };
+  }
+
   /** Registra a volta do material e devolve as unidades ao estoque. Privado: só depois de conferir o código. */
   private registrarDevolucao(id: string, opcoes: OpcoesDevolucao): Resultado<Emprestimo> {
     const alvo = this.buscarPorId(id);
     if (!alvo || alvo.status !== 'em_andamento') return falha('Este pedido não está em andamento.');
+    const erro = this.validarDevolucao(alvo, opcoes);
+    if (erro) return falha(erro);
 
     const admin = this.ator();
-    const diasAtraso = Math.max(0, diferencaEmDias(alvo.dataPrevistaDevolucao, hojeISO()));
-    const partes = [
-      opcoes.houveAvaria ? 'Devolvido COM AVARIA' : 'Devolvido em ordem',
-      diasAtraso > 0 ? `${diasAtraso} dia(s) de atraso` : '',
-      opcoes.observacoes.trim(),
-      'código conferido',
-    ].filter(Boolean);
-
+    const ocorrencias = (opcoes.ocorrencias ?? []).filter((o) => o.faltando > 0 || o.avariadas > 0);
     const historico = [...alvo.historico];
     if (alvo.transferenciaPendente) {
       historico.push(this.evento('transferencia_cancelada', admin, 'Cancelada automaticamente: o material foi devolvido.'));
     }
+
+    // 1) Avarias e faltas viram ocorrências (com quem estava com o item) e eventos na linha do tempo.
+    const ocorrenciaIds: string[] = [];
+    const pedido = { id: alvo.id, protocolo: alvo.protocolo, responsavel: alvo.responsavel };
+    const foraDoEstoque = new Map<string, number>();
+    for (const oc of ocorrencias) {
+      const nome = this.equipamentos.buscarPorId(oc.equipamentoId)?.nome ?? 'Item';
+      if (oc.avariadas > 0) {
+        const m = this.manutencoes.registrar({
+          tipo: 'avaria', equipamentoId: oc.equipamentoId, quantidade: oc.avariadas, tipoAvaria: oc.tipoAvaria,
+          gravidade: oc.gravidade, descricao: oc.descricao ?? '', foto: oc.foto, pedido, origem: 'emprestimo',
+        });
+        ocorrenciaIds.push(m.id);
+        if (m.bloqueia) foraDoEstoque.set(oc.equipamentoId, (foraDoEstoque.get(oc.equipamentoId) ?? 0) + oc.avariadas);
+        historico.push(this.evento('avaria_registrada', admin, [
+          `${nome} × ${oc.avariadas}`,
+          NOME_TIPO_AVARIA[oc.tipoAvaria!],
+          `gravidade ${NOME_GRAVIDADE[oc.gravidade!].toLowerCase()}: ${oc.descricao?.trim()}`,
+          m.bloqueia ? 'unidade bloqueada para manutenção' : 'voltou ao estoque',
+          oc.foto ? 'com foto' : '',
+          m.protocolo,
+        ].filter(Boolean).join(' · ')));
+      }
+      if (oc.faltando > 0) {
+        const m = this.manutencoes.registrar({
+          tipo: 'extravio', equipamentoId: oc.equipamentoId, quantidade: oc.faltando,
+          descricao: oc.avariadas > 0 ? '' : (oc.descricao ?? ''), pedido, origem: 'emprestimo',
+        });
+        ocorrenciaIds.push(m.id);
+        foraDoEstoque.set(oc.equipamentoId, (foraDoEstoque.get(oc.equipamentoId) ?? 0) + oc.faltando);
+        historico.push(this.evento('falta_registrada', admin,
+          `${nome} × ${oc.faltando} não voltou · responsável: ${alvo.responsavel.nome} · ${m.protocolo}`));
+      }
+    }
+
+    // 2) Evento da devolução (sempre o último).
+    const diasAtraso = Math.max(0, diferencaEmDias(alvo.dataPrevistaDevolucao, hojeISO()));
+    const temAvaria = opcoes.houveAvaria || ocorrencias.some((o) => o.avariadas > 0);
+    const temFalta = ocorrencias.some((o) => o.faltando > 0);
+    const situacao =
+      temAvaria && temFalta ? 'Devolvido COM AVARIA E FALTA'
+        : temAvaria ? 'Devolvido COM AVARIA'
+          : temFalta ? 'Devolvido COM FALTA'
+            : 'Devolvido em ordem';
+    const partes = [
+      situacao,
+      diasAtraso > 0 ? `${diasAtraso} dia(s) de atraso` : '',
+      opcoes.observacoes.trim(),
+      'código conferido',
+    ].filter(Boolean);
     historico.push(this.evento('devolvido', admin, partes.join(' · ')));
 
-    alvo.itens.forEach((i) => this.equipamentos.liberar(i.equipamentoId, i.quantidade));
+    // 3) Estoque: só volta o que voltou em condições de uso.
+    alvo.itens.forEach((i) =>
+      this.equipamentos.liberar(i.equipamentoId, i.quantidade - (foraDoEstoque.get(i.equipamentoId) ?? 0)),
+    );
     const atualizado: Emprestimo = {
       ...alvo,
       status: 'devolvido',
@@ -561,10 +667,25 @@ export class EmprestimoService {
       observacoesDevolucao: opcoes.observacoes.trim() || undefined,
       codigoDevolucao: undefined,
       transferenciaPendente: undefined,
+      ocorrenciaIds: ocorrenciaIds.length ? ocorrenciaIds : undefined,
       historico,
     };
     this.substituir(atualizado);
+    if (ocorrenciaIds.length) {
+      this.avisar(`${alvo.protocolo} devolvido com avaria ou falta: veja Manutenção.`, alvo.id);
+    }
     return sucesso(atualizado);
+  }
+
+  /**
+   * Acrescenta um acontecimento na linha do tempo de um pedido já fechado
+   * (ex.: a unidade avariada foi consertada). A linha do tempo nunca é editada, só cresce.
+   */
+  anotar(pedidoId: string, tipo: TipoEventoEmprestimo, detalhe: string): void {
+    this.atualizarPedido(pedidoId, (s) => ({
+      ...s,
+      historico: [...s.historico, this.evento(tipo, this.ator(), detalhe)],
+    }));
   }
 
   // ===========================================================================================

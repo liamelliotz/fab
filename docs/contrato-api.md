@@ -6,7 +6,7 @@
 
 Legenda da coluna Situação: **pronto** (já funciona no código) ou o **card** do Trello que entrega.
 
-**Conferência E6 (18/11/2026, commit `9afefa6`, modo memória):** o Swagger expôs 8 das 43 operações deste contrato: login, sessão atual, listagem, resumo, detalhe e criação de usuários, além de listagem e detalhe de equipamentos. As outras 35 operações do contrato não apareceram nessa versão. Esta conferência compara métodos e caminhos no OpenAPI. A validação funcional de cada rota e a atualização da coluna Situação ficam para a versão com as dependências integradas.
+**Conferência E6 (18/11/2026, commit `9afefa6`, modo memória):** o Swagger expôs 8 das 43 operações deste contrato: login, sessão atual, listagem, resumo, detalhe e criação de usuários, além de listagem e detalhe de equipamentos. As outras 35 operações do contrato não apareceram nessa versão. Esta conferência compara métodos e caminhos no OpenAPI. A validação funcional de cada rota e a atualização da coluna Situação ficam para a versão com as dependências integradas. Depois dessa conferência entraram na `main` os cards A4 a A7 (usuários, senha e login real) e C2 a C4 (solicitar, listar, detalhar, avaliar e cancelar empréstimos); refaça a contagem no Swagger antes do ensaio.
 
 ## 1. Regras gerais
 
@@ -73,15 +73,15 @@ Parâmetros: `pagina` (padrão 1) e `itensPorPagina` (padrão 10, máximo 100).
 | --- | --- | --- | --- | --- | --- |
 | `POST /auth/login` | público | `{ email, senha }` | `{ tokenAcesso, tipoToken: "Bearer", expiraEm, usuario }` | 400, 401, 403, 429 | pronto |
 | `GET /auth/me` | logado | — | `Usuario` | 401 | pronto |
-| `POST /auth/recuperar-senha` | público | `{ email }` | mensagem sempre igual | 400, 429 | A5 |
-| `POST /auth/redefinir-senha` | público | `{ token, novaSenha }` (mínimo 8) | mensagem | 400 | A5 |
+| `POST /auth/recuperar-senha` | público | `{ email }` | mensagem sempre igual (o link vai para o log da API fora de produção) | 400, 429 | pronto |
+| `POST /auth/redefinir-senha` | público | `{ token, novaSenha }` (mínimo 8) | mensagem (token de uso único, vale 30 min) | 400, 429 | pronto |
 | `GET /usuarios` | admin | `busca`, `perfil`, `status`, paginação | página de `Usuario` | 400 | pronto |
 | `GET /usuarios/resumo` | logado | `busca?` | lista de `{ id, nome, departamento, habilitacoes }` dos ativos | — | pronto |
 | `GET /usuarios/:id` | admin | — | `Usuario` | 404 | pronto |
 | `POST /usuarios` | admin | `nome, email, cpf, senha (mín. 8), telefone?, matricula?, departamento?, perfil?, habilitacoes?` | `Usuario` | 400, 409 | pronto |
-| `PATCH /usuarios/:id` | admin | `nome?, telefone?, matricula?, departamento?, perfil?` | `Usuario` | 400, 404, 409 | A4 |
-| `PATCH /usuarios/:id/status` | admin | `{ status }` | `Usuario` | 400, 404, 409 | A4 |
-| `PUT /usuarios/:id/habilitacoes` | admin | `{ equipamentoIds: string[] }` (substitui a lista) | `Usuario` | 400, 404 | A4 |
+| `PATCH /usuarios/:id` | admin | `nome?, telefone?, matricula?, departamento?, perfil?` | `Usuario` | 400, 404, 409 | pronto |
+| `PATCH /usuarios/:id/status` | admin | `{ status }` | `Usuario` | 400, 404, 409 | pronto |
+| `PUT /usuarios/:id/habilitacoes` | admin | `{ equipamentoIds: string[] }` (substitui a lista) | `Usuario` | 400, 404 | pronto |
 
 **Não existe `POST /auth/cadastro`:** só o admin cria contas. `Usuario` nunca traz `senhaHash`.
 
@@ -187,7 +187,7 @@ Na resposta, `Emprestimo` traz objetos resumidos (`solicitante`, `responsavel`, 
 | Conta | E-mail | Senha |
 | --- | --- | --- |
 | Administrador | `admin@fab.com` | `admin123` |
-| Professor Demonstração (habilitado na Impressora 3D) | `professor@fab.com` | `prof123` |
+| Pedro Almeida, professor (habilitado na Impressora 3D) | `professor@fab.com` | `prof123` |
 | João, Maria, Carlos | `joao@`, `maria@`, `carlos@escola.br` | `prof123` |
 | Ana (habilitada na Impressora 3D e no Osciloscópio) | `ana@escola.br` | `prof123` |
 

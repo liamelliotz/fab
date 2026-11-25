@@ -182,6 +182,31 @@
         </article>
       </div>
 
+      @if (ocorrencias().length) {
+        <article class="det__bloco">
+          <h2>Avarias e faltas na devolução</h2>
+          <div class="det__ocorrencias">
+            @for (m of ocorrencias(); track m.id) {
+              <div class="det__oc det__oc--{{ seloOc(m) }}">
+                @if (fotoOc(m); as f) {
+                  <img [src]="f" alt="Foto da avaria" />
+                }
+                <div>
+                  <span class="det__oc-selo det__oc-selo--{{ seloOc(m) }}">{{ rotuloOc(m) }}</span>
+                  <strong>{{ m.equipamento }} × {{ m.quantidade }}</strong>
+                  @if (m.tipoAvaria) { <small>{{ nomeTipoAvaria[m.tipoAvaria] }}</small> }
+                  <p>{{ m.descricao }}</p>
+                  <small>
+                    {{ m.protocolo }} · estava com {{ m.responsavel?.nome }} ·
+                    {{ m.bloqueia ? nomeStatusOc[m.status] : 'voltou ao estoque' }}
+                  </small>
+                </div>
+              </div>
+            }
+          </div>
+        </article>
+      }
+
       <article class="det__bloco">
         <h2>Linha do tempo</h2>
         <app-linha-do-tempo [eventos]="p.historico" [futuros]="passosFuturos()" />

@@ -5,9 +5,9 @@ import {
   Equipamento,
   StatusEquipamento,
 } from '../models/equipamento.model';
-import { gravarJson, lerJson } from '../utils/armazenamento.utils';
+import { gravarJson, lerJson, ouvirOutrasAbas } from '../utils/armazenamento.utils';
 
-const CHAVE_EQUIPAMENTOS = 'fab_demo_v3_equipamentos';
+const CHAVE_EQUIPAMENTOS = 'fab_demo_v6_equipamentos';
 
 export const CATEGORIAS: { valor: CategoriaEquipamento; nome: string }[] = [
   { valor: 'ferramenta', nome: 'Ferramenta' },
@@ -26,6 +26,8 @@ export const NOME_STATUS_EQUIPAMENTO: Record<StatusEquipamento, string> = {
 };
 
 // Fonte única para Materiais, Equipamentos e Dashboard até o backend existir.
+// O estoque bate com os pedidos de exemplo: emprestadas = total - disponíveis - em manutenção,
+// e cada unidade emprestada pertence a um pedido aprovado ou em andamento de criarEmprestimosDemo().
 /** Material de exemplo. Gerado por função para a demonstração poder voltar ao estado inicial. */
 export function criarEquipamentosDemo(): Equipamento[] {
   return [
@@ -39,7 +41,7 @@ export function criarEquipamentosDemo(): Equipamento[] {
       localizacao: 'Armário de TI - Prateleira 1',
       requerTreinamento: false,
       prazoMaximoDias: 7,
-      quantidadeDisponivel: 7,
+      quantidadeDisponivel: 10,
       quantidadeTotal: 10,
       criadoEm: '2026-08-01',
     },
@@ -53,7 +55,7 @@ export function criarEquipamentosDemo(): Equipamento[] {
       localizacao: 'Armário de TI - Prateleira 2',
       requerTreinamento: false,
       prazoMaximoDias: 3,
-      quantidadeDisponivel: 2,
+      quantidadeDisponivel: 3,
       quantidadeTotal: 4,
       criadoEm: '2026-08-01',
     },
@@ -125,6 +127,7 @@ export function criarEquipamentosDemo(): Equipamento[] {
       prazoMaximoDias: 7,
       quantidadeDisponivel: 0,
       quantidadeTotal: 2,
+      quantidadeEmManutencao: 2, // as duas estão na assistência (ver ManutencaoService)
       criadoEm: '2026-08-12',
     },
     {
@@ -151,7 +154,7 @@ export function criarEquipamentosDemo(): Equipamento[] {
       localizacao: 'Sala de corte',
       requerTreinamento: true,
       prazoMaximoDias: 3,
-      quantidadeDisponivel: 0,
+      quantidadeDisponivel: 1,
       quantidadeTotal: 1,
       criadoEm: '2026-08-22',
     },
@@ -161,11 +164,11 @@ export function criarEquipamentosDemo(): Equipamento[] {
       descricao: 'Osciloscópio de 4 canais.',
       codigoPatrimonio: 'PAT-0010',
       categoria: 'eletronico',
-      status: 'emprestado',
+      status: 'disponivel',
       localizacao: 'Bancada 01',
       requerTreinamento: true,
       prazoMaximoDias: 7,
-      quantidadeDisponivel: 0,
+      quantidadeDisponivel: 1,
       quantidadeTotal: 1,
       criadoEm: '2026-09-01',
     },
@@ -191,14 +194,15 @@ export class EquipamentoService {
       .reduce((soma, e) => soma + e.quantidadeDisponivel, 0),
   );
 
-  /** Quantidade de itens em manutenção. */
-  readonly emManutencao = computed(
-    () => this.itens().filter((e) => e.status === 'em_manutencao').length,
+  /** Unidades fora do estoque por avaria ou extravio (somando todos os itens). */
+  readonly emManutencao = computed(() =>
+    this.itens().reduce((soma, e) => soma + (e.quantidadeEmManutencao ?? 0), 0),
   );
 
   constructor() {
     // Grava a cada mudança: a demonstração continua de onde parou depois de recarregar a página.
     effect(() => gravarJson(CHAVE_EQUIPAMENTOS, this.itens()));
+    ouvirOutrasAbas<Equipamento[]>(CHAVE_EQUIPAMENTOS, (v) => v && this.itens.set(v));
   }
 
   buscarPorId(id: string): Equipamento | undefined {
@@ -246,18 +250,84 @@ export class EquipamentoService {
     this.atualizar(id, { status: item.status === 'inativo' ? 'disponivel' : 'inativo' });
   }
 
+  // ===========================================================================================
+  // Estoque: cada unidade está em UMA destas situações
+  //   disponível (pode ser emprestada) · emprestada · em manutenção (avaria ou extravio)
+  // O status do item é calculado a partir delas (exceto inativo e descartado, que são da gestão).
+  // ===========================================================================================
+
+  /** Quantas unidades estão em cada situação. */
+  estoque(e: Equipamento): { disponiveis: number; emprestadas: number; emManutencao: number; total: number } {
+    const emManutencao = e.quantidadeEmManutencao ?? 0;
+    return {
+      disponiveis: e.quantidadeDisponivel,
+      emManutencao,
+      emprestadas: Math.max(0, e.quantidadeTotal - e.quantidadeDisponivel - emManutencao),
+      total: e.quantidadeTotal,
+    };
+  }
+
+  /** Status que o item deve ter com este estoque. */
+  private statusPeloEstoque(e: Equipamento): StatusEquipamento {
+    if (e.status === 'inativo' || e.status === 'descartado') return e.status;
+    const { disponiveis, emprestadas, emManutencao, total } = this.estoque(e);
+    if (total === 0) return 'descartado';
+    if (disponiveis > 0) return 'disponivel';
+    // Nada disponível: se não há nenhuma emprestada, todas estão na manutenção.
+    return emprestadas === 0 && emManutencao > 0 ? 'em_manutencao' : 'emprestado';
+  }
+
+  /** Aplica uma mudança de estoque e recalcula o status. */
+  private mudarEstoque(id: string, fn: (e: Equipamento) => Partial<Equipamento>): void {
+    const item = this.buscarPorId(id);
+    if (!item) return;
+    const novo = { ...item, ...fn(item) };
+    this.atualizar(id, { ...fn(item), status: this.statusPeloEstoque(novo) });
+  }
+
   /** Separa unidades para um empréstimo aprovado. Devolve false se não houver saldo. */
   reservar(id: string, quantidade: number): boolean {
     const item = this.buscarPorId(id);
     if (!item || item.status !== 'disponivel' || item.quantidadeDisponivel < quantidade) {
       return false;
     }
-    const restante = item.quantidadeDisponivel - quantidade;
-    this.atualizar(id, {
-      quantidadeDisponivel: restante,
-      status: restante === 0 ? 'emprestado' : 'disponivel',
-    });
+    this.mudarEstoque(id, (e) => ({ quantidadeDisponivel: e.quantidadeDisponivel - quantidade }));
     return true;
+  }
+
+  /**
+   * Tira unidades de circulação por avaria (moderada/grave) ou extravio.
+   * `origem`: 'emprestimo' = eram unidades emprestadas (devolução no balcão);
+   * 'estoque' = estavam disponíveis no laboratório (registro direto na Manutenção).
+   */
+  enviarParaManutencao(id: string, quantidade: number, origem: 'emprestimo' | 'estoque'): void {
+    this.mudarEstoque(id, (e) => ({
+      quantidadeEmManutencao: (e.quantidadeEmManutencao ?? 0) + quantidade,
+      quantidadeDisponivel:
+        origem === 'estoque' ? Math.max(0, e.quantidadeDisponivel - quantidade) : e.quantidadeDisponivel,
+    }));
+  }
+
+  /** Unidades consertadas (ou encontradas) voltam a ficar disponíveis. */
+  voltarDaManutencao(id: string, quantidade: number): void {
+    this.mudarEstoque(id, (e) => {
+      const q = Math.min(quantidade, e.quantidadeEmManutencao ?? 0);
+      return {
+        quantidadeEmManutencao: (e.quantidadeEmManutencao ?? 0) - q,
+        quantidadeDisponivel: e.quantidadeDisponivel + q,
+      };
+    });
+  }
+
+  /** Baixa: unidades sem conserto (ou perdidas) saem do acervo. Se não sobrar nenhuma, vira descartado. */
+  baixar(id: string, quantidade: number): void {
+    this.mudarEstoque(id, (e) => {
+      const q = Math.min(quantidade, e.quantidadeEmManutencao ?? 0);
+      return {
+        quantidadeEmManutencao: (e.quantidadeEmManutencao ?? 0) - q,
+        quantidadeTotal: e.quantidadeTotal - q,
+      };
+    });
   }
 
   /**
@@ -267,11 +337,14 @@ export class EquipamentoService {
   liberar(id: string, quantidade: number): void {
     const item = this.buscarPorId(id);
     if (!item) return;
-    const disponivel = Math.min(item.quantidadeTotal, item.quantidadeDisponivel + quantidade);
-    this.atualizar(id, {
-      quantidadeDisponivel: disponivel,
-      status: item.status === 'emprestado' && disponivel > 0 ? 'disponivel' : item.status,
-    });
+    const limite = item.quantidadeTotal - (item.quantidadeEmManutencao ?? 0);
+    const disponivel = Math.min(limite, item.quantidadeDisponivel + quantidade);
+    // Item "em manutenção" marcado à mão pela gestão continua como está.
+    if (item.status === 'em_manutencao' && !item.quantidadeEmManutencao) {
+      this.atualizar(id, { quantidadeDisponivel: disponivel });
+      return;
+    }
+    this.mudarEstoque(id, () => ({ quantidadeDisponivel: disponivel }));
   }
 
   /** Volta o acervo ao estado inicial da demonstração. */

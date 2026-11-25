@@ -11,6 +11,20 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/login/login').then((m) => m.Login),
   },
 
+  {
+    path: 'recuperar-senha',
+    title: 'Esqueci minha senha | FAB',
+    loadComponent: () =>
+      import('./features/auth/recuperar-senha/recuperar-senha').then((m) => m.RecuperarSenha),
+  },
+  {
+    // O link que a API gera aponta para cá: /redefinir-senha?token=...
+    path: 'redefinir-senha',
+    title: 'Nova senha | FAB',
+    loadComponent: () =>
+      import('./features/auth/redefinir-senha/redefinir-senha').then((m) => m.RedefinirSenha),
+  },
+
   // O error.interceptor redireciona para /auth/login quando a sessão expira
   { path: 'auth/login', redirectTo: 'login' },
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -26,6 +40,7 @@ export const routes: Routes = [
       {
         path: 'admin',
         canActivate: [adminGuard],
+        canActivateChild: [adminGuard],
         loadChildren: () => import('./features/admin/admin.routes').then((m) => m.ADMIN_ROUTES),
       },
 

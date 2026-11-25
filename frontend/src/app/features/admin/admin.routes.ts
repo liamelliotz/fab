@@ -3,6 +3,11 @@ import { Routes } from '@angular/router';
 // Rotas da área administrativa (prefixo /admin, protegido pelo adminGuard em app.routes.ts)
 export const ADMIN_ROUTES: Routes = [
   {
+    path: 'insumos',
+    title: 'Insumos | FAB',
+    loadComponent: () => import('./insumos/admin-insumos').then((m) => m.AdminInsumos),
+  },
+  {
     path: 'solicitacoes',
     title: 'Solicitações | FAB',
     loadComponent: () =>
@@ -36,6 +41,12 @@ export const ADMIN_ROUTES: Routes = [
     title: 'Editar equipamento | FAB',
     loadComponent: () =>
       import('./equipamentos/admin-equipamentos-form').then((m) => m.AdminEquipamentosForm),
+  },
+  {
+    path: 'equipamentos/:id/historico',
+    title: 'Histórico do equipamento | FAB',
+    loadComponent: () =>
+      import('./equipamentos/admin-equipamento-historico').then((m) => m.AdminEquipamentoHistorico),
   },
   {
     path: 'manutencao',

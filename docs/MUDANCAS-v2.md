@@ -49,7 +49,7 @@ migration e seed aplicados em um PostgreSQL 16.
 | `docker-compose.yml` | PostgreSQL 16 para desenvolvimento |
 | `docs/banco.md` | Diagrama ER, travas do banco e como usar |
 | `docs/MUDANCAS-v2.md` | Este resumo |
-| `backend/database/migrations/001_criar_tabelas.sql` | Cria as 13 tabelas, índices, restrições e gatilhos |
+| `backend/database/migrations/001_criar_tabelas.sql` | Cria as 12 tabelas, índices, restrições e gatilhos |
 | `backend/src/database/conexao.ts`, `migrar.ts`, `semear.ts` | Scripts `db:migrate`, `db:seed` e `db:reset` |
 | `backend/src/common/configurar-app.ts` | Prefixo, helmet, validação e envelope, iguais na API e nos e2e |
 | `backend/src/common/utils/data.util.ts` | Datas no fuso da escola |

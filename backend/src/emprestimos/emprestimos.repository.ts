@@ -1,7 +1,14 @@
 import { Injectable } from '@nestjs/common';
+import { StatusEmprestimo } from '../common/enums/index.js';
 import { InMemoryRepository } from '../common/repository/in-memory.repository.js';
 import { criarEmprestimosSeed } from './emprestimos.seed.js';
 import type { Emprestimo } from './entities/emprestimo.entity.js';
+
+/** Ordem do card C3: mais recentes primeiro (desempate pelo protocolo). */
+export function maisRecentesPrimeiro(a: Emprestimo, b: Emprestimo): number {
+  const porData = Date.parse(b.dataSolicitacao) - Date.parse(a.dataSolicitacao);
+  return porData !== 0 ? porData : b.protocolo.localeCompare(a.protocolo);
+}
 
 @Injectable()
 export class EmprestimosRepository extends InMemoryRepository<Emprestimo> {
@@ -14,6 +21,29 @@ export class EmprestimosRepository extends InMemoryRepository<Emprestimo> {
 
   buscarPorProtocolo(protocolo: string): Promise<Emprestimo | null> {
     return this.encontrar((e) => e.protocolo === protocolo);
+  }
+
+  /**
+   * Pedidos em que o usuário é solicitante, responsável atual ou destinatário
+   * de uma transferência pendente. Mais recentes primeiro.
+   */
+  async listarDoUsuario(usuarioId: string): Promise<Emprestimo[]> {
+    const meus = await this.filtrar(
+      (e) =>
+        e.solicitanteId === usuarioId ||
+        e.responsavelId === usuarioId ||
+        e.transferenciaPendente?.paraId === usuarioId,
+    );
+    return meus.sort(maisRecentesPrimeiro);
+  }
+
+  /** Pedidos com código de retirada/devolução ainda valendo (aprovados e em andamento). */
+  buscarComCodigoAtivo(): Promise<Emprestimo[]> {
+    return this.filtrar(
+      (e) =>
+        e.status === StatusEmprestimo.Aprovado ||
+        e.status === StatusEmprestimo.EmAndamento,
+    );
   }
 
   /** Maior número de protocolo gravado no ano (0 se não houver nenhum). */

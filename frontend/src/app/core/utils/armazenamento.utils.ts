@@ -35,3 +35,22 @@ export function removerChave(chave: string): void {
     /* ignora */
   }
 }
+
+/**
+ * Avisa quando OUTRA aba do mesmo navegador grava esta chave.
+ * Sem isso, cada aba ficava com a sua cópia dos dados: a aba da coordenação não via o pedido
+ * novo do professor e, ao salvar qualquer coisa, apagava esse pedido.
+ * `aoMudar` recebe o valor novo (ou null se a chave foi apagada: nesse caso a aba mantém o que tem,
+ * para duas abas não ficarem gerando dados de exemplo diferentes e brigando entre si).
+ */
+export function ouvirOutrasAbas<T>(chave: string, aoMudar: (valor: T | null) => void): void {
+  if (typeof window === 'undefined') return;
+  window.addEventListener('storage', (evento) => {
+    if (evento.storageArea !== armazenamento() || evento.key !== chave) return;
+    try {
+      aoMudar(evento.newValue ? (JSON.parse(evento.newValue) as T) : null);
+    } catch {
+      /* valor inválido: ignora */
+    }
+  });
+}

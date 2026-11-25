@@ -15,7 +15,7 @@
 /** Usuários (seed em common/seed/usuarios.seed.ts). */
 export const USUARIO_IDS = {
   admin: 'usr-admin', //         Administrador FAB       admin@fab.com
-  professor: 'usr-professor', // Professor Demonstração  professor@fab.com
+  professor: 'usr-professor', // Pedro Almeida           professor@fab.com
   joao: 'usr-joao', //           João Silva    joao@escola.br
   maria: 'usr-maria', //         Maria Santos  maria@escola.br
   carlos: 'usr-carlos', //       Carlos Souza  carlos@escola.br

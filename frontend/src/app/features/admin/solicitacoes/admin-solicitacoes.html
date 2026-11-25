@@ -8,11 +8,11 @@
     <input
       class="sol__campo"
       type="search"
-      placeholder="Buscar por protocolo ou solicitante"
+      placeholder="Buscar nesta página por protocolo ou solicitante"
       aria-label="Buscar solicitação"
       (input)="atualizarBusca($event)"
     />
-    <select class="sol__campo" aria-label="Status" (change)="atualizarStatus($event)">
+    <select class="sol__campo" [value]="filtroStatus()" aria-label="Status" (change)="atualizarStatus($event)">
       <option value="">Todos os status</option>
       <option value="pendente">Pendente</option>
       <option value="aprovado">Aprovado (aguardando retirada)</option>
@@ -23,6 +23,8 @@
     </select>
   </div>
 
+  @if (carregando()) { <p role="status">Carregando solicitações...</p> }
+  @if (erroLista()) { <p class="sol__erro" role="alert">{{ erroLista() }}</p><button type="button" (click)="carregar()">Tentar novamente</button> }
   @if (solicitacoes().length > 0) {
     <div class="sol__lista">
       @for (s of solicitacoes(); track s.id) {
@@ -45,10 +47,10 @@
             <p class="sol__motivo">Motivo da reprovação: {{ s.motivoRejeicao }}</p>
           }
 
-          <a class="sol__link" [routerLink]="['/pedidos', s.id]">
+          @if (service.modoDemo) { <a class="sol__link" [routerLink]="['/pedidos', s.id]">
             <i class="fa-solid fa-timeline" aria-hidden="true"></i>
             Linha do tempo
-          </a>
+          </a> } @else { <details><summary>Linha do tempo</summary>@for (e of s.historico; track e.id) { <p>{{ e.tipo }} · {{ e.por.nome }} · {{ e.em }}</p> }</details> }
 
           @if (s.status === 'pendente') {
             <div class="sol__acoes">
@@ -65,36 +67,41 @@
         </article>
       }
     </div>
-  } @else {
+  } @else if (!carregando() && !erroLista()) {
     <p class="sol__vazio">Nenhuma solicitação encontrada.</p>
   }
 
+  @if (resposta(); as paginaAtual) {
+    <nav class="paginacao-admin" aria-label="Páginas de solicitações">
+      <button type="button" [disabled]="!paginaAtual.temAnterior || carregando() || salvando()" (click)="mudarPagina(-1)">Anterior</button>
+      <span>Página {{ paginaAtual.paginaAtual }} de {{ paginaAtual.totalPaginas || 1 }} · {{ paginaAtual.totalItens }} pedidos</span>
+      <button type="button" [disabled]="!paginaAtual.temProxima || carregando() || salvando()" (click)="mudarPagina(1)">Próxima</button>
+    </nav>
+  }
   @if (selecionada(); as alvo) {
     <div class="sol__fundo">
       <div class="sol__painel" role="dialog" aria-modal="true" aria-label="Registrar decisão">
         <h2>
           {{ decisao() === 'aprovar' ? 'Aprovar' : 'Reprovar' }} {{ alvo.protocolo }}
         </h2>
-        <label for="justificativa">{{ decisao() === 'reprovar' ? 'Motivo da reprovação' : 'Observação (opcional)' }}</label>
-        <textarea
-          id="justificativa"
-          rows="4"
-          [attr.placeholder]="decisao() === 'reprovar' ? 'Explique o motivo' : 'Alguma orientação para a retirada?'"
-          (input)="atualizarJustificativa($event)"
-        ></textarea>
+        @if (decisao() === 'reprovar') {
+          <label for="justificativa">Motivo da reprovação (5 a 300 caracteres)</label>
+          <textarea id="justificativa" rows="4" maxlength="300" [value]="justificativa()"
+            [disabled]="salvando()" (input)="atualizarJustificativa($event)"></textarea>
+        }
         @if (erro()) {
-          <p class="sol__erro">{{ erro() }}</p>
+          <p class="sol__erro" role="alert">{{ erro() }}</p>
         }
         <div class="sol__acoes">
-          <button class="sol__btn" type="button" (click)="cancelar()">Cancelar</button>
+          <button class="sol__btn" type="button" [disabled]="salvando()" (click)="cancelar()">Cancelar</button>
           <button
             class="sol__btn"
             [class.sol__btn--aprovar]="decisao() === 'aprovar'"
             [class.sol__btn--reprovar]="decisao() === 'reprovar'"
             type="button"
-            (click)="confirmar()"
+            [disabled]="salvando()" (click)="confirmar()"
           >
-            Confirmar
+            {{ salvando() ? 'Salvando...' : 'Confirmar' }}
           </button>
         </div>
       </div>

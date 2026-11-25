@@ -1,7 +1,9 @@
 import { HttpInterceptorFn, HttpRequest, HttpHandlerFn, HttpEvent } from '@angular/common/http';
-import { inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { PLATFORM_ID, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { EMPTY, Observable } from 'rxjs';
 import { AuthService } from '../services/auth.service';
+import { API_URL } from '../constants/api.constants';
 
 /**
  * Endpoints públicos que não necessitam do cabeçalho de autenticação.
@@ -9,7 +11,6 @@ import { AuthService } from '../services/auth.service';
  */
 const RotasPublicas: string[] = [
   '/auth/login',
-  '/auth/cadastro',
   '/auth/recuperar-senha',
   '/auth/redefinir-senha',
 ];
@@ -28,13 +29,21 @@ export const authInterceptor: HttpInterceptorFn = (
   const authService = inject(AuthService);
 
   // Verifica se a URL chamada corresponde a um endpoint de autenticação pública
-  const ehRotaPublica = RotasPublicas.some((rota) => req.url.includes(rota));
+  const base = API_URL.replace(/\/+$/, '');
+  const daApi = req.url === base || req.url.startsWith(`${base}/`) || req.url.startsWith(`${base}?`);
+  const ehRotaPublica = RotasPublicas.some((rota) => req.url.split('?')[0] === `${base}${rota}`);
+
+  // No servidor (SSR) não existe a sessão da aba: uma rota protegida voltaria 401 e o
+  // error.interceptor mandaria para o login. Essas chamadas ficam para o navegador, que tem o token.
+  if (daApi && !ehRotaPublica && !isPlatformBrowser(inject(PLATFORM_ID))) {
+    return EMPTY;
+  }
 
   // Obtém o token JWT ativo (geralmente persistido em localStorage/sessionStorage ou signal no AuthService)
   const token = authService.obterToken();
 
   // Se não for rota pública e existir um token válido, clona a requisição injetando o Header
-  if (!ehRotaPublica && token) {
+  if (daApi && !ehRotaPublica && token) {
     const requisicaoAutenticada = req.clone({
       setHeaders: {
         Authorization: `Bearer ${token}`,

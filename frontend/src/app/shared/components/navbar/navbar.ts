@@ -66,6 +66,7 @@ export class Navbar {
     },
     { label: 'Equipamentos', route: '/admin/equipamentos', icon: 'fa-solid fa-laptop', somenteAdmin: true },
     { label: 'Manutenção', route: '/admin/manutencao', icon: 'fa-solid fa-screwdriver-wrench', somenteAdmin: true },
+    { label: 'Insumos', route: '/admin/insumos', icon: 'fa-solid fa-boxes-stacked', somenteAdmin: true },
     { label: 'Usuários', route: '/admin/usuarios', icon: 'fa-solid fa-users', somenteAdmin: true },
     { label: 'Relatórios', route: '/admin/relatorios', icon: 'fa-solid fa-chart-column', somenteAdmin: true },
     { label: 'Materiais', route: '/materiais', icon: 'fa-solid fa-box-open', novoGrupo: true },

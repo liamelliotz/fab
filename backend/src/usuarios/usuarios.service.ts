@@ -210,20 +210,50 @@ export class UsuariosService {
     return ids;
   }
 
-  /** Altera só os campos informados. Usuário inexistente: 404. */
+  // ===========================================================================================
+  // Edição (card A4)
+  //
+  // TRAVAS (409), para o admin não se trancar para fora do sistema:
+  //   1. ninguém muda o status da PRÓPRIA conta;
+  //   2. ninguém rebaixa o PRÓPRIO perfil de admin;
+  //   3. sempre resta pelo menos UM admin ativo.
+  // `quemFez` é o id de quem está logado (o controller passa). Sem ele (uso interno),
+  // só a trava 3 vale.
+  // ===========================================================================================
+
+  /**
+   * Altera só os campos informados. Usuário inexistente: 404. Se vierem habilitações,
+   * elas são conferidas (400) e substituem a lista. Rebaixar admin passa pelas travas.
+   */
   async atualizar(
     id: string,
     dados: AtualizacaoUsuario,
+    quemFez?: string,
   ): Promise<UsuarioPublico> {
+    const atual = await this.obterPorId(id);
+    const deixaDeSerAdmin =
+      dados.perfil !== undefined &&
+      atual.perfil === Perfil.Admin &&
+      dados.perfil !== Perfil.Admin;
+    if (deixaDeSerAdmin) {
+      if (quemFez === id) {
+        throw new ConflictException(
+          'Você não pode rebaixar o seu próprio perfil de administrador.',
+        );
+      }
+      await this.garantirOutroAdminAtivo(atual);
+    }
+    const habilitacoes = dados.habilitacoes
+      ? await this.conferirHabilitacoes(dados.habilitacoes)
+      : undefined;
+
     const atualizado = await this.repositorio.atualizar(id, {
       nome: dados.nome?.trim(),
       telefone: dados.telefone?.trim(),
       matricula: dados.matricula?.trim(),
       departamento: dados.departamento?.trim(),
       perfil: dados.perfil,
-      habilitacoes: dados.habilitacoes
-        ? [...new Set(dados.habilitacoes)]
-        : undefined,
+      habilitacoes,
       atualizadoEm: new Date().toISOString(),
     });
     if (!atualizado) {
@@ -232,11 +262,29 @@ export class UsuariosService {
     return paraPublico(atualizado);
   }
 
-  /** Muda o status da conta (ativo, inativo ou bloqueado). Usuário inexistente: 404. */
+  /**
+   * Muda o status da conta (ativo, inativo ou bloqueado). Usuário inexistente: 404.
+   * O efeito é imediato: a validação do token busca o usuário a cada requisição, então
+   * quem for bloqueado recebe 401 na próxima chamada, mesmo com o token ainda válido.
+   */
   async alterarStatus(
     id: string,
     status: StatusUsuario,
+    quemFez?: string,
   ): Promise<UsuarioPublico> {
+    const atual = await this.obterPorId(id);
+    if (quemFez === id) {
+      throw new ConflictException(
+        'Você não pode alterar o status da sua própria conta.',
+      );
+    }
+    if (
+      atual.perfil === Perfil.Admin &&
+      atual.status === StatusUsuario.Ativo &&
+      status !== StatusUsuario.Ativo
+    ) {
+      await this.garantirOutroAdminAtivo(atual);
+    }
     const atualizado = await this.repositorio.atualizar(id, {
       status,
       atualizadoEm: new Date().toISOString(),
@@ -245,6 +293,32 @@ export class UsuariosService {
       throw new NotFoundException('Usuário não encontrado.');
     }
     return paraPublico(atualizado);
+  }
+
+  /**
+   * Troca a lista de habilitações inteira (PUT). Lista vazia remove todas.
+   * Equipamento inexistente ou que não exige treinamento: 400. Usuário inexistente: 404.
+   */
+  async definirHabilitacoes(
+    id: string,
+    equipamentoIds: string[],
+  ): Promise<UsuarioPublico> {
+    await this.obterPorId(id);
+    return this.atualizar(id, { habilitacoes: equipamentoIds });
+  }
+
+  /** Trava 3: o admin `alvo` só pode sair de cena se houver outro admin ativo. */
+  private async garantirOutroAdminAtivo(alvo: UsuarioPublico): Promise<void> {
+    if (alvo.status !== StatusUsuario.Ativo) return; // já não contava como admin ativo
+    const admins = await this.listar({
+      perfil: Perfil.Admin,
+      status: StatusUsuario.Ativo,
+    });
+    if (!admins.some((a) => a.id !== alvo.id)) {
+      throw new ConflictException(
+        'É preciso manter pelo menos um administrador ativo.',
+      );
+    }
   }
 
   /** Troca a senha (guarda só o novo hash). Usada pela redefinição de senha (Card 8). */

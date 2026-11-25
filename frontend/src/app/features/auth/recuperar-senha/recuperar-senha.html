@@ -1,0 +1,57 @@
+<main class="login">
+  <section class="login__brand">
+    <div class="login__brand-content">
+      <h1 class="login__logo">FAB</h1>
+      <p class="login__slogan">Aprender, Organizar e Evoluir</p>
+      <p class="login__description">
+        Gestão e controle do empréstimo de materiais e equipamentos escolares.
+      </p>
+    </div>
+  </section>
+
+  <section class="login__panel">
+    @if (enviado()) {
+      <div class="login__form">
+        <h2 class="login__title">Pedido enviado</h2>
+        <p class="login__aviso" role="status">{{ enviado() }}</p>
+        <p class="login__subtitle">O link vale por 30 minutos e funciona uma única vez.</p>
+        @if (dicaDesenvolvimento) {
+          <p class="senha__dica">
+            <i class="fa-solid fa-terminal" aria-hidden="true"></i>
+            Ambiente de desenvolvimento: ainda não há envio de e-mail. O link aparece no terminal da API.
+          </p>
+        }
+        <a class="login__esqueci senha__voltar" routerLink="/login">Voltar para o login</a>
+      </div>
+    } @else {
+      <form class="login__form" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+        <h2 class="login__title">Esqueci minha senha</h2>
+        <p class="login__subtitle">
+          Informe o e-mail da sua conta. Se ele estiver cadastrado, você recebe um link para criar uma nova senha.
+        </p>
+
+        <app-input
+          formControlName="email"
+          label="E-mail"
+          type="email"
+          placeholder="voce@email.com"
+          [error]="getError()"
+        />
+
+        @if (erroApi()) {
+          <p class="login__error" role="alert">{{ erroApi() }}</p>
+        }
+
+        <app-button type="submit" [fullWidth]="true" [disabled]="carregando()">
+          @if (carregando()) {
+            <span class="login__spinner" aria-hidden="true"></span> Enviando...
+          } @else {
+            Enviar link
+          }
+        </app-button>
+
+        <a class="login__esqueci senha__voltar" routerLink="/login">Voltar para o login</a>
+      </form>
+    }
+  </section>
+</main>

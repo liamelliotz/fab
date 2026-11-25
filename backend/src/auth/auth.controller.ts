@@ -13,14 +13,29 @@ import { MensagemResposta } from '../common/interceptors/mensagem-resposta.decor
 import { AuthService } from './auth.service.js';
 import { Public, UsuarioAtual } from './decorators/index.js';
 import { LoginDto } from './dto/login.dto.js';
+import { RecuperarSenhaDto, RedefinirSenhaDto } from './dto/senha.dto.js';
+import {
+  MENSAGEM_RECUPERACAO,
+  RedefinicaoSenhaService,
+} from './senha/redefinicao-senha.service.js';
 
 /** Tentativas de login por minuto, por IP. Protege contra adivinhação de senha. */
 export const LIMITE_DE_LOGIN = { limit: 5, ttl: 60_000 };
 
+/** Pedidos de "esqueci minha senha" por minuto, por IP. */
+export const LIMITE_DE_RECUPERACAO = { limit: 3, ttl: 60_000 };
+
+/** Tentativas de redefinir a senha por minuto, por IP. */
+export const LIMITE_DE_REDEFINICAO = { limit: 10, ttl: 60_000 };
+
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(@Inject(AuthService) private readonly authService: AuthService) {}
+  constructor(
+    @Inject(AuthService) private readonly authService: AuthService,
+    @Inject(RedefinicaoSenhaService)
+    private readonly senhas: RedefinicaoSenhaService,
+  ) {}
 
   @Post('login')
   @Public()
@@ -37,5 +52,30 @@ export class AuthController {
   @ApiOperation({ summary: 'Dados do usuário logado.' })
   me(@UsuarioAtual('sub') usuarioId: string) {
     return this.authService.me(usuarioId);
+  }
+
+  @Post('recuperar-senha')
+  @Public()
+  @Throttle({ default: LIMITE_DE_RECUPERACAO })
+  @HttpCode(HttpStatus.OK)
+  @MensagemResposta(MENSAGEM_RECUPERACAO)
+  @ApiOperation({
+    summary:
+      'Pede um link de redefinição. A resposta é sempre a mesma, exista o e-mail ou não.',
+  })
+  async recuperarSenha(@Body() dto: RecuperarSenhaDto): Promise<void> {
+    await this.senhas.recuperar(dto.email);
+  }
+
+  @Post('redefinir-senha')
+  @Public()
+  @Throttle({ default: LIMITE_DE_REDEFINICAO })
+  @HttpCode(HttpStatus.OK)
+  @MensagemResposta('Senha redefinida. Entre com a nova senha.')
+  @ApiOperation({
+    summary: 'Troca a senha com o token do link (uso único, vale 30 min).',
+  })
+  async redefinirSenha(@Body() dto: RedefinirSenhaDto): Promise<void> {
+    await this.senhas.redefinir(dto.token, dto.novaSenha);
   }
 }

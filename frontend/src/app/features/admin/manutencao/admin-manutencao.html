@@ -1,217 +1,242 @@
-<div class="pagina-manutencao">
-
-  <header class="cabecalho">
+<section class="man">
+  <header class="man__cabecalho">
     <div>
-      <h1>Manutenção de Equipamentos</h1>
-      <p>
-        Registre e acompanhe itens avariados ou enviados
-        para assistência técnica.
-      </p>
+      <h1>Manutenção e avarias</h1>
+      <p>Itens que voltaram com problema ou não voltaram. Quem estava com cada item fica registrado.</p>
     </div>
-
-    <button class="botao-novo" (click)="abrirFormulario()">
-      + Registrar ocorrência
+    <button type="button" class="man__btn man__btn--principal" (click)="abrirRegistro()">
+      <i class="fa-solid fa-plus" aria-hidden="true"></i> Registrar avaria
     </button>
   </header>
 
-  <!-- CARDS DE RESUMO -->
-
-  <section class="resumo">
-
-    <div class="card card-avariado">
-      <p>Itens avariados</p>
-      <strong>{{ totalAvariados }}</strong>
+  <div class="man__metricas">
+    <div class="man__metrica man__metrica--bloq">
+      <span>Unidades bloqueadas</span>
+      <strong>{{ unidadesBloqueadas() }}</strong>
+      <small>fora de circulação agora</small>
     </div>
-
-    <div class="card card-assistencia">
-      <p>Em assistência</p>
-      <strong>{{ totalAssistencia }}</strong>
+    <div class="man__metrica">
+      <span>Em conserto</span>
+      <strong>{{ emConserto() }}</strong>
+      <small>na assistência técnica</small>
     </div>
-
-    <div class="card card-concluido">
-      <p>Concluídos</p>
-      <strong>{{ totalConcluidos }}</strong>
+    <div class="man__metrica man__metrica--falta">
+      <span>Faltas abertas</span>
+      <strong>{{ faltasAbertas() }}</strong>
+      <small>unidades não devolvidas</small>
     </div>
-
-  </section>
-
-  <!-- FORMULÁRIO -->
-
-  <section class="formulario" *ngIf="mostrarFormulario">
-
-    <div class="formulario-cabecalho">
-      <div>
-        <h2>Registrar ocorrência</h2>
-        <p>Informe os dados do equipamento avariado.</p>
-      </div>
-
-      <button class="fechar" type="button" aria-label="Fechar" (click)="cancelar()">
-        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-      </button>
+    <div class="man__metrica man__metrica--ok">
+      <span>Resolvidas</span>
+      <strong>{{ totalResolvidas() }}</strong>
+      <small>consertadas, encontradas ou baixa</small>
     </div>
+  </div>
 
-    <div class="campos">
+  <div class="man__abas" role="tablist">
+    <button type="button" role="tab" class="man__aba" [class.man__aba--ativa]="filtro() === 'pendentes'" (click)="filtro.set('pendentes')">
+      Pendentes <span>{{ pendentes().length }}</span>
+    </button>
+    <button type="button" role="tab" class="man__aba" [class.man__aba--ativa]="filtro() === 'resolvidas'" (click)="filtro.set('resolvidas')">
+      Resolvidas <span>{{ resolvidas().length }}</span>
+    </button>
+    <button type="button" role="tab" class="man__aba" [class.man__aba--ativa]="filtro() === 'todas'" (click)="filtro.set('todas')">
+      Todas
+    </button>
+  </div>
 
-      <div class="campo">
-        <label>Equipamento</label>
+  <div class="man__lista">
+    @for (m of lista(); track m.id) {
+      <article class="oc oc--{{ selo(m) }}">
+        <div class="oc__corpo">
+          @if (foto(m); as f) {
+            <button type="button" class="oc__foto" (click)="fotoAberta.set(f)" aria-label="Ampliar foto">
+              <img [src]="f" alt="Foto da avaria de {{ m.equipamento }}" />
+              <i class="fa-solid fa-magnifying-glass-plus" aria-hidden="true"></i>
+            </button>
+          } @else {
+            <div class="oc__icone" aria-hidden="true">
+              <i class="fa-solid {{ m.tipo === 'extravio' ? 'fa-circle-question' : 'fa-screwdriver-wrench' }}"></i>
+            </div>
+          }
 
-        <input
-          type="text"
-          [(ngModel)]="novoRegistro.item"
-          placeholder="Ex.: Notebook Dell">
-      </div>
+          <div class="oc__info">
+            <div class="oc__topo">
+              <span class="oc__selo oc__selo--{{ selo(m) }}">{{ rotuloSelo(m) }}</span>
+              <span class="oc__status oc__status--{{ corStatus(m.status) }}">{{ nomeStatus[m.status] }}</span>
+              <span class="oc__protocolo">{{ m.protocolo }}</span>
+            </div>
+            <h2>
+              <a [routerLink]="['/admin/equipamentos', m.equipamentoId, 'historico']">{{ m.equipamento }}</a>
+              <small>{{ m.codigoPatrimonio }} · {{ m.quantidade }} unidade(s)</small>
+            </h2>
+            @if (m.tipoAvaria) {
+              <p class="oc__tipo">{{ nomeTipo[m.tipoAvaria] }}</p>
+            }
+            <p class="oc__descricao">{{ m.descricao }}</p>
 
-      <div class="campo">
-        <label>Patrimônio</label>
+            <dl class="oc__dados">
+              <div>
+                <dt>Estava com</dt>
+                <dd>
+                  @if (m.responsavel) {
+                    <strong>{{ m.responsavel.nome }}</strong>
+                    @if (m.emprestimoId) {
+                      · <a [routerLink]="['/pedidos', m.emprestimoId]">{{ m.protocoloEmprestimo }}</a>
+                    }
+                  } @else {
+                    Encontrado no laboratório
+                  }
+                </dd>
+              </div>
+              <div>
+                <dt>Registrado</dt>
+                <dd>{{ data(m.dataRegistro) }} por {{ m.registradoPor.nome }}</dd>
+              </div>
+              @if (m.assistencia) {
+                <div>
+                  <dt>Assistência</dt>
+                  <dd>{{ m.assistencia }}</dd>
+                </div>
+              }
+              <div>
+                <dt>Estoque do item</dt>
+                <dd>{{ disponibilidade(m) }}</dd>
+              </div>
+            </dl>
 
-        <input
-          type="text"
-          [(ngModel)]="novoRegistro.patrimonio"
-          placeholder="Ex.: PAT-004">
-      </div>
+            <details class="oc__historico">
+              <summary>Histórico ({{ m.historico.length }})</summary>
+              <ol>
+                @for (p of m.historico; track $index) {
+                  <li><time>{{ data(p.em) }}</time> {{ p.texto }} <em>· {{ p.por.nome }}</em></li>
+                }
+              </ol>
+            </details>
+          </div>
+        </div>
 
-      <div class="campo campo-grande">
-        <label>Problema / avaria</label>
-
-        <input
-          type="text"
-          [(ngModel)]="novoRegistro.problema"
-          placeholder="Descreva o problema">
-      </div>
-
-      <div class="campo">
-        <label>Data do registro</label>
-
-        <input
-          type="date"
-          [(ngModel)]="novoRegistro.dataRegistro">
-      </div>
-
-      <div class="campo">
-        <label>Assistência técnica</label>
-
-        <input
-          type="text"
-          [(ngModel)]="novoRegistro.assistencia"
-          placeholder="Nome da assistência">
-      </div>
-
-      <div class="campo">
-        <label>Status</label>
-
-        <select [(ngModel)]="novoRegistro.status">
-          <option value="Avariado">Avariado</option>
-          <option value="Em assistência">Em assistência</option>
-          <option value="Concluído">Concluído</option>
-        </select>
-      </div>
-
-    </div>
-
-    <div class="acoes-formulario">
-
-      <button class="botao-cancelar" (click)="cancelar()">
-        Cancelar
-      </button>
-
-      <button class="botao-salvar" (click)="cadastrar()">
-        Salvar ocorrência
-      </button>
-
-    </div>
-
-  </section>
-
-  <!-- TABELA -->
-
-  <section class="painel">
-
-    <div class="titulo-painel">
-      <h2>Acompanhamento de manutenção</h2>
-
-      <p>
-        Situação atual dos equipamentos registrados.
-      </p>
-    </div>
-
-    <div class="tabela-container">
-
-      <table>
-
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Equipamento</th>
-            <th>Patrimônio</th>
-            <th>Problema</th>
-            <th>Data</th>
-            <th>Assistência</th>
-            <th>Status</th>
-            <th>Ação</th>
-          </tr>
-        </thead>
-
-        <tbody>
-
-          <tr *ngFor="let manutencao of manutencoes">
-
-            <td>#{{ manutencao.id }}</td>
-
-            <td>
-              <strong>{{ manutencao.item }}</strong>
-            </td>
-
-            <td>{{ manutencao.patrimonio }}</td>
-
-            <td>{{ manutencao.problema }}</td>
-
-            <td>{{ manutencao.dataRegistro }}</td>
-
-            <td>{{ manutencao.assistencia }}</td>
-
-            <td>
-
-              <span
-                class="status"
-                [class.avariado]="manutencao.status === 'Avariado'"
-                [class.assistencia]="manutencao.status === 'Em assistência'"
-                [class.concluido]="manutencao.status === 'Concluído'">
-
-                {{ manutencao.status }}
-
-              </span>
-
-            </td>
-
-            <td>
-
-              <button
-                *ngIf="manutencao.status !== 'Concluído'"
-                class="botao-acao"
-                (click)="avancarStatus(manutencao)">
-
-                Avançar status
-
+        @if (pendente(m)) {
+          <div class="oc__acoes">
+            @if (m.tipo === 'avaria' && m.status === 'aberta') {
+              <button type="button" class="man__btn" (click)="abrirAcao('assistencia', m)">
+                <i class="fa-solid fa-truck-arrow-right" aria-hidden="true"></i> Enviar para conserto
               </button>
+            }
+            <button type="button" class="man__btn man__btn--ok" (click)="abrirAcao('concluir', m)">
+              <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+              {{ m.tipo === 'extravio' ? 'Item encontrado' : 'Consertado: volta ao estoque' }}
+            </button>
+            <button type="button" class="man__btn man__btn--perigo" (click)="abrirAcao('baixa', m)">
+              <i class="fa-solid fa-trash-can" aria-hidden="true"></i> Dar baixa
+            </button>
+          </div>
+        } @else if (m.status === 'registrada') {
+          <p class="oc__nota"><i class="fa-solid fa-box-open" aria-hidden="true"></i> Avaria leve: só registro, a unidade continuou no estoque.</p>
+        }
+      </article>
+    } @empty {
+      <div class="man__vazio">
+        <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+        <p>{{ filtro() === 'pendentes' ? 'Nenhuma avaria ou falta pendente. Tudo em circulação!' : 'Nada por aqui ainda.' }}</p>
+      </div>
+    }
+  </div>
+</section>
 
-              <span
-                class="finalizado"
-                *ngIf="manutencao.status === 'Concluído'">
-
-                Finalizado
-
-              </span>
-
-            </td>
-
-          </tr>
-
-        </tbody>
-
-      </table>
-
+<!-- Diálogo: conserto, conclusão ou baixa -->
+@if (acao(); as a) {
+  <div class="man__fundo" (click)="fecharAcao()">
+    <div class="man__dialogo" role="dialog" aria-modal="true" aria-labelledby="man-acao-titulo" (click)="$event.stopPropagation()">
+      @switch (a.tipo) {
+        @case ('assistencia') {
+          <h2 id="man-acao-titulo">Enviar para conserto</h2>
+          <p>{{ a.alvo.equipamento }} · {{ a.alvo.quantidade }} unidade(s). A unidade continua bloqueada.</p>
+          <label class="man__campo">
+            <span>Assistência técnica</span>
+            <input type="text" placeholder="Ex.: Tech Assistência" [value]="textoAcao()" (input)="escreverAcao($event)" />
+          </label>
+        }
+        @case ('concluir') {
+          <h2 id="man-acao-titulo">{{ a.alvo.tipo === 'extravio' ? 'Item encontrado' : 'Marcar como consertado' }}</h2>
+          <p>
+            <strong>{{ a.alvo.quantidade }} unidade(s)</strong> de {{ a.alvo.equipamento }} voltam ao estoque e podem
+            ser emprestadas de novo.
+          </p>
+          <label class="man__campo">
+            <span>Observação (opcional)</span>
+            <textarea rows="2" placeholder="Ex.: tela trocada" [value]="textoAcao()" (input)="escreverAcao($event)"></textarea>
+          </label>
+        }
+        @case ('baixa') {
+          <h2 id="man-acao-titulo">Dar baixa no acervo</h2>
+          <p>
+            <strong>{{ a.alvo.quantidade }} unidade(s)</strong> de {{ a.alvo.equipamento }} saem do acervo de vez
+            (sem conserto ou perdidas). Isso não pode ser desfeito.
+          </p>
+          <label class="man__campo">
+            <span>Motivo da baixa</span>
+            <textarea rows="2" placeholder="Ex.: placa-mãe queimada, conserto mais caro que um novo" [value]="textoAcao()" (input)="escreverAcao($event)"></textarea>
+          </label>
+        }
+      }
+      @if (erroAcao()) {
+        <p class="man__erro" role="alert">{{ erroAcao() }}</p>
+      }
+      <div class="man__dialogo-acoes">
+        <button type="button" class="man__btn" (click)="fecharAcao()">Cancelar</button>
+        <button
+          type="button"
+          class="man__btn"
+          [class.man__btn--ok]="a.tipo !== 'baixa'"
+          [class.man__btn--perigo-cheio]="a.tipo === 'baixa'"
+          (click)="confirmarAcao()"
+        >
+          Confirmar
+        </button>
+      </div>
     </div>
+  </div>
+}
 
-  </section>
+<!-- Registro direto -->
+@if (registrando()) {
+  <div class="man__fundo" (click)="registrando.set(false)">
+    <div class="man__dialogo man__dialogo--largo" role="dialog" aria-modal="true" aria-labelledby="man-novo-titulo" (click)="$event.stopPropagation()">
+      <h2 id="man-novo-titulo">Registrar avaria</h2>
+      <p>Para um item que está no laboratório (fora de empréstimo). Avarias de devolução são registradas no Balcão.</p>
+      <div class="man__linha">
+        <label class="man__campo">
+          <span>Equipamento</span>
+          <select (change)="escolherEquipamento($event)">
+            @for (e of opcoesEquipamento(); track e.id) {
+              <option [value]="e.id" [selected]="e.id === novoEquipamentoId()">{{ e.nome }} ({{ e.quantidadeDisponivel }} no laboratório)</option>
+            }
+          </select>
+        </label>
+        <div class="man__campo">
+          <span>Unidades</span>
+          <div class="man__passo">
+            <button type="button" aria-label="Menos uma" (click)="mudarQuantidadeNova(-1)" [disabled]="novaQuantidade() <= 1">−</button>
+            <output>{{ novaQuantidade() }}</output>
+            <button type="button" aria-label="Mais uma" (click)="mudarQuantidadeNova(1)" [disabled]="novaQuantidade() >= maximoNovo()">+</button>
+          </div>
+        </div>
+      </div>
+      <app-avaria-campos [dados]="novaAvaria()" (mudou)="mudarNovaAvaria($event)" />
+      @if (erroNovo()) {
+        <p class="man__erro" role="alert">{{ erroNovo() }}</p>
+      }
+      <div class="man__dialogo-acoes">
+        <button type="button" class="man__btn" (click)="registrando.set(false)">Cancelar</button>
+        <button type="button" class="man__btn man__btn--principal" (click)="salvarRegistro()">Registrar</button>
+      </div>
+    </div>
+  </div>
+}
 
-</div>
+<!-- Foto ampliada -->
+@if (fotoAberta(); as f) {
+  <div class="man__fundo man__fundo--foto" (click)="fotoAberta.set(null)">
+    <img [src]="f" alt="Foto da avaria ampliada" />
+  </div>
+}
