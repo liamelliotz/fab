@@ -71,7 +71,7 @@ describe('EmprestimosService: solicitar', () => {
     equipamentosRepo = new EquipamentosRepository();
     usuariosRepo = new UsuariosRepository();
     const equipamentosService = new EquipamentosService(equipamentosRepo);
-    const usuariosService = new UsuariosService(usuariosRepo);
+    const usuariosService = new UsuariosService(usuariosRepo, equipamentosService);
 
     await equipamentosRepo.criar(
       novoEquipamento({
