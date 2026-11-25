@@ -3,6 +3,8 @@
 Este documento explica o que a demonstração mostra, como apresentar e o que o backend precisa
 entregar para virar produção. A demo roda **só no front** (sem backend), com dados salvos no navegador.
 
+Para abrir: `cd frontend` e `npm run demo` (desde o card A6, o `npm start` usa o login real da API).
+
 ## 1. O que é novo
 
 | # | Recurso | Onde ver |

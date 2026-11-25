@@ -30,7 +30,8 @@ Pré-requisitos: Node.js (versão LTS recente) e Angular CLI.
 ```bash
 cd frontend
 npm install
-ng serve
+npm start        # login real: suba o backend antes (porta 3000)
+npm run demo     # demonstração: não precisa de backend
 ```
 
 Acesse **http://localhost:4200**.
@@ -51,10 +52,24 @@ node dist/frontend/server/server.mjs
 
 O `angular.json` libera o host `localhost` em `security.allowedHosts`. Se publicar em outro domínio, inclua-o ali.
 
-## Modo demonstração (sem backend)
+## Login real e modo demonstração
 
-Por padrão os dois environments mantêm `modoDemo: true`, preservando a demonstração local.
-O login usa as contas do `UsuarioService` e os serviços de demonstração persistem os dados no navegador.
+| Comando | Environment | `modoDemo` | Login |
+| --- | --- | --- | --- |
+| `npm start` | `environment.development.ts` | `false` | JWT de verdade, pela API (`POST /auth/login`) |
+| `npm run demo` | `environment.demo.ts` | `true` | Contas do `UsuarioService`, sem backend (apresentação) |
+| `npm run build` | `environment.ts` | `true` | Até o card E7, a versão de produção ainda é a demonstração |
+
+Com o login real (card A6), a sessão fica no `sessionStorage` (uma por aba, sobrevive ao F5) e
+nenhuma senha é gravada no navegador. As telas que ainda não foram ligadas à API continuam usando os
+dados de exemplo do navegador; os ids das contas de exemplo são os mesmos do seed da API
+(`usr-admin`, `usr-professor`, `usr-joao`...), então o professor logado de verdade vê os seus pedidos.
+As telas de Solicitações, Balcão e Empréstimos do admin já chamam a API: só funcionam com `npm start`
+quando as rotas de empréstimos (cards C3 a C5) estiverem no backend; até lá, use `npm run demo`.
+
+"Esqueci minha senha" (`/recuperar-senha` e `/redefinir-senha?token=...`) usa a API do card A5.
+Nesta versão não há envio de e-mail: o link aparece no terminal da API.
+
 Somente o administrador cria usuários; não existe cadastro público.
 
 | Perfil | E-mail | Senha |
@@ -62,10 +77,7 @@ Somente o administrador cria usuários; não existe cadastro público.
 | Administrador | `admin@fab.com` | `admin123` |
 | Usuário (professor) | `professor@fab.com` | `prof123` |
 
-O campo `modoDemo` fica em `src/environments/environment.ts` e
-`environment.development.ts`. `AuthService` já lê essa opção; use `false` para testar
-login real com o backend. Isso não migra os demais serviços de domínio para HTTP:
-essa integração pertence aos próximos cards.
+O campo `modoDemo` fica em `src/environments/`. O `AuthService` lê essa opção.
 
 > **Atenção:** no modo demonstração as senhas ficam em texto puro no navegador. Nunca use em produção.
 
@@ -74,6 +86,8 @@ essa integração pertence aos próximos cards.
 | Rota | Quem acessa | Descrição |
 | --- | --- | --- |
 | `/login` | Público | Entrar no sistema |
+| `/recuperar-senha` | Público | Pedir o link para criar uma nova senha |
+| `/redefinir-senha?token=...` | Público | Criar a nova senha pelo link (vale 30 min, uma vez) |
 | `/dashboard` | Todos | Métricas, atalhos e pedidos recentes |
 | `/materiais` | Todos | Catálogo com filtros e botão *Solicitar empréstimo* |
 | `/meus-emprestimos` | Todos | Acompanhamento dos próprios pedidos |
@@ -192,7 +206,7 @@ npm start
 ```
 
 - Em demonstração, entrar como admin deve mostrar Insumos e abrir `/admin/insumos`.
-- Entrar como professor, definir `localStorage.setItem('fab_role', 'admin')` no console,
+- Entrar como professor, definir `sessionStorage.setItem('fab_role', 'admin')` no console,
   atualizar a página e abrir `/admin/insumos`: deve voltar ao dashboard.
 - Com `modoDemo: false`, erro 400 de validação deve exibir o resumo e os campos no alerta.
 - Os testes HTTP usam respostas controladas: não precisam de servidor nem alteram o banco.

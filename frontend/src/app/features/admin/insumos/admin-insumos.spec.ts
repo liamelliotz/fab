@@ -4,6 +4,12 @@ import { Router, provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { routes } from '../../../app.routes';
 import { AuthService } from '../../../core/services/auth.service';
+import { environment } from '../../../../environments/environment';
+
+// Estes testes usam as contas da demonstração (entrarComoDemo): rodam com o modo demonstração ligado.
+const modoDemoDoAmbiente = environment.modoDemo;
+beforeEach(() => { environment.modoDemo = true; });
+afterEach(() => { environment.modoDemo = modoDemoDoAmbiente; });
 
 describe('Navegação de Insumos', () => {
   beforeEach(() => {
@@ -12,14 +18,14 @@ describe('Navegação de Insumos', () => {
   });
   afterEach(() => localStorage.clear());
   it('admin abre a rota provisória e encontra o item no menu', async () => {
-    TestBed.inject(AuthService).entrarComoDemo('demo-admin');
+    TestBed.inject(AuthService).entrarComoDemo('usr-admin');
     const harness = await RouterTestingHarness.create('/admin/insumos');
     expect(TestBed.inject(Router).url).toBe('/admin/insumos');
     expect(harness.routeNativeElement?.textContent).toContain('Em construção');
     expect(harness.routeNativeElement?.querySelector('a[href="/admin/insumos"]')).not.toBeNull();
   });
   it('professor não entra mesmo alterando fab_role para admin', async () => {
-    TestBed.inject(AuthService).entrarComoDemo('demo-professor');
+    TestBed.inject(AuthService).entrarComoDemo('usr-professor');
     sessionStorage.setItem('fab_role', 'admin');
     const harness = await RouterTestingHarness.create('/admin/insumos');
     expect(TestBed.inject(Router).url).toBe('/dashboard');
