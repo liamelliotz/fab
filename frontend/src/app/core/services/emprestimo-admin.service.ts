@@ -8,11 +8,18 @@ import { EquipamentoService } from './equipamento.service';
 import { ENDPOINTS } from '../constants/api.constants';
 import { AvaliarEmprestimoDTO, Emprestimo, FiltroEmprestimoDTO } from '../models/emprestimo.model';
 import { RespostaPaginada } from '../models/pagination.model';
+import { RegistroAvariaDTO } from '../models/manutencao.model';
 import { normalizarCodigo } from '../utils/codigo.utils';
 
 export interface FiltroEmprestimoAdmin extends FiltroEmprestimoDTO { pagina?: number; itensPorPagina?: number; }
 export interface ConsultaBalcao { tipo: 'retirada' | 'devolucao'; emprestimo: Emprestimo; }
-export interface DevolucaoBalcaoDTO { codigo: string; houveAvaria: boolean; observacoes?: string; }
+export interface DevolucaoBalcaoDTO {
+  codigo: string;
+  houveAvaria: boolean;
+  observacoes?: string;
+  /** Avarias e faltas por equipamento (tela do balcão). Na API viram texto nas observações até o C5/B4. */
+  ocorrencias?: RegistroAvariaDTO[];
+}
 
 export function mensagemErroAdmin(erro: unknown): string {
   const resposta = erro as HttpErrorResponse;
@@ -55,13 +62,14 @@ export class EmprestimoAdminService {
     });
   }
 
-  consultarCodigo(texto: string): Observable<ConsultaBalcao> {
+  /** `tipo` só ajusta a mensagem de erro do modo demonstração (a aba em que o código foi digitado). */
+  consultarCodigo(texto: string, tipo: 'retirada' | 'devolucao' = 'retirada'): Observable<ConsultaBalcao> {
     const codigo = normalizarCodigo(texto);
     if (!this.modoDemo) return this.api.get(ENDPOINTS.emprestimos.balcao.consulta, { codigo });
     return defer(() => {
       const retirada = this.demo.buscarPorCodigoRetirada(codigo);
       const devolucao = this.demo.buscarPorCodigoDevolucao(codigo);
-      if (!retirada && !devolucao) throw this.erro(404, this.demo.erroCodigo(codigo, 'retirada'));
+      if (!retirada && !devolucao) throw this.erro(404, this.demo.erroCodigo(codigo, tipo));
       return of({ tipo: retirada ? 'retirada' as const : 'devolucao' as const,
         emprestimo: this.prepararDemo((retirada ?? devolucao)!) });
     });
@@ -78,15 +86,32 @@ export class EmprestimoAdminService {
   }
 
   devolver(dto: DevolucaoBalcaoDTO): Observable<Emprestimo> {
-    const corpo = { codigo: normalizarCodigo(dto.codigo), houveAvaria: dto.houveAvaria,
-      ...(dto.observacoes?.trim() ? { observacoes: dto.observacoes.trim() } : {}) };
+    const ocorrencias = (dto.ocorrencias ?? []).filter((o) => o.avariadas > 0 || o.faltando > 0);
+    const houveAvaria = dto.houveAvaria || ocorrencias.length > 0;
+    const observacoes = [dto.observacoes?.trim(), this.descreverOcorrencias(ocorrencias)]
+      .filter(Boolean).join(' | ');
+    const corpo = { codigo: normalizarCodigo(dto.codigo), houveAvaria,
+      ...(observacoes ? { observacoes } : {}) };
     return defer(() => {
       if (corpo.houveAvaria && !corpo.observacoes) throw this.erro(400, 'Informe as observações da avaria.');
       if (!this.modoDemo) return this.api.post<Emprestimo>(ENDPOINTS.emprestimos.balcao.devolucao, corpo);
-      const resultado = this.demo.confirmarDevolucao(corpo.codigo, { houveAvaria: corpo.houveAvaria, observacoes: corpo.observacoes ?? '' });
+      const resultado = this.demo.confirmarDevolucao(corpo.codigo, {
+        observacoes: dto.observacoes?.trim() ?? '', ocorrencias, houveAvaria: dto.houveAvaria && !ocorrencias.length });
       if (!resultado.ok) throw this.erro(409, resultado.erro);
       return of(this.prepararDemo(resultado.valor));
     });
+  }
+
+  /** "Notebook: 1 com avaria (grave) - tela trincada; 1 faltando". Vai nas observações para a API. */
+  private descreverOcorrencias(ocorrencias: RegistroAvariaDTO[]): string {
+    const equipamentos = this.injector.get(EquipamentoService);
+    return ocorrencias.map((o) => {
+      const partes = [
+        o.avariadas ? `${o.avariadas} com avaria${o.gravidade ? ` (${o.gravidade})` : ''}${o.descricao?.trim() ? ` - ${o.descricao.trim()}` : ''}` : '',
+        o.faltando ? `${o.faltando} faltando` : '',
+      ].filter(Boolean);
+      return `${equipamentos.buscarPorId(o.equipamentoId)?.nome ?? o.equipamentoId}: ${partes.join('; ')}`;
+    }).join(' | ');
   }
 
   resumoItens(s: Emprestimo): string {

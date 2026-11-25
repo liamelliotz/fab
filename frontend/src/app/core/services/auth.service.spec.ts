@@ -8,13 +8,13 @@ import { API_URL } from '../constants/api.constants';
 const modoOriginal = environment.modoDemo;
 describe('Modo de autenticação por environment', () => {
   beforeEach(() => {
-    localStorage.clear();
+    localStorage.clear(); sessionStorage.clear();
     TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
   });
   afterEach(() => {
     TestBed.inject(HttpTestingController).verify();
     environment.modoDemo = modoOriginal;
-    localStorage.clear();
+    localStorage.clear(); sessionStorage.clear();
   });
   it('modoDemo=false usa login HTTP e impede a troca por uma conta demo', () => {
     environment.modoDemo = false;
@@ -39,6 +39,6 @@ describe('Modo de autenticação por environment', () => {
     const auth = TestBed.inject(AuthService);
     expect(auth.entrarComoDemo('demo-professor')).toBe(true);
     expect(auth.obterPerfil()).toBe('usuario');
-    expect(localStorage.getItem('fab_token')).toBe(auth.obterToken());
+    expect(sessionStorage.getItem('fab_token')).toBe(auth.obterToken());
   });
 });

@@ -11,11 +11,11 @@ const original = environment.modoDemo;
 describe('Listagem administrativa de empréstimos', () => {
   let http: HttpTestingController;
   beforeEach(() => {
-    environment.modoDemo = false; localStorage.clear();
+    environment.modoDemo = false; localStorage.clear(); sessionStorage.clear();
     TestBed.configureTestingModule({ imports: [AdminEmprestimos], providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])] });
     http = TestBed.inject(HttpTestingController);
   });
-  afterEach(() => { http.verify(); environment.modoDemo = original; localStorage.clear(); });
+  afterEach(() => { http.verify(); environment.modoDemo = original; localStorage.clear(); sessionStorage.clear(); });
   it('filtra na API por status e atrasos e mostra o responsável pelo material', () => {
     const fixture = TestBed.createComponent(AdminEmprestimos); const c = fixture.componentInstance;
     const req = http.expectOne(`${API_URL}/emprestimos?pagina=1&itensPorPagina=10`);

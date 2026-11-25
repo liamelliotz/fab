@@ -16,11 +16,11 @@ function pagina(itens: unknown[], p = 1, total = itens.length) {
 describe('Solicitações administrativas pela API', () => {
   let http: HttpTestingController;
   beforeEach(() => {
-    localStorage.clear(); environment.modoDemo = false;
+    localStorage.clear(); sessionStorage.clear(); environment.modoDemo = false;
     TestBed.configureTestingModule({ imports: [AdminSolicitacoes], providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])] });
     http = TestBed.inject(HttpTestingController);
   });
-  afterEach(() => { http.verify(); TestBed.inject(NotificationService).limpar(); environment.modoDemo = original; localStorage.clear(); });
+  afterEach(() => { http.verify(); TestBed.inject(NotificationService).limpar(); environment.modoDemo = original; localStorage.clear(); sessionStorage.clear(); });
   function abrir(total = 1) {
     const fixture = TestBed.createComponent(AdminSolicitacoes);
     const req = http.expectOne(`${API_URL}/emprestimos?status=pendente&pagina=1&itensPorPagina=10`);

@@ -12,11 +12,11 @@ describe('EmprestimoAdminService e contrato HTTP', () => {
   let service: EmprestimoAdminService;
   let http: HttpTestingController;
   beforeEach(() => {
-    environment.modoDemo = false; localStorage.clear();
+    environment.modoDemo = false; localStorage.clear(); sessionStorage.clear();
     TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
     service = TestBed.inject(EmprestimoAdminService); http = TestBed.inject(HttpTestingController);
   });
-  afterEach(() => { http.verify(); environment.modoDemo = original; localStorage.clear(); });
+  afterEach(() => { http.verify(); environment.modoDemo = original; localStorage.clear(); sessionStorage.clear(); });
   it('envia filtros e paginação à API e devolve a página do envelope', () => {
     const receber = vi.fn();
     service.listar({ status: 'aprovado', atrasadosApenas: true, pagina: 2, itensPorPagina: 10,

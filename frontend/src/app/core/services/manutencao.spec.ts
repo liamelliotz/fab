@@ -1,0 +1,101 @@
+import { TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { AuthService } from './auth.service';
+import { EmprestimoService } from './emprestimo.service';
+import { EquipamentoService } from './equipamento.service';
+import { ManutencaoService } from './manutencao.service';
+
+// Avarias e faltas: a gravidade decide o bloqueio, e só a unidade com problema sai do estoque.
+describe('Avarias e faltas na devolução', () => {
+  let emprestimos: EmprestimoService;
+  let equipamentos: EquipamentoService;
+  let manutencoes: ManutencaoService;
+
+  /** Estoque do item: [disponíveis, em manutenção, total, status]. */
+  const estoque = (id: string) => {
+    const e = equipamentos.buscarPorId(id)!;
+    return [e.quantidadeDisponivel, e.quantidadeEmManutencao ?? 0, e.quantidadeTotal, e.status];
+  };
+
+  beforeEach(() => {
+    localStorage.clear(); sessionStorage.clear();
+    TestBed.configureTestingModule({ providers: [provideHttpClient()] });
+    TestBed.inject(AuthService).entrarComoDemo('demo-admin');
+    emprestimos = TestBed.inject(EmprestimoService);
+    equipamentos = TestBed.inject(EquipamentoService);
+    manutencoes = TestBed.inject(ManutencaoService);
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('o estoque de exemplo bate com os pedidos de exemplo', () => {
+    for (const e of equipamentos.itens()) {
+      const presas = emprestimos
+        .todas()
+        .filter((s) => s.status === 'aprovado' || s.status === 'em_andamento')
+        .flatMap((s) => s.itens)
+        .filter((i) => i.equipamentoId === e.id)
+        .reduce((soma, i) => soma + i.quantidade, 0);
+      expect(equipamentos.estoque(e).emprestadas, e.nome).toBe(presas);
+    }
+  });
+
+  it('grave vai para manutenção, falta sai do estoque e o resto volta', () => {
+    // Projetor (id 2): pedido p38 em andamento com 1 unidade
+    const p38 = emprestimos.buscarPorId('p38')!;
+    const r = emprestimos.confirmarDevolucao(p38.codigoDevolucao!, {
+      observacoes: '',
+      ocorrencias: [
+        { equipamentoId: '2', avariadas: 1, faltando: 0, tipoAvaria: 'nao_liga', gravidade: 'grave', descricao: 'Lâmpada queimada.' },
+      ],
+    });
+    expect(r.ok).toBe(true);
+    expect(estoque('2')).toEqual([3, 1, 4, 'disponivel']); // não volta: 3 continuam disponíveis
+    const fim = emprestimos.buscarPorId('p38')!;
+    expect(fim.historico.map((e) => e.tipo).slice(-2)).toEqual(['avaria_registrada', 'devolvido']);
+    const oc = manutencoes.doPedido('p38')[0];
+    expect(oc).toMatchObject({ status: 'aberta', bloqueia: true, responsavel: { id: 'demo-professor' } });
+
+    // Consertada: volta ao estoque e o pedido ganha o evento
+    expect(manutencoes.concluir(oc.id, 'Lâmpada trocada.')).toBeNull();
+    expect(estoque('2')).toEqual([4, 0, 4, 'disponivel']);
+    expect(emprestimos.buscarPorId('p38')!.historico.at(-1)!.tipo).toBe('manutencao_concluida');
+  });
+
+  it('avaria leve só registra; falta com baixa reduz o acervo', () => {
+    const p41 = emprestimos.buscarPorId('p41')!; // 2 notebooks Lenovo aprovados
+    emprestimos.confirmarRetirada(p41.codigoRetirada!);
+    const codigo = emprestimos.buscarPorId('p41')!.codigoDevolucao!;
+    emprestimos.confirmarDevolucao(codigo, {
+      observacoes: '',
+      ocorrencias: [
+        { equipamentoId: '3', avariadas: 1, faltando: 1, tipoAvaria: 'desgaste', gravidade: 'leve', descricao: 'Tampa riscada.' },
+      ],
+    });
+    // 8 no total: 6 + 1 (leve volta) = 7 disponíveis; 1 falta fora do estoque
+    expect(estoque('3')).toEqual([7, 1, 8, 'disponivel']);
+    const falta = manutencoes.doPedido('p41').find((m) => m.tipo === 'extravio')!;
+    expect(manutencoes.darBaixa(falta.id, 'abc')).toContain('motivo');
+    expect(manutencoes.darBaixa(falta.id, 'Não foi encontrado.')).toBeNull();
+    expect(estoque('3')).toEqual([7, 0, 7, 'disponivel']);
+  });
+
+  it('não aceita avaria sem tipo, gravidade e descrição nem quantidade maior que a emprestada', () => {
+    const p38 = emprestimos.buscarPorId('p38')!;
+    const tentar = (oc: object) =>
+      emprestimos.confirmarDevolucao(p38.codigoDevolucao!, { observacoes: '', ocorrencias: [{ equipamentoId: '2', faltando: 0, avariadas: 1, ...oc }] });
+    expect(tentar({}).ok).toBe(false);
+    expect(tentar({ tipoAvaria: 'outro', gravidade: 'grave', descricao: '' }).ok).toBe(false);
+    expect(tentar({ tipoAvaria: 'outro', gravidade: 'grave', descricao: 'Quebrou.', avariadas: 2 }).ok).toBe(false);
+    expect(emprestimos.buscarPorId('p38')!.status).toBe('em_andamento'); // nada mudou
+  });
+
+  it('item com todas as unidades em manutenção não pode ser pedido', () => {
+    expect(estoque('7')[3]).toBe('em_manutencao');
+    const erro = emprestimos.validarSolicitacao(
+      { itens: [{ equipamentoId: '7', quantidade: 1 }], justificativa: 'Aula', dataPrevistaRetirada: '2099-01-01', dataPrevistaDevolucao: '2099-01-02' },
+      'demo-professor',
+    );
+    expect(erro).toBe('Este material não está mais disponível.');
+  });
+});

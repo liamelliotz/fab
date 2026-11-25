@@ -36,6 +36,12 @@
           Disponíveis: {{ equipamento.quantidadeDisponivel }} de {{ equipamento.quantidadeTotal }}
         </span>
       </li>
+      @if (equipamento.quantidadeEmManutencao) {
+        <li class="equip__manutencao">
+          <i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i>
+          <span>{{ equipamento.quantidadeEmManutencao }} em manutenção (bloqueada para empréstimo)</span>
+        </li>
+      }
     </ul>
 
     <!-- Rodapé sempre colado embaixo: todos os cards terminam alinhados -->

@@ -7,11 +7,11 @@ import { API_URL } from '../constants/api.constants';
 
 describe('Bearer somente na API protegida', () => {
   beforeEach(() => {
-    localStorage.clear();
+    localStorage.clear(); sessionStorage.clear();
     TestBed.configureTestingModule({ providers: [provideHttpClient(withInterceptors([authInterceptor])), provideHttpClientTesting()] });
     TestBed.inject(AuthService).entrarComoDemo('demo-admin');
   });
-  afterEach(() => { TestBed.inject(HttpTestingController).verify(); localStorage.clear(); });
+  afterEach(() => { TestBed.inject(HttpTestingController).verify(); localStorage.clear(); sessionStorage.clear(); });
   it('anexa token à API e não envia para login ou terceiros', () => {
     const http = TestBed.inject(HttpClient);
     const backend = TestBed.inject(HttpTestingController);

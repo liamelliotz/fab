@@ -19,14 +19,14 @@ const rotulos = (element: HTMLElement) =>
 
 describe('Navbar', () => {
   beforeEach(async () => {
-    localStorage.clear();
+    sessionStorage.clear();
     await TestBed.configureTestingModule({
       imports: [Navbar],
       providers: [provideRouter([]), provideHttpClient()],
     }).compileComponents();
   });
 
-  afterEach(() => localStorage.clear());
+  afterEach(() => sessionStorage.clear());
 
   it('should create', () => {
     const { fixture } = criarNavbar('admin');

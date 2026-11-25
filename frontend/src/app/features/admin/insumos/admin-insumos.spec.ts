@@ -7,7 +7,7 @@ import { AuthService } from '../../../core/services/auth.service';
 
 describe('Navegação de Insumos', () => {
   beforeEach(() => {
-    localStorage.clear();
+    localStorage.clear(); sessionStorage.clear();
     TestBed.configureTestingModule({ providers: [provideHttpClient(), provideRouter(routes)] });
   });
   afterEach(() => localStorage.clear());
@@ -20,7 +20,7 @@ describe('Navegação de Insumos', () => {
   });
   it('professor não entra mesmo alterando fab_role para admin', async () => {
     TestBed.inject(AuthService).entrarComoDemo('demo-professor');
-    localStorage.setItem('fab_role', 'admin');
+    sessionStorage.setItem('fab_role', 'admin');
     const harness = await RouterTestingHarness.create('/admin/insumos');
     expect(TestBed.inject(Router).url).toBe('/dashboard');
     expect(harness.routeNativeElement?.querySelector('a[href="/admin/insumos"]')).toBeNull();

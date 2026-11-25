@@ -15,7 +15,7 @@ describe('Erros HTTP no alerta global', () => {
   let avisos: NotificationService;
   let navegar: ReturnType<typeof vi.spyOn>;
   beforeEach(() => {
-    localStorage.clear();
+    localStorage.clear(); sessionStorage.clear();
     TestBed.configureTestingModule({ imports: [Alert], providers: [provideRouter([]),
       provideHttpClient(withInterceptors([errorInterceptor])), provideHttpClientTesting()] });
     http = TestBed.inject(HttpTestingController);
@@ -23,7 +23,7 @@ describe('Erros HTTP no alerta global', () => {
     avisos = TestBed.inject(NotificationService);
     navegar = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
   });
-  afterEach(() => { http.verify(); avisos.limpar(); localStorage.clear(); });
+  afterEach(() => { http.verify(); avisos.limpar(); localStorage.clear(); sessionStorage.clear(); });
   function falhar(status: number, corpo: string | object, caminho = '/equipamentos') {
     const receberErro = vi.fn();
     api.get(caminho).subscribe({ error: receberErro });

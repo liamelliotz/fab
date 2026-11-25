@@ -12,14 +12,14 @@ function executar(guard = adminGuard) {
   return TestBed.runInInjectionContext(() => guard({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot));
 }
 function iniciar(jwt: string | null, role = 'admin') {
-  if (jwt) localStorage.setItem('fab_token', jwt);
-  localStorage.setItem('fab_role', role);
+  if (jwt) sessionStorage.setItem('fab_token', jwt);
+  sessionStorage.setItem('fab_role', role);
   TestBed.configureTestingModule({ providers: [provideHttpClient(), provideRouter([])] });
 }
 
 describe('Guards e perfil do token', () => {
-  beforeEach(() => localStorage.clear());
-  afterEach(() => localStorage.clear());
+  beforeEach(() => { localStorage.clear(); sessionStorage.clear(); });
+  afterEach(() => { localStorage.clear(); sessionStorage.clear(); });
   it('após restaurar sessão, fab_role=admin não promove usuário do token', () => {
     iniciar(token('usuario'));
     const auth = TestBed.inject(AuthService);

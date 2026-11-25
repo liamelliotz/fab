@@ -1,0 +1,69 @@
+<div class="av">
+  <label class="av__campo">
+    <span>Tipo de avaria</span>
+    <select [value]="dados().tipoAvaria ?? ''" (change)="escolherTipo($event)">
+      <option value="" disabled>Escolha o tipo</option>
+      @for (t of tipos; track t[0]) {
+        <option [value]="t[0]" [selected]="dados().tipoAvaria === t[0]">{{ t[1] }}</option>
+      }
+    </select>
+  </label>
+
+  <div class="av__campo">
+    <span id="{{ id }}-grav">Gravidade</span>
+    <div class="av__gravidades" role="radiogroup" [attr.aria-labelledby]="id + '-grav'">
+      @for (g of gravidades; track g.valor) {
+        <button
+          type="button"
+          role="radio"
+          class="av__grav av__grav--{{ g.valor }}"
+          [class.av__grav--ativa]="dados().gravidade === g.valor"
+          [attr.aria-checked]="dados().gravidade === g.valor"
+          (click)="escolherGravidade(g.valor)"
+        >
+          {{ g.nome }}
+        </button>
+      }
+    </div>
+    @if (dados().gravidade; as g) {
+      <small class="av__efeito av__efeito--{{ g }}">
+        <i class="fa-solid {{ g === 'leve' ? 'fa-box-open' : 'fa-lock' }}" aria-hidden="true"></i>
+        {{ efeito[g] }}
+      </small>
+    }
+  </div>
+
+  <label class="av__campo av__campo--largo">
+    <span>Descrição</span>
+    <textarea
+      rows="2"
+      placeholder="Ex.: tela trincada no canto superior direito"
+      [value]="dados().descricao ?? ''"
+      (input)="escreverDescricao($event)"
+    ></textarea>
+  </label>
+
+  <div class="av__campo av__campo--largo">
+    <span>Foto (opcional)</span>
+    @if (dados().foto; as foto) {
+      <div class="av__foto">
+        <img [src]="foto" alt="Foto da avaria" />
+        <button type="button" class="av__foto-remover" (click)="removerFoto()">
+          <i class="fa-solid fa-trash-can" aria-hidden="true"></i> Remover foto
+        </button>
+      </div>
+    } @else {
+      <label class="av__enviar" [class.av__enviar--ocupado]="processandoFoto()">
+        <input type="file" accept="image/*" capture="environment" (change)="escolherFoto($event)" />
+        @if (processandoFoto()) {
+          <span class="av__girando" aria-hidden="true"></span> Preparando a foto...
+        } @else {
+          <i class="fa-solid fa-camera" aria-hidden="true"></i> Tirar ou escolher foto
+        }
+      </label>
+    }
+    @if (erroFoto()) {
+      <small class="av__erro" role="alert">{{ erroFoto() }}</small>
+    }
+  </div>
+</div>

@@ -1,0 +1,101 @@
+<section class="hist">
+  <a class="hist__voltar" routerLink="/admin/equipamentos">
+    <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Equipamentos
+  </a>
+
+  @if (item(); as e) {
+    <header class="hist__cabecalho">
+      <div>
+        <span class="hist__eyebrow">HISTÓRICO DO ITEM · {{ e.codigoPatrimonio }}</span>
+        <h1>{{ e.nome }}</h1>
+        <p>{{ e.localizacao }} · prazo máximo de {{ e.prazoMaximoDias }} dia(s)</p>
+      </div>
+      <span class="hist__status hist__status--{{ e.status }}">{{ nomeStatus[e.status] }}</span>
+    </header>
+
+    @if (estoque(); as s) {
+      <div class="hist__cartao">
+        <h2>Estoque agora</h2>
+        <div class="hist__barra" role="img" [attr.aria-label]="s.disponiveis + ' disponíveis, ' + s.emprestadas + ' emprestadas, ' + s.emManutencao + ' em manutenção'">
+          <span class="hist__barra-disp" [style.width.%]="barra().disp"></span>
+          <span class="hist__barra-emp" [style.width.%]="barra().emp"></span>
+          <span class="hist__barra-man" [style.width.%]="barra().man"></span>
+        </div>
+        <ul class="hist__legenda">
+          <li><i class="hist__ponto hist__ponto--disp"></i> <strong>{{ s.disponiveis }}</strong> disponíveis</li>
+          <li><i class="hist__ponto hist__ponto--emp"></i> <strong>{{ s.emprestadas }}</strong> emprestadas ou reservadas</li>
+          <li><i class="hist__ponto hist__ponto--man"></i> <strong>{{ s.emManutencao }}</strong> em manutenção</li>
+          <li class="hist__total">Total no acervo: <strong>{{ s.total }}</strong></li>
+        </ul>
+      </div>
+    }
+
+    <div class="hist__grade">
+      <div class="hist__cartao">
+        <h2>Com quem está agora</h2>
+        @for (s of comQuem(); track s.id) {
+          <a class="hist__linha" [routerLink]="['/pedidos', s.id]">
+            <span>
+              <strong>{{ s.responsavel.nome }}</strong> · {{ quantidade(s) }} unidade(s)
+              <small>{{ s.protocolo }} · {{ s.status === 'aprovado' ? 'aguardando retirada' : 'devolução até ' + data(s.dataPrevistaDevolucao) }}</small>
+            </span>
+            @if (atrasado(s)) { <em class="hist__atraso">atrasado</em> }
+          </a>
+        } @empty {
+          <p class="hist__vazio">Nenhuma unidade fora do laboratório.</p>
+        }
+      </div>
+
+      <div class="hist__cartao">
+        <h2>Avarias e faltas</h2>
+        @for (m of ocorrencias(); track m.id) {
+          <a class="hist__linha" routerLink="/admin/manutencao">
+            <span>
+              <span class="hist__selo hist__selo--{{ selo(m) }}">{{ rotulo(m) }}</span>
+              {{ m.quantidade }} un. · {{ m.descricao }}
+              <small>
+                {{ m.protocolo }} · {{ data(m.dataRegistro) }} ·
+                {{ m.responsavel ? 'estava com ' + m.responsavel.nome : 'encontrado no laboratório' }} ·
+                {{ nomeStatusOc[m.status] }}
+              </small>
+            </span>
+          </a>
+        } @empty {
+          <p class="hist__vazio">Nenhuma avaria ou falta registrada.</p>
+        }
+      </div>
+    </div>
+
+    <div class="hist__cartao">
+      <h2>Empréstimos ({{ pedidos().length }})</h2>
+      <div class="hist__tabela">
+        <table>
+          <thead>
+            <tr><th>Pedido</th><th>Responsáveis</th><th>Un.</th><th>Retirada</th><th>Devolução</th><th>Situação</th></tr>
+          </thead>
+          <tbody>
+            @for (s of pedidos(); track s.id) {
+              <tr>
+                <td><a [routerLink]="['/pedidos', s.id]">{{ s.protocolo }}</a></td>
+                <td>{{ cadeia(s) }}</td>
+                <td>{{ quantidade(s) }}</td>
+                <td>{{ data(s.dataRetiradaEfetiva ?? s.dataPrevistaRetirada) }}</td>
+                <td>{{ data(s.dataDevolucaoEfetiva ?? s.dataPrevistaDevolucao) }}</td>
+                <td>
+                  {{ nomeStatusPedido[s.status] }}
+                  @for (m of ocorrenciasDoPedido(s); track m.id) {
+                    <span class="hist__selo hist__selo--{{ selo(m) }}">{{ rotulo(m) }}</span>
+                  }
+                </td>
+              </tr>
+            } @empty {
+              <tr><td colspan="6" class="hist__vazio">Este item ainda não foi emprestado.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  } @else {
+    <p class="hist__vazio">Equipamento não encontrado.</p>
+  }
+</section>

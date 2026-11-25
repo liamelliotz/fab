@@ -9,7 +9,7 @@ describe('Balcão: retirada e devolução com código', () => {
   let service: EmprestimoService;
 
   beforeEach(() => {
-    localStorage.clear();
+    localStorage.clear(); sessionStorage.clear();
     TestBed.configureTestingModule({ providers: [provideHttpClient()] });
     TestBed.inject(AuthService).entrarComoDemo('demo-admin'); // quem está no balcão
     service = TestBed.inject(EmprestimoService);
