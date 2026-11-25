@@ -6,6 +6,7 @@ import {
 } from '../auth/decorators/index.js';
 import { FiltroEquipamentoDto } from './dto/filtro-equipamento.dto.js';
 import { EquipamentosService } from './equipamentos.service.js';
+import { ApiErros } from '../common/swagger/api-erros.decorator.js';
 
 @ApiTags('equipamentos')
 @ApiBearerAuth()
@@ -17,6 +18,7 @@ export class EquipamentosController {
   ) {}
 
   @Get()
+  @ApiErros(400, 401)
   @ApiOperation({ summary: 'Lista equipamentos, com filtros e paginação.' })
   listar(
     @Query() filtro: FiltroEquipamentoDto,
@@ -26,6 +28,7 @@ export class EquipamentosController {
   }
 
   @Get(':id')
+  @ApiErros(401, 404)
   @ApiOperation({ summary: 'Detalhes de um equipamento.' })
   obter(@Param('id') id: string, @UsuarioAtual() usuario: UsuarioAutenticado) {
     return this.equipamentosService.obterPorId(id, usuario.perfil);

@@ -27,6 +27,7 @@ import {
   FiltroUsuarioDto,
 } from './dto/filtro-usuario.dto.js';
 import { UsuariosService } from './usuarios.service.js';
+import { ApiErros } from '../common/swagger/api-erros.decorator.js';
 
 /** Nenhuma rota devolve `senhaHash`: o service já entrega `UsuarioPublico`. */
 @ApiTags('usuarios')
@@ -39,6 +40,7 @@ export class UsuariosController {
   ) {}
 
   @Get()
+  @ApiErros(400, 401, 403)
   @Roles('admin')
   @ApiOperation({ summary: 'Lista usuários (admin), com filtros e paginação.' })
   listar(@Query() filtro: FiltroUsuarioDto) {
@@ -47,6 +49,7 @@ export class UsuariosController {
 
   // Precisa vir ANTES de GET /usuarios/:id, senão "resumo" seria lido como um id.
   @Get('resumo')
+  @ApiErros(401)
   @ApiOperation({
     summary:
       'Lista enxuta dos usuários ativos (qualquer logado): id, nome, departamento e habilitações.',
@@ -56,6 +59,7 @@ export class UsuariosController {
   }
 
   @Get(':id')
+  @ApiErros(401, 403, 404)
   @Roles('admin')
   @ApiOperation({ summary: 'Detalhes de um usuário (admin).' })
   obter(@Param('id') id: string) {
@@ -63,6 +67,7 @@ export class UsuariosController {
   }
 
   @Post()
+  @ApiErros(400, 401, 403, 409)
   @Roles('admin')
   @MensagemResposta('Usuário cadastrado.')
   @ApiOperation({ summary: 'Cria uma conta (admin).' })
@@ -71,6 +76,7 @@ export class UsuariosController {
   }
 
   @Patch(':id')
+  @ApiErros(400, 401, 403, 404, 409)
   @Roles('admin')
   @MensagemResposta('Usuário atualizado.')
   @ApiOperation({
@@ -86,6 +92,7 @@ export class UsuariosController {
   }
 
   @Patch(':id/status')
+  @ApiErros(400, 401, 403, 404, 409)
   @Roles('admin')
   @MensagemResposta('Status do usuário alterado.')
   @ApiOperation({
@@ -101,6 +108,7 @@ export class UsuariosController {
   }
 
   @Put(':id/habilitacoes')
+  @ApiErros(400, 401, 403, 404)
   @Roles('admin')
   @MensagemResposta('Habilitações atualizadas.')
   @ApiOperation({

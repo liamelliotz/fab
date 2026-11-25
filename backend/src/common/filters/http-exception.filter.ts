@@ -10,7 +10,7 @@ import { erroDoBancoParaHttp } from '../database/erro-do-banco.js';
 import type { RespostaApi } from '../dto/resposta-api.dto.js';
 
 /** Mensagens em português para os códigos que o front trata (veja docs/contrato-api.md). */
-const MENSAGEM_PADRAO: Record<number, string> = {
+export const MENSAGEM_PADRAO: Record<number, string> = {
   400: 'Requisição inválida.',
   401: 'Não autenticado. Entre novamente.',
   403: 'Você não tem permissão para esta ação.',
