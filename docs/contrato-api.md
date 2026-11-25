@@ -6,7 +6,7 @@
 
 Legenda da coluna Situação: **pronto** (já funciona no código) ou o **card** do Trello que entrega.
 
-**Conferência E6 (18/11/2026, commit `9afefa6`, modo memória):** o Swagger expôs 8 das 43 operações deste contrato: login, sessão atual, listagem, resumo, detalhe e criação de usuários, além de listagem e detalhe de equipamentos. As outras 35 operações do contrato não apareceram nessa versão. Esta conferência compara métodos e caminhos no OpenAPI. A validação funcional de cada rota e a atualização da coluna Situação ficam para a versão com as dependências integradas. Depois dessa conferência entraram na `main` os cards A4 a A7 (usuários, senha e login real) e C2 a C4 (solicitar, listar, detalhar, avaliar e cancelar empréstimos); refaça a contagem no Swagger antes do ensaio.
+**Conferência E6 (18/11/2026, commit `9afefa6`, modo memória):** o Swagger expôs 8 das 43 operações deste contrato: login, sessão atual, listagem, resumo, detalhe e criação de usuários, além de listagem e detalhe de equipamentos. As outras 35 operações do contrato não apareceram nessa versão. Esta conferência compara métodos e caminhos no OpenAPI. A validação funcional de cada rota e a atualização da coluna Situação ficam para a versão com as dependências integradas. **Conferência de 25/11/2026 (main após o PR #41, modo memória):** o Swagger expõe 19 das 43 operações, todas marcadas como **pronto** abaixo: as 4 de autenticação, as 7 de usuários, as 2 leituras de equipamentos e as 6 de empréstimos (solicitar, listar, meus, detalhe, avaliar e cancelar). As outras 24 continuam com o card que as entrega.
 
 ## 1. Regras gerais
 
@@ -102,12 +102,12 @@ Parâmetros: `pagina` (padrão 1) e `itensPorPagina` (padrão 10, máximo 100).
 
 | Método e rota | Quem | Entrada | `dados` | Erros | Situação |
 | --- | --- | --- | --- | --- | --- |
-| `POST /emprestimos` | logado | `{ itens: [{ equipamentoId, quantidade, observacoes? }], justificativa, dataPrevistaRetirada, dataPrevistaDevolucao }` | `Emprestimo` (pendente) | 400, 404, 409 | C2 |
-| `GET /emprestimos/meus` | logado | `status?`, paginação | página de `Emprestimo` (sou solicitante, responsável ou destinatário de transferência) | 400 | C3 |
-| `GET /emprestimos` | admin | `status?, solicitanteId?, dataInicio?, dataFim?, atrasadosApenas?`, paginação | página de `Emprestimo` | 400 | C3 |
-| `GET /emprestimos/:id` | participante ou admin | — | `Emprestimo` | 403, 404 | C3 |
-| `PATCH /emprestimos/:id/avaliar` | admin | `{ aprovado, motivo? }` | `Emprestimo` | 400, 404, 409 | C4 |
-| `PATCH /emprestimos/:id/cancelar` | solicitante | — | `Emprestimo` | 403, 404, 409 | C4 |
+| `POST /emprestimos` | logado | `{ itens: [{ equipamentoId, quantidade, observacoes? }], justificativa, dataPrevistaRetirada, dataPrevistaDevolucao }` | `Emprestimo` (pendente) | 400, 404, 409 | pronto |
+| `GET /emprestimos/meus` | logado | `status?`, paginação | página de `Emprestimo` (sou solicitante, responsável ou destinatário de transferência) | 400 | pronto |
+| `GET /emprestimos` | admin | `status?, solicitanteId?, dataInicio?, dataFim?, atrasadosApenas?`, paginação | página de `Emprestimo` | 400 | pronto |
+| `GET /emprestimos/:id` | participante ou admin | — | `Emprestimo` | 403, 404 | pronto |
+| `PATCH /emprestimos/:id/avaliar` | admin | `{ aprovado, motivo? }` | `Emprestimo` | 400, 404, 409 | pronto |
+| `PATCH /emprestimos/:id/cancelar` | solicitante | — | `Emprestimo` | 403, 404, 409 | pronto |
 | `GET /emprestimos/balcao/consulta` | admin | `codigo` | `{ tipo: "retirada" ou "devolucao", emprestimo }` | 400, 404 | C5 |
 | `POST /emprestimos/balcao/retirada` | admin | `{ codigo }` | `Emprestimo` (em andamento) | 400, 404, 409 | C5 |
 | `POST /emprestimos/balcao/devolucao` | admin | `{ codigo, houveAvaria, observacoes? }` | `Emprestimo` (devolvido) | 400, 404, 409 | C5 |

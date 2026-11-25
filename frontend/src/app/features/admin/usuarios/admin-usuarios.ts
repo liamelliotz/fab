@@ -19,6 +19,7 @@ import {
   formatarTelefone,
   telefoneValido,
 } from '../../../core/utils/validation.utils';
+import { DialogoDirective } from '../../../shared/directives/dialogo.directive';
 
 type Campo = 'nome' | 'email' | 'cpf' | 'telefone' | 'senha';
 
@@ -36,7 +37,7 @@ const POR_PAGINA = 10;
 @Component({
   selector: 'app-admin-usuarios',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, DialogoDirective],
   templateUrl: './admin-usuarios.html',
   styleUrl: './admin-usuarios.css',
 })

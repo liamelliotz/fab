@@ -18,6 +18,7 @@ import {
   MENSAGEM_RECUPERACAO,
   RedefinicaoSenhaService,
 } from './senha/redefinicao-senha.service.js';
+import { ApiErros } from '../common/swagger/api-erros.decorator.js';
 
 /** Tentativas de login por minuto, por IP. Protege contra adivinhação de senha. */
 export const LIMITE_DE_LOGIN = { limit: 5, ttl: 60_000 };
@@ -38,6 +39,7 @@ export class AuthController {
   ) {}
 
   @Post('login')
+  @ApiErros(400, 401, 403, 429)
   @Public()
   @Throttle({ default: LIMITE_DE_LOGIN })
   @HttpCode(HttpStatus.OK)
@@ -48,6 +50,7 @@ export class AuthController {
   }
 
   @Get('me')
+  @ApiErros(401)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Dados do usuário logado.' })
   me(@UsuarioAtual('sub') usuarioId: string) {
@@ -55,6 +58,7 @@ export class AuthController {
   }
 
   @Post('recuperar-senha')
+  @ApiErros(400, 429)
   @Public()
   @Throttle({ default: LIMITE_DE_RECUPERACAO })
   @HttpCode(HttpStatus.OK)
@@ -68,6 +72,7 @@ export class AuthController {
   }
 
   @Post('redefinir-senha')
+  @ApiErros(400, 429)
   @Public()
   @Throttle({ default: LIMITE_DE_REDEFINICAO })
   @HttpCode(HttpStatus.OK)

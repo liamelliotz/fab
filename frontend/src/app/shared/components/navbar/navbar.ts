@@ -41,6 +41,16 @@ export class Navbar {
     ),
   );
 
+  /**
+   * Nome lido pelo leitor de tela. Inclui as novidades, porque o número na bolinha
+   * é só visual (e o aria-label do link esconderia o texto dela).
+   */
+  rotuloDoLink(item: NavItem): string {
+    const novidades = item.badge?.() ?? 0;
+    if (novidades === 0) return item.label;
+    return `${item.label}, ${novidades} ${novidades === 1 ? 'novidade' : 'novidades'}`;
+  }
+
   /** Encerra a sessão e volta para a tela de login. */
   sair(): void {
     this.auth.logout();

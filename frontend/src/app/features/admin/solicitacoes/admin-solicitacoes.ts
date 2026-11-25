@@ -8,8 +8,9 @@ import { EmprestimoAdminService, mensagemErroAdmin } from '../../../core/service
 import { NOME_STATUS_EMPRESTIMO } from '../../../core/services/emprestimo.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { formatarData } from '../../../core/utils/date.utils';
+import { DialogoDirective } from '../../../shared/directives/dialogo.directive';
 
-@Component({ selector: 'app-admin-solicitacoes', standalone: true, imports: [RouterLink],
+@Component({ selector: 'app-admin-solicitacoes', standalone: true, imports: [RouterLink, DialogoDirective],
   templateUrl: './admin-solicitacoes.html', styleUrl: './admin-solicitacoes.css' })
 export class AdminSolicitacoes {
   readonly service = inject(EmprestimoAdminService);

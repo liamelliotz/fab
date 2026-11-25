@@ -23,6 +23,7 @@ import { FiltroEmprestimoDto } from './dto/filtro-emprestimo.dto.js';
 import { SolicitarEmprestimoDto } from './dto/solicitar-emprestimo.dto.js';
 import type { EmprestimoResposta } from './emprestimo.resposta.js';
 import { EmprestimosService } from './emprestimos.service.js';
+import { ApiErros } from '../common/swagger/api-erros.decorator.js';
 
 @ApiTags('emprestimos')
 @ApiBearerAuth()
@@ -35,6 +36,11 @@ export class EmprestimosController {
 
   /** POST /emprestimos: o solicitante vem do token, nunca do corpo. */
   @Post()
+  @ApiErros(400, 401, 404, 409)
+  @ApiOperation({
+    summary:
+      'Abre um pedido de empréstimo (fica pendente). O solicitante vem do token.',
+  })
   solicitar(
     @Body() dto: SolicitarEmprestimoDto,
     @UsuarioAtual() usuario: UsuarioAutenticado,
@@ -44,6 +50,10 @@ export class EmprestimosController {
 
   /** GET /emprestimos (admin): todos os pedidos, com filtros e paginação. */
   @Get()
+  @ApiErros(400, 401, 403)
+  @ApiOperation({
+    summary: 'Lista todos os pedidos (admin), com filtros e paginação.',
+  })
   listarTodos(
     @Query() filtro: FiltroEmprestimoDto,
     @UsuarioAtual() usuario: UsuarioAutenticado,
@@ -56,6 +66,11 @@ export class EmprestimosController {
    * senão "meus" seria lido como um id.
    */
   @Get('meus')
+  @ApiErros(400, 401)
+  @ApiOperation({
+    summary:
+      'Pedidos em que sou solicitante, responsável ou destinatário de transferência.',
+  })
   listarMeus(
     @Query() paginacao: PaginacaoDto,
     @UsuarioAtual() usuario: UsuarioAutenticado,
@@ -65,6 +80,11 @@ export class EmprestimosController {
 
   /** GET /emprestimos/:id: participante ou admin (outro professor recebe 403). */
   @Get(':id')
+  @ApiErros(401, 403, 404)
+  @ApiOperation({
+    summary:
+      'Detalhe de um pedido, com itens e linha do tempo (participante ou admin).',
+  })
   buscarPorId(
     @Param('id') id: string,
     @UsuarioAtual() usuario: UsuarioAutenticado,
@@ -73,6 +93,7 @@ export class EmprestimosController {
   }
 
   @Patch(':id/avaliar')
+  @ApiErros(400, 401, 403, 404, 409)
   @Roles('admin')
   @ApiOperation({ summary: 'Aprovar ou rejeitar um pedido de empréstimo' })
   async avaliar(
@@ -85,6 +106,7 @@ export class EmprestimosController {
   }
 
   @Patch(':id/cancelar')
+  @ApiErros(401, 403, 404, 409)
   @ApiOperation({ summary: 'Cancelar um pedido de empréstimo pendente' })
   async cancelar(
     @Param('id') id: string,

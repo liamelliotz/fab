@@ -82,7 +82,8 @@ button:disabled {
   cursor: not-allowed;
 }
 :is(button, a, input, select, textarea):focus-visible {
-  outline: 3px solid rgba(0, 184, 169, 0.45);
+  /* Cor sólida: o anel translúcido antigo tinha contraste baixo (WCAG 2.4.7 e 1.4.11). */
+  outline: 3px solid #00796b;
   outline-offset: 2px;
 }
 

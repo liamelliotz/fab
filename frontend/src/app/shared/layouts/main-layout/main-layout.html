@@ -1,6 +1,7 @@
+<a class="pular-conteudo" href="#conteudo" (click)="pularParaConteudo($event)">Pular para o conteúdo</a>
 <div class="layout">
   <app-navbar />
-  <main class="content">
+  <main id="conteudo" class="content" tabindex="-1">
     <router-outlet />
   </main>
 </div>
