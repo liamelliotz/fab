@@ -46,7 +46,7 @@ export const USUARIOS_SEED: UsuarioSeed[] = [
   {
     ...base,
     id: USUARIO_IDS.professor,
-    nome: 'Professor Demonstração',
+    nome: 'Pedro Almeida',
     email: 'professor@fab.com',
     senha: 'prof123',
     cpf: '11144477735',

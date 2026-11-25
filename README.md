@@ -325,7 +325,7 @@ git push -u origin feature/d2-movimentacoes
 | Login do front pela API (JWT) e telas de "esqueci minha senha" | ✅ Pronto |
 | Telas de Usuários e Configurações ligadas à API | ✅ Pronto |
 | Base da API: login com JWT, permissões, envelope de resposta, catálogo de equipamentos | ✅ Pronto |
-| Banco de dados modelado e testado (13 tabelas) | ✅ Pronto |
+| Banco de dados modelado e testado (12 tabelas) | ✅ Pronto |
 | Rotas de usuários, empréstimos, balcão, transferência e manutenção | 🚧 Em desenvolvimento |
 | Módulo de insumos (tabelas e regras definidas) | 🚧 Em desenvolvimento |
 | API gravando no PostgreSQL (hoje os dados ficam em memória) | 🚧 Em desenvolvimento |

@@ -185,7 +185,7 @@ Na resposta, `Emprestimo` traz objetos resumidos (`solicitante`, `responsavel`, 
 | Conta | E-mail | Senha |
 | --- | --- | --- |
 | Administrador | `admin@fab.com` | `admin123` |
-| Professor Demonstração (habilitado na Impressora 3D) | `professor@fab.com` | `prof123` |
+| Pedro Almeida, professor (habilitado na Impressora 3D) | `professor@fab.com` | `prof123` |
 | João, Maria, Carlos | `joao@`, `maria@`, `carlos@escola.br` | `prof123` |
 | Ana (habilitada na Impressora 3D e no Osciloscópio) | `ana@escola.br` | `prof123` |
 
