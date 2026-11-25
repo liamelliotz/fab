@@ -25,11 +25,11 @@ O nome faz alusão à avenida de maior fluxo de Macapá (AP).
 
 ## Como rodar
 
-Pré-requisitos: Node.js (versão LTS recente) e Angular CLI.
+Use Node.js 24. Os scripts npm usam a Angular CLI instalada no projeto.
 
 ```bash
 cd frontend
-npm install
+npm ci
 npm start        # login real: suba o backend antes (porta 3000)
 npm run demo     # demonstração: não precisa de backend
 ```
@@ -39,18 +39,24 @@ Acesse **http://localhost:4200**.
 ### Build e servidor SSR
 
 ```bash
-ng build
+npm run build
 ```
 
 Depois, sirva o resultado com o Node (o servidor Express escuta na porta **4000**, ou em `PORT`):
 
 ```bash
-node dist/frontend/server/server.mjs
+npm run serve:ssr:frontend
 ```
 
 > O caminho acima assume o nome de projeto `frontend`. Confira o `outputPath` no `angular.json` ou um script `serve:ssr` no `package.json`.
 
 O `angular.json` libera o host `localhost` em `security.allowedHosts`. Se publicar em outro domínio, inclua-o ali.
+
+## Execução integrada e hospedagem
+
+Suba primeiro o backend pelo [guia de instalação](../README.md) e confirme as chamadas reais no painel **Rede** do navegador. O endereço local da API é `http://localhost:3000/api`. O `npm start` já usa a API (`modoDemo: false` em `src/environments/environment.development.ts`); se a API estiver em outro endereço, ajuste `apiUrl` nesse arquivo. Confira quais telas da versão usada chamam a API antes do ensaio.
+
+Para a publicação, quando a hospedagem for definida, configure `apiUrl` em `src/environments/environment.ts` com a URL HTTPS do backend, incluindo `/api`, e gere um novo build. Cadastre a origem publicada do frontend em `CORS_ORIGINS` no backend.
 
 ## Login real e modo demonstração
 

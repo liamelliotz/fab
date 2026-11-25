@@ -1,3 +1,25 @@
+# FAB | API do backend
+
+A instalação a partir do zero está no [README da raiz](../README.md). Execute os comandos npm desta página dentro de `backend/`.
+
+## Rotas e persistência
+
+O prefixo da API é `/api`. Em desenvolvimento, abra <http://localhost:3000/api/docs>. Faça login em `POST /api/auth/login` e use o token em **Authorize** para conferir rotas protegidas. O [contrato da API](../docs/contrato-api.md) lista os métodos, perfis e responsáveis pelas rotas. Confira o método e o caminho no Swagger e execute uma chamada com o perfil exigido antes de marcar a rota como pronta.
+
+| PERSISTENCIA | Como usar |
+| --- | --- |
+| `memoria` | Padrão local. Os dados retornam ao estado inicial ao reiniciar a API. |
+| `postgres` | Configure `DATABASE_URL`, suba o banco e execute `npm run db:migrate`. A cobertura PostgreSQL depende da implementação de cada módulo. |
+
+## Testes e ambiente de produção
+
+- `npm test` executa os testes unitários.
+- `npm run test:e2e` executa a integração em memória.
+- `npm run test:e2e:postgres` executa a integração em PostgreSQL. Use um banco exclusivo e descartável. Na versão com o script do E5, configure `E5_DATABASE_URL` com um banco cujo nome termina em `_test`. O script aplica migrações e carrega o seed. Na versão anterior ao E5, configure `DATABASE_URL` e rode `npm run db:reset` nesse banco de teste antes da suíte.
+- `npm run db:reset` repõe os dados de exemplo. Reserve-o para bancos descartáveis.
+
+Em produção, configure `NODE_ENV=production`, `PERSISTENCIA=postgres`, `DATABASE_URL`, `JWT_SECRET` aleatório com pelo menos 32 caracteres e `CORS_ORIGINS` com as origens HTTPS autorizadas do frontend. Ajuste `PORT` conforme a plataforma, `APP_TIMEZONE=America/Belem` e `JWT_EXPIRES_IN` conforme a política de sessão. Mantenha o Swagger com a configuração padrão de produção e aplique as migrações separadamente. Guarde os valores de acesso no ambiente da plataforma. Consulte [`.env.example`](.env.example).
+
 # FAB — Backend
 
 API do FAB (empréstimos de equipamentos e gestão de insumos), feita com **NestJS 12**.

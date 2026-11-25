@@ -149,11 +149,13 @@ npm run start:dev
 - API: <http://localhost:3000/api>
 - Swagger: <http://localhost:3000/api/docs>
 
-A API sobe mesmo sem o banco: por enquanto os dados ficam em memória e são recriados a cada reinício.
+O `.env.example` inicia com `PERSISTENCIA=memoria`. Os dados desse modo são recriados a cada reinício. Para usar PostgreSQL, siga [Banco de dados](#5--banco-de-dados).
+
+No Prompt de Comando do Windows, copie o ambiente com `copy .env.example .env` e execute `npm.cmd ci` e `npm.cmd run start:dev`. Use `npm.cmd` também nos comandos do frontend se o PowerShell bloquear `npm.ps1`.
 
 ### 4.4 Frontend
 
-Em **outro terminal**:
+Em **outro terminal, a partir da raiz do repositório**:
 
 ```bash
 cd frontend
@@ -330,7 +332,8 @@ git push -u origin feature/d2-movimentacoes
 | Módulo de insumos (tabelas e regras definidas) | 🚧 Em desenvolvimento |
 | API gravando no PostgreSQL (hoje os dados ficam em memória) | 🚧 Em desenvolvimento |
 | Frontend ligado à API | 🚧 Em desenvolvimento |
-| Testes do ciclo completo e entrega | ⏳ A fazer |
+| Testes do ciclo completo (E5) | Cenários preparados. Nas execuções de 17/11, os cadastros de equipamento e insumo retornaram 404. |
+| Documentação final e demonstração (E6) | Roteiro em preparação. Instalação independente e ensaio integrado pendentes. |
 
 A situação de cada rota está na coluna "Situação" de [`docs/contrato-api.md`](docs/contrato-api.md).
 
