@@ -16,9 +16,9 @@ import { EquipamentoService } from './equipamento.service';
 import { resumoDemo } from './usuario.service';
 import { EmprestimoService } from './emprestimo.service';
 
-const CHAVE_MANUTENCOES = 'fab_demo_v5_manutencoes';
+const CHAVE_MANUTENCOES = 'fab_demo_v6_manutencoes';
 /** Fotos ficam numa chave separada: se o navegador ficar sem espaço, só as fotos se perdem. */
-const CHAVE_FOTOS = 'fab_demo_v5_fotos';
+const CHAVE_FOTOS = 'fab_demo_v6_fotos';
 /** A demonstração guarda no máximo estas fotos (as mais novas). */
 const MAX_FOTOS = 12;
 
@@ -67,8 +67,8 @@ export interface NovaOcorrencia {
 }
 
 function criarManutencoesDemo(): Manutencao[] {
-  const admin = resumoDemo('demo-admin');
-  const prof = resumoDemo('demo-professor');
+  const admin = resumoDemo('usr-admin');
+  const prof = resumoDemo('usr-professor');
   const passo = (diasAtras: number, texto: string, por = admin): PassoManutencao => ({
     em: horasDepoisISO(-diasAtras * 24),
     por,

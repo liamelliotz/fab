@@ -87,13 +87,11 @@
           @if (getError('senha')) { <small class="erro">{{ getError('senha') }}</small> }
         </label>
 
-        @if (erroForm()) {
-          <p class="erro-geral campo--largo" role="alert">{{ erroForm() }}</p>
-        }
-
         <div class="rodape campo--largo">
           <button type="button" class="btn-sutil" (click)="alternarForm()">Cancelar</button>
-          <button type="submit" class="btn-novo">Criar conta</button>
+          <button type="submit" class="btn-novo" [disabled]="salvando()">
+            {{ salvando() ? 'Criando...' : 'Criar conta' }}
+          </button>
         </div>
       </form>
     </section>
@@ -102,15 +100,15 @@
   <section class="resumo">
     <div class="card">
       <p>Total de usuários</p>
-      <strong>{{ totalUsuarios() }}</strong>
+      <strong>{{ totais().usuarios }}</strong>
     </div>
     <div class="card card-admin">
       <p>Administradores</p>
-      <strong>{{ totalAdmins() }}</strong>
+      <strong>{{ totais().admins }}</strong>
     </div>
     <div class="card card-user">
       <p>Professores</p>
-      <strong>{{ totalProfessores() }}</strong>
+      <strong>{{ totais().professores }}</strong>
     </div>
   </section>
 
@@ -118,18 +116,19 @@
     <div class="topo-painel">
       <div>
         <h2>Contas cadastradas</h2>
-        <p>Desative quem não deve mais entrar e conceda habilitações para equipamentos com treinamento.</p>
+        <p>Desative ou bloqueie quem não deve mais entrar e conceda habilitações para equipamentos com treinamento.</p>
       </div>
       <input
         class="busca"
         type="search"
         placeholder="Buscar por nome, e-mail ou departamento"
         aria-label="Buscar usuário"
+        [value]="busca()"
         (input)="atualizarBusca($event)"
       />
     </div>
 
-    <div class="tabela-container">
+    <div class="tabela-container" [attr.aria-busy]="carregando()">
       <table>
         <thead>
           <tr>
@@ -142,7 +141,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (u of filtrados(); track u.id) {
+          @for (u of usuarios(); track u.id) {
             <tr [class.linha-inativa]="u.status !== 'ativo'">
               <td>
                 <strong>{{ u.nome }}</strong>
@@ -170,24 +169,43 @@
                     </button>
                   }
                   @if (!ehEu(u)) {
-                    <button type="button" class="botao-perfil" (click)="alterarPerfil(u)">
+                    <button type="button" class="botao-perfil" [disabled]="salvando()" (click)="alterarPerfil(u)">
                       Tornar {{ u.perfil === 'admin' ? 'professor' : 'admin' }}
                     </button>
-                    <button type="button" class="botao-perfil" [class.botao-perigo]="u.status === 'ativo'" (click)="alternarStatus(u)">
-                      {{ u.status === 'ativo' ? 'Desativar' : 'Reativar' }}
-                    </button>
+                    @if (u.status === 'ativo') {
+                      <button type="button" class="botao-perfil" [disabled]="salvando()" (click)="mudarStatus(u, 'inativo')">
+                        Desativar
+                      </button>
+                      <button type="button" class="botao-perfil botao-perigo" [disabled]="salvando()" (click)="mudarStatus(u, 'bloqueado')">
+                        Bloquear
+                      </button>
+                    } @else {
+                      <button type="button" class="botao-perfil" [disabled]="salvando()" (click)="mudarStatus(u, 'ativo')">
+                        Reativar
+                      </button>
+                    }
                   }
                 </div>
               </td>
             </tr>
           } @empty {
             <tr>
-              <td colspan="6" class="sem-resultados">Nenhum usuário encontrado.</td>
+              <td colspan="6" class="sem-resultados">
+                {{ carregando() ? 'Carregando usuários...' : 'Nenhum usuário encontrado.' }}
+              </td>
             </tr>
           }
         </tbody>
       </table>
     </div>
+
+    @if (resposta(); as r) {
+      <nav class="paginacao" aria-label="Páginas de usuários">
+        <button type="button" class="btn-sutil" [disabled]="!r.temAnterior || carregando()" (click)="mudarPagina(-1)">Anterior</button>
+        <span>Página {{ r.paginaAtual }} de {{ r.totalPaginas || 1 }} · {{ r.totalItens }} usuários</span>
+        <button type="button" class="btn-sutil" [disabled]="!r.temProxima || carregando()" (click)="mudarPagina(1)">Próxima</button>
+      </nav>
+    }
   </section>
 
   @if (habilitando(); as u) {
@@ -200,7 +218,7 @@
         </p>
         @for (e of treinaveis(); track e.id) {
           <label class="hab">
-            <input type="checkbox" [checked]="habilitadoEm(u, e)" (change)="alternarHabilitacao(u, e, $event)" />
+            <input type="checkbox" [checked]="habilitadoEm(e)" (change)="alternarHabilitacao(e, $event)" />
             <span>
               <strong>{{ e.nome }}</strong>
               <small>{{ e.codigoPatrimonio }}</small>
@@ -210,7 +228,10 @@
           <p class="modal__texto">Nenhum equipamento exige treinamento no momento.</p>
         }
         <div class="rodape">
-          <button type="button" class="btn-novo" (click)="fecharHabilitacoes()">Concluir</button>
+          <button type="button" class="btn-sutil" (click)="fecharHabilitacoes()">Cancelar</button>
+          <button type="button" class="btn-novo" [disabled]="salvando()" (click)="salvarHabilitacoes()">
+            {{ salvando() ? 'Salvando...' : 'Salvar habilitações' }}
+          </button>
         </div>
       </div>
     </div>

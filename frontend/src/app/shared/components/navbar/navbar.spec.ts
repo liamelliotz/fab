@@ -3,10 +3,16 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { Navbar } from './navbar';
 import { AuthService } from '../../../core/services/auth.service';
+import { environment } from '../../../../environments/environment';
+
+// Estes testes usam as contas da demonstração (entrarComoDemo): rodam com o modo demonstração ligado.
+const modoDemoDoAmbiente = environment.modoDemo;
+beforeEach(() => { environment.modoDemo = true; });
+afterEach(() => { environment.modoDemo = modoDemoDoAmbiente; });
 
 // Cria a navbar simulando um usuário logado com o perfil informado
 function criarNavbar(perfil: string): { fixture: ComponentFixture<Navbar>; element: HTMLElement } {
-  TestBed.inject(AuthService).entrarComoDemo(perfil === 'admin' ? 'demo-admin' : 'demo-professor');
+  TestBed.inject(AuthService).entrarComoDemo(perfil === 'admin' ? 'usr-admin' : 'usr-professor');
   const fixture = TestBed.createComponent(Navbar);
   fixture.detectChanges();
   return { fixture, element: fixture.nativeElement as HTMLElement };

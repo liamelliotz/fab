@@ -39,8 +39,8 @@ describe('ApiService', () => {
       const req = http.expectOne(`${API_URL}/usuarios/u1?ativo=true`);
       expect(req.request.method).toBe(metodo.toUpperCase());
       expect(req.request.body).toEqual({ nome: 'Ana' });
-      req.flush(envelope({ id: 'u1', nome: 'Ana' }));
-      expect(resultado).toEqual({ id: 'u1', nome: 'Ana' });
+      req.flush(envelope({ id: 'usr-joao', nome: 'Ana' }));
+      expect(resultado).toEqual({ id: 'usr-joao', nome: 'Ana' });
     });
   }
   it('delete aceita filtros e respostas com dados nulos', () => {

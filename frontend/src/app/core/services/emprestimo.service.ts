@@ -35,8 +35,8 @@ export const NOME_STATUS_EMPRESTIMO: Record<StatusEmprestimo, string> = {
   cancelado: 'Cancelado',
 };
 
-const CHAVE_EMPRESTIMOS = 'fab_demo_v5_emprestimos';
-const CHAVE_AVISOS = 'fab_demo_v5_avisos';
+const CHAVE_EMPRESTIMOS = 'fab_demo_v6_emprestimos';
+const CHAVE_AVISOS = 'fab_demo_v6_avisos';
 
 /** Aviso mostrado à coordenação (substitui o e-mail/notificação do sistema real). */
 export interface AvisoAdmin {
@@ -75,12 +75,12 @@ export interface ResumoDevolucao {
 export function criarEmprestimosDemo(): Emprestimo[] {
   const hoje = hojeISO();
   const d = (n: number) => somarDias(hoje, n);
-  const admin = resumoDemo('demo-admin');
-  const prof = resumoDemo('demo-professor');
-  const joao = resumoDemo('u1');
-  const maria = resumoDemo('u2');
-  const carlos = resumoDemo('u3');
-  const ana = resumoDemo('u4');
+  const admin = resumoDemo('usr-admin');
+  const prof = resumoDemo('usr-professor');
+  const joao = resumoDemo('usr-joao');
+  const maria = resumoDemo('usr-maria');
+  const carlos = resumoDemo('usr-carlos');
+  const ana = resumoDemo('usr-ana');
 
   const ev = (
     tipo: TipoEventoEmprestimo,

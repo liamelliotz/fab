@@ -7,6 +7,11 @@ import { AuthService } from './auth.service';
 import { criarEmprestimosDemo } from './emprestimo.service';
 import { API_URL } from '../constants/api.constants';
 
+// Estes testes usam as contas da demonstração (entrarComoDemo): rodam com o modo demonstração ligado.
+const modoDemoDoAmbiente = environment.modoDemo;
+beforeEach(() => { environment.modoDemo = true; });
+afterEach(() => { environment.modoDemo = modoDemoDoAmbiente; });
+
 const original = environment.modoDemo;
 describe('EmprestimoAdminService e contrato HTTP', () => {
   let service: EmprestimoAdminService;
@@ -20,12 +25,12 @@ describe('EmprestimoAdminService e contrato HTTP', () => {
   it('envia filtros e paginação à API e devolve a página do envelope', () => {
     const receber = vi.fn();
     service.listar({ status: 'aprovado', atrasadosApenas: true, pagina: 2, itensPorPagina: 10,
-      solicitanteId: 'u1', dataInicio: '2026-01-01', dataFim: '2026-12-31' }).subscribe(receber);
+      solicitanteId: 'usr-joao', dataInicio: '2026-01-01', dataFim: '2026-12-31' }).subscribe(receber);
     const req = http.expectOne((r) => r.url === `${API_URL}/emprestimos`);
     expect(req.request.method).toBe('GET');
     expect(req.request.params.get('pagina')).toBe('2');
     expect(req.request.params.get('atrasadosApenas')).toBe('true');
-    expect(req.request.params.get('solicitanteId')).toBe('u1');
+    expect(req.request.params.get('solicitanteId')).toBe('usr-joao');
     expect(req.request.params.get('status')).toBe('aprovado');
     const dados = { itens: [], totalItens: 0, paginaAtual: 2, totalPaginas: 0, itensPorPagina: 10, temProxima: false, temAnterior: true };
     req.flush({ sucesso: true, dados }); expect(receber).toHaveBeenCalledWith(dados);
@@ -61,7 +66,7 @@ describe('EmprestimoAdminService e contrato HTTP', () => {
     TestBed.resetTestingModule(); environment.modoDemo = true;
     TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
     http = TestBed.inject(HttpTestingController);
-    TestBed.inject(AuthService).entrarComoDemo('demo-admin');
+    TestBed.inject(AuthService).entrarComoDemo('usr-admin');
     service = TestBed.inject(EmprestimoAdminService);
     const receber = vi.fn();
     service.listar({ status: 'pendente', itensPorPagina: 1 }).subscribe(receber);
