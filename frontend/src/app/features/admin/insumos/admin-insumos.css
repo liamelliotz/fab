@@ -27,15 +27,14 @@
 .ins__metricas { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
 .ins__metrica {
   display: flex; flex-direction: column; gap: 4px; padding: 16px 18px; border-radius: 16px; background: #fff;
-  border: 1px solid var(--border-color); border-top: 4px solid #94a3b8; text-align: left; font: inherit; color: inherit;
+  border: 1px solid #e5ebe8; text-align: left; font: inherit; color: inherit;
 }
 .ins__metrica span { font-size: 0.85rem; color: var(--text-secondary); }
 .ins__metrica strong { font-size: 2rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
 .ins__metrica small { font-size: 0.76rem; color: var(--text-secondary); }
-.ins__metrica--alerta { border-top-color: #ef4444; cursor: pointer; }
+.ins__metrica--alerta { cursor: pointer; }
+.ins__metrica--alerta strong { color: #b91c1c; }
 .ins__metrica--alerta:hover { background: #fef2f2; }
-.ins__metrica--zero { border-top-color: #10b981; }
-.ins__metrica--prev { border-top-color: #f59e0b; }
 .ins__metrica .ins__metrica-nome { font-size: 1.05rem; line-height: 1.3; padding: 6px 0 2px; }
 
 /* Abas e filtros */

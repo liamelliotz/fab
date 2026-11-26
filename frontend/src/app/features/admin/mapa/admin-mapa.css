@@ -4,14 +4,10 @@
 .mapa__aviso { margin: 0; padding: 10px 14px; border-radius: 12px; background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; display: flex; gap: 8px; align-items: center; }
 
 .mapa__metricas { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
-.mapa__metrica { display: flex; flex-direction: column; gap: 4px; padding: 14px 18px; border-radius: 16px; background: #fff; border: 1px solid var(--border-color); border-top: 4px solid #94a3b8; }
+.mapa__metrica { display: flex; flex-direction: column; gap: 4px; padding: 14px 18px; border-radius: 16px; background: #fff; border: 1px solid #e5ebe8; }
 .mapa__metrica span { font-size: 0.85rem; color: var(--text-secondary); }
 .mapa__metrica strong { font-size: 1.9rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
 .mapa__metrica small { font-size: 0.76rem; color: var(--text-secondary); }
-.mapa__metrica--uso { border-top-color: #2563eb; }
-.mapa__metrica--guarda { border-top-color: #10b981; }
-.mapa__metrica--manut { border-top-color: #f59e0b; }
-.mapa__metrica--falta { border-top-color: #ef4444; }
 
 /* Busca e camadas */
 .mapa__ferramentas { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
