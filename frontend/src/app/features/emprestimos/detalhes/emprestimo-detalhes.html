@@ -101,6 +101,9 @@
           (pedidos atrasados não podem ser transferidos).
         </p>
       }
+      @if (p.motivoCancelamento) {
+        <p class="det__alerta">Motivo do cancelamento: {{ p.motivoCancelamento }}</p>
+      }
       @if (p.motivoRejeicao) {
         <p class="det__alerta">Motivo da reprovação: {{ p.motivoRejeicao }}</p>
       }
@@ -121,7 +124,7 @@
             </button>
           }
           @if (podeCancelarPedido()) {
-            <button type="button" class="det__btn det__btn--perigo" (click)="cancelarPedido()">
+            <button type="button" class="det__btn det__btn--perigo" (click)="cancelamentoAberto.set(true)">
               Cancelar pedido
             </button>
           }
@@ -222,6 +225,9 @@
 
       @if (dialogoAberto()) {
         <app-transferir-dialog [pedido]="p" (fechar)="dialogoAberto.set(false)" />
+      }
+      @if (cancelamentoAberto()) {
+        <app-cancelar-dialog [pedido]="p" (fechar)="cancelamentoAberto.set(false)" />
       }
     } @else {
       <p class="det__vazio">Você não tem acesso a este pedido.</p>

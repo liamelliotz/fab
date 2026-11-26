@@ -1,21 +1,16 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import {
-  LOCAIS_ESCOLA,
-  LocalEscola,
-  NOME_ESCOLA_MODELO,
-  buscarLocal,
-} from '../../../core/constants/escola-modelo.constants';
+import { NOME_ESCOLA_MODELO, buscarLocal } from '../../../core/constants/escola-modelo.constants';
 import { AuthService } from '../../../core/services/auth.service';
 import { EquipamentoService } from '../../../core/services/equipamento.service';
 import { ItemNoLocal, MapaService, ResumoLocal, SituacaoNoLocal } from '../../../core/services/mapa.service';
 import { formatarDataHora } from '../../../core/utils/date.utils';
 
-type Camada = 'tudo' | 'em_uso' | 'guardado' | 'manutencao' | 'insumo';
+type Filtro = 'tudo' | 'equipamentos' | 'em_uso' | 'manutencao' | 'insumo';
 
 export const NOME_SITUACAO: Record<SituacaoNoLocal, string> = {
   guardado: 'Guardado',
-  reservado: 'Reservado para retirada',
+  reservado: 'Reservado',
   em_uso: 'Em uso',
   manutencao: 'Em manutenção',
   nao_localizado: 'Não localizado',
@@ -23,10 +18,11 @@ export const NOME_SITUACAO: Record<SituacaoNoLocal, string> = {
   insumo: 'Insumo',
 };
 
+const ORDEM: SituacaoNoLocal[] = ['em_uso', 'reservado', 'manutencao', 'nao_localizado', 'guardado', 'inativo', 'insumo'];
+
 /**
- * MAPA DE ITENS: a planta da escola fictícia com o que está em cada sala agora.
- * Tudo vem dos registros (pedido, balcão, transferência, manutenção e insumos): para mudar o que
- * aparece aqui é preciso registrar o movimento, nunca editar o mapa.
+ * MAPA DE ITENS: em que sala da escola fictícia cada material está agora.
+ * Tudo vem dos registros (pedido, balcão, transferência, manutenção e insumos); o mapa nunca é editado à mão.
  */
 @Component({
   selector: 'app-admin-mapa',
@@ -44,23 +40,11 @@ export class AdminMapa {
   readonly nomeSituacao = NOME_SITUACAO;
   readonly dataHora = formatarDataHora;
 
-  readonly camada = signal<Camada>('tudo');
-  readonly camadas: { id: Camada; nome: string; icone: string }[] = [
-    { id: 'tudo', nome: 'Tudo', icone: 'fa-layer-group' },
-    { id: 'em_uso', nome: 'Em uso', icone: 'fa-person-chalkboard' },
-    { id: 'guardado', nome: 'Guardados', icone: 'fa-warehouse' },
-    { id: 'manutencao', nome: 'Manutenção', icone: 'fa-screwdriver-wrench' },
-    { id: 'insumo', nome: 'Insumos', icone: 'fa-boxes-stacked' },
-  ];
   readonly selecionado = signal<string>('lab-maker');
+  readonly filtro = signal<Filtro>('tudo');
   readonly busca = signal('');
-  readonly equipamentoBuscado = signal('');
 
-  /** Locais desenhados na planta (sem o externo). */
-  readonly planta = computed(() => this.mapa.locais().filter((r) => r.local.tipo !== 'externo'));
-  readonly assistencia = computed(() => this.mapa.locais().find((r) => r.local.id === 'assistencia')!);
-  readonly semLocal = this.mapa.semLocal;
-  readonly movimentos = this.mapa.movimentos;
+  readonly movimentos = computed(() => this.mapa.movimentos().slice(0, 8));
 
   readonly totais = computed(() => {
     const itens = this.mapa.itens();
@@ -70,74 +54,41 @@ export class AdminMapa {
       guardados: soma((i) => i.situacao === 'guardado' || i.situacao === 'reservado'),
       manutencao: soma((i) => i.situacao === 'manutencao'),
       naoLocalizados: soma((i) => i.situacao === 'nao_localizado'),
-      locaisEmUso: new Set(itens.filter((i) => i.situacao === 'em_uso' && i.localId).map((i) => i.localId)).size,
     };
   });
 
-  readonly resumoSelecionado = computed(() => this.mapa.locais().find((r) => r.local.id === this.selecionado()) ?? null);
-
-  /** Itens do local escolhido, filtrados pela camada e agrupados em ordem de importância. */
-  readonly itensSelecionados = computed(() => {
-    const r = this.resumoSelecionado();
-    if (!r) return [];
-    const ordem: SituacaoNoLocal[] = ['em_uso', 'reservado', 'manutencao', 'guardado', 'inativo', 'insumo'];
-    return r.itens
-      .filter((i) => this.passaNaCamada(i))
-      .sort((a, b) => ordem.indexOf(a.situacao) - ordem.indexOf(b.situacao) || a.nome.localeCompare(b.nome));
+  /** Locais agrupados por bloco, na ordem da planta. A assistência técnica (fora da escola) fica no fim. */
+  readonly blocos = computed(() => {
+    const grupos = new Map<string, ResumoLocal[]>();
+    for (const r of this.mapa.locais()) {
+      const lista = grupos.get(r.local.bloco) ?? [];
+      lista.push(r);
+      grupos.set(r.local.bloco, lista);
+    }
+    return [...grupos.entries()].map(([nome, locais]) => ({ nome, locais }));
   });
 
-  // "Onde está?"
-  readonly opcoesBusca = computed(() => {
-    const termo = this.busca().trim().toLowerCase();
-    if (termo.length < 2) return [];
-    return this.equipamentos
-      .itens()
-      .filter((e) => `${e.nome} ${e.codigoPatrimonio}`.toLowerCase().includes(termo))
-      .slice(0, 6);
-  });
+  readonly localSelecionado = computed(() => this.mapa.locais().find((r) => r.local.id === this.selecionado()) ?? null);
+
+  readonly itensDoLocal = computed(() =>
+    (this.localSelecionado()?.itens ?? [])
+      .filter((i) => this.passaNoFiltro(i))
+      .sort((a, b) => ORDEM.indexOf(a.situacao) - ORDEM.indexOf(b.situacao) || a.nome.localeCompare(b.nome)),
+  );
+
+  /** "Onde está?": todas as posições dos equipamentos e insumos que batem com o texto. */
   readonly resultadoBusca = computed(() => {
-    const id = this.equipamentoBuscado();
-    if (!id) return null;
-    const e = this.equipamentos.buscarPorId(id);
-    if (!e) return null;
-    return { equipamento: e, onde: this.mapa.ondeEsta(id) };
+    const termo = this.busca().trim().toLowerCase();
+    if (termo.length < 2) return null;
+    return this.mapa
+      .itens()
+      .filter((i) => `${i.nome} ${i.patrimonio ?? ''}`.toLowerCase().includes(termo))
+      .sort((a, b) => a.nome.localeCompare(b.nome) || ORDEM.indexOf(a.situacao) - ORDEM.indexOf(b.situacao));
   });
-  /** Locais destacados na planta pela busca. */
-  readonly destacados = computed(() => new Set(this.resultadoBusca()?.onde.map((i) => i.localId) ?? []));
 
-  passaNaCamada(i: ItemNoLocal): boolean {
-    switch (this.camada()) {
-      case 'tudo': return true;
-      case 'em_uso': return i.situacao === 'em_uso';
-      case 'guardado': return i.situacao === 'guardado' || i.situacao === 'reservado' || i.situacao === 'inativo';
-      case 'manutencao': return i.situacao === 'manutencao' || i.situacao === 'nao_localizado';
-      case 'insumo': return i.situacao === 'insumo';
-    }
-  }
-
-  /** Número grande mostrado na sala, conforme a camada escolhida. */
-  numeroDaSala(r: ResumoLocal): number {
-    switch (this.camada()) {
-      case 'em_uso': return r.emUso;
-      case 'guardado': return r.guardados;
-      case 'manutencao': return r.manutencao;
-      case 'insumo': return r.insumos;
-      default: return r.emUso + r.guardados + r.manutencao;
-    }
-  }
-
-  /** Classe de cor da sala: em uso (azul), atraso (vermelho), manutenção (âmbar), guardado (verde). */
-  tom(r: ResumoLocal): string {
-    const c = this.camada();
-    if (c === 'insumo') return r.insumos ? 'insumo' : 'vazio';
-    if (c === 'manutencao') return r.manutencao ? 'manutencao' : 'vazio';
-    if (c === 'guardado') return r.guardados ? 'guardado' : 'vazio';
-    if (r.atrasados) return 'atraso';
-    if (r.emUso) return 'uso';
-    if (c === 'em_uso') return 'vazio';
-    if (r.manutencao) return 'manutencao';
-    if (r.guardados) return 'guardado';
-    return r.insumos ? 'insumo' : 'vazio';
+  /** Total mostrado em cada sala da planta (unidades de equipamento; insumos à parte). */
+  totalDaSala(r: ResumoLocal): number {
+    return r.emUso + r.guardados + r.manutencao;
   }
 
   rotuloSala(r: ResumoLocal): string {
@@ -146,49 +97,39 @@ export class AdminMapa {
       r.guardados ? `${r.guardados} guardado(s)` : '',
       r.manutencao ? `${r.manutencao} em manutenção` : '',
       r.insumos ? `${r.insumos} insumo(s)` : '',
-      r.atrasados ? `${r.atrasados} com atraso` : '',
     ].filter(Boolean);
     return `${r.local.nome}: ${partes.length ? partes.join(', ') : 'nenhum item'}`;
   }
 
-  escolher(local: LocalEscola | string): void {
-    this.selecionado.set(typeof local === 'string' ? local : local.id);
+  passaNoFiltro(i: ItemNoLocal): boolean {
+    switch (this.filtro()) {
+      case 'tudo': return true;
+      case 'equipamentos': return i.situacao !== 'insumo';
+      case 'em_uso': return i.situacao === 'em_uso' || i.situacao === 'reservado';
+      case 'manutencao': return i.situacao === 'manutencao' || i.situacao === 'nao_localizado';
+      case 'insumo': return i.situacao === 'insumo';
+    }
   }
 
-  aoTeclar(evento: KeyboardEvent, local: LocalEscola): void {
-    if (evento.key === 'Enter' || evento.key === ' ') {
-      evento.preventDefault();
-      this.escolher(local);
-    }
+  escolher(id: string | null): void {
+    if (!id) return;
+    this.selecionado.set(id);
+    this.busca.set('');
   }
 
   digitarBusca(evento: Event): void {
     this.busca.set((evento.target as HTMLInputElement).value);
-    this.equipamentoBuscado.set('');
   }
 
-  buscarEquipamento(id: string): void {
-    this.equipamentoBuscado.set(id);
-    const e = this.equipamentos.buscarPorId(id);
-    this.busca.set(e?.nome ?? '');
-    const primeiro = this.mapa.ondeEsta(id).find((i) => i.localId);
-    if (primeiro?.localId) this.selecionado.set(primeiro.localId);
-  }
-
-  limparBusca(): void {
-    this.busca.set('');
-    this.equipamentoBuscado.set('');
+  mudarFiltro(evento: Event): void {
+    this.filtro.set((evento.target as HTMLSelectElement).value as Filtro);
   }
 
   nomeDoLocal(id: string | null): string {
-    return id ? (buscarLocal(id)?.nome ?? 'Local desconhecido') : 'Sem local na planta';
+    return id ? (buscarLocal(id)?.nome ?? 'Local desconhecido') : 'Não localizado';
   }
 
-  /** Blocos para os rótulos da planta. */
-  readonly blocos = [
-    { nome: 'Bloco A · Salas de aula', y: 40 },
-    { nome: 'Bloco B · Laboratórios', y: 226 },
-    { nome: 'Bloco C · Administração', y: 430 },
-  ];
-  readonly locais = LOCAIS_ESCOLA;
+  historico(i: ItemNoLocal): string | null {
+    return i.equipamentoId && this.equipamentos.buscarPorId(i.equipamentoId) ? i.equipamentoId : null;
+  }
 }

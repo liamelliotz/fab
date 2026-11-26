@@ -176,52 +176,69 @@
         }
         @case ('baixa') {
           @let b = baixa();
-          <h2 id="man-acao-titulo"><i class="fa-solid fa-stamp" aria-hidden="true"></i> Baixa patrimonial auditada</h2>
+          <h2 id="man-acao-titulo">Baixa patrimonial</h2>
           <p>
-            <strong>{{ a.alvo.quantidade }} unidade(s)</strong> de {{ a.alvo.equipamento }} ({{ a.alvo.codigoPatrimonio }}) saem do
-            acervo de vez. Isso não pode ser desfeito e gera um <strong>termo de baixa</strong> para arquivar.
+            {{ a.alvo.equipamento }} · patrimônio <strong>{{ a.alvo.codigoPatrimonio }}</strong> ·
+            {{ a.alvo.quantidade }} unidade(s)
           </p>
-          <div class="man__baixa">
+          <p class="man__aviso">
+            O bem sai do acervo de forma definitiva. A ação não pode ser desfeita e gera um termo de baixa numerado
+            para arquivo.
+          </p>
+
+          <fieldset class="man__secao">
+            <legend>1. Justificativa</legend>
             <label class="man__campo">
-              <span>Motivo</span>
+              <span>Motivo <span class="man__obrig">*</span></span>
               <select (change)="mudarBaixa('motivo', $any(valorDe($event)))">
-                <option value="" [selected]="!b.motivo">Selecione o motivo</option>
+                <option value="" [selected]="!b.motivo">Selecione</option>
                 @for (mo of motivosBaixa[a.alvo.tipo]; track mo) {
                   <option [value]="mo" [selected]="mo === b.motivo">{{ nomeMotivoBaixa[mo] }}</option>
                 }
               </select>
             </label>
             <label class="man__campo">
-              <span>Valor estimado do bem (R$, opcional)</span>
-              <input type="text" inputmode="decimal" placeholder="Ex.: 2.899,00" (input)="mudarBaixa('valorEstimado', valorEstimado($event))" />
+              <span>Valor estimado (R$) <span class="man__opc">opcional</span></span>
+              <input type="text" inputmode="decimal" placeholder="2.899,00" (input)="mudarBaixa('valorEstimado', valorEstimado($event))" />
             </label>
             <label class="man__campo man__campo--largo">
-              <span>Parecer técnico ou relato do ocorrido</span>
-              <textarea rows="3" placeholder="Ex.: laudo da assistência: placa-mãe sem reparo, troca custa mais que um equipamento novo." [value]="b.parecer" (input)="mudarBaixa('parecer', valorDe($event))"></textarea>
+              <span>Parecer técnico <span class="man__obrig">*</span> <span class="man__opc">(mínimo 20 caracteres)</span></span>
+              <textarea rows="3" placeholder="Ex.: a assistência informou que a placa-mãe não tem reparo e o conserto custa mais que um equipamento novo." [value]="b.parecer" (input)="mudarBaixa('parecer', valorDe($event))"></textarea>
+            </label>
+          </fieldset>
+
+          <fieldset class="man__secao">
+            <legend>2. Documentos e conferência</legend>
+            <label class="man__campo">
+              <span>Nº do laudo <span class="man__opc">opcional</span></span>
+              <input type="text" placeholder="LT-2231" [value]="b.laudo" (input)="mudarBaixa('laudo', valorDe($event))" />
             </label>
             <label class="man__campo">
-              <span>Nº do laudo (opcional)</span>
-              <input type="text" placeholder="Ex.: LT-2231" [value]="b.laudo" (input)="mudarBaixa('laudo', valorDe($event))" />
-            </label>
-            <label class="man__campo">
-              <span>Processo ou boletim de ocorrência {{ b.motivo === 'furto_roubo' ? '(obrigatório)' : '(opcional)' }}</span>
-              <input type="text" placeholder="Ex.: PROC-2026/014" [value]="b.processo" (input)="mudarBaixa('processo', valorDe($event))" />
+              <span>
+                Processo ou B.O.
+                @if (b.motivo === 'furto_roubo') {
+                  <span class="man__obrig">*</span>
+                } @else {
+                  <span class="man__opc">opcional</span>
+                }
+              </span>
+              <input type="text" placeholder="PROC-2026/014" [value]="b.processo" (input)="mudarBaixa('processo', valorDe($event))" />
             </label>
             <label class="man__campo man__campo--largo">
-              <span>Testemunha da conferência (opcional)</span>
-              <input type="text" placeholder="Nome de quem conferiu o bem junto com você" [value]="b.testemunha" (input)="mudarBaixa('testemunha', valorDe($event))" />
+              <span>Testemunha da conferência <span class="man__opc">opcional</span></span>
+              <input type="text" placeholder="Quem conferiu o bem com você" [value]="b.testemunha" (input)="mudarBaixa('testemunha', valorDe($event))" />
             </label>
             @if (a.alvo.responsavel) {
               <label class="man__check man__campo--largo">
                 <input type="checkbox" [checked]="b.responsavelCiente" (change)="mudarBaixa('responsavelCiente', !b.responsavelCiente)" />
-                <span><strong>{{ a.alvo.responsavel.nome }}</strong>, que estava com o item no pedido {{ a.alvo.protocoloEmprestimo }}, foi informado(a) da baixa.</span>
+                <span><strong>{{ a.alvo.responsavel.nome }}</strong> (pedido {{ a.alvo.protocoloEmprestimo }}) foi informado(a) da baixa.</span>
               </label>
             }
             <label class="man__campo man__campo--largo man__confirma">
-              <span>Para confirmar, digite o patrimônio <strong>{{ a.alvo.codigoPatrimonio }}</strong></span>
-              <input type="text" autocomplete="off" spellcheck="false" [value]="b.confirmacaoPatrimonio" (input)="mudarBaixa('confirmacaoPatrimonio', valorDe($event))" />
+              <span>Digite <strong>{{ a.alvo.codigoPatrimonio }}</strong> para confirmar <span class="man__obrig">*</span></span>
+              <input type="text" autocomplete="off" spellcheck="false" [placeholder]="a.alvo.codigoPatrimonio" [value]="b.confirmacaoPatrimonio" (input)="mudarBaixa('confirmacaoPatrimonio', valorDe($event))" />
             </label>
-          </div>
+          </fieldset>
         }
       }
       @if (erroAcao()) {

@@ -95,6 +95,9 @@
           @if (atrasado(s)) {
             <p class="item__alerta">Prazo de devolução vencido. Devolva o material o quanto antes.</p>
           }
+          @if (s.motivoCancelamento) {
+            <p class="item__alerta">Motivo do cancelamento: {{ s.motivoCancelamento }}</p>
+          }
           @if (s.motivoRejeicao) {
             <p class="item__alerta">Motivo da reprovação: {{ s.motivoRejeicao }}</p>
           }
@@ -118,7 +121,7 @@
               </button>
             }
             @if (podeCancelar(s)) {
-              <button type="button" class="btn-secundario" (click)="cancelar(s)">Cancelar pedido</button>
+              <button type="button" class="btn-secundario" (click)="cancelando.set(s)">Cancelar pedido</button>
             }
           </div>
         </article>
@@ -133,5 +136,8 @@
 
   @if (dialogo(); as d) {
     <app-transferir-dialog [pedido]="d" (fechar)="dialogo.set(null)" />
+  }
+  @if (cancelando(); as c) {
+    <app-cancelar-dialog [pedido]="c" (fechar)="cancelando.set(null)" />
   }
 </section>

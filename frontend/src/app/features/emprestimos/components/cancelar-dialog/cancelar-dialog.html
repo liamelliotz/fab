@@ -1,0 +1,57 @@
+<div class="cd__fundo" (click)="fechar.emit()">
+  <div
+    class="cd__painel"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="cd-titulo"
+    appDialogo
+    (fecharDialogo)="fechar.emit()"
+    (click)="$event.stopPropagation()"
+  >
+    <h2 id="cd-titulo">Cancelar pedido {{ pedido().protocolo }}</h2>
+    <p class="cd__resumo">{{ itens() }}</p>
+    <p class="cd__regra">
+      O cancelamento não pode ser desfeito. Se o pedido já estava aprovado, o material volta a ficar disponível
+      para outros professores. O motivo fica registrado no histórico do pedido.
+    </p>
+
+    <fieldset class="cd__rapidos">
+      <legend>Motivos comuns</legend>
+      <div>
+        @for (m of motivos; track m) {
+          <button type="button" class="cd__chip" [attr.aria-pressed]="motivo() === m" (click)="escolher(m)">{{ m }}</button>
+        }
+      </div>
+    </fieldset>
+
+    <label class="cd__campo" for="cd-motivo">Motivo do cancelamento <span class="cd__obrig">(obrigatório)</span></label>
+    <textarea
+      id="cd-motivo"
+      rows="3"
+      maxlength="300"
+      placeholder="Explique por que o pedido está sendo cancelado."
+      aria-describedby="cd-dica"
+      [attr.aria-invalid]="!!erro()"
+      [value]="motivo()"
+      (input)="escrever($event)"
+    ></textarea>
+    <small id="cd-dica" class="cd__dica">
+      @if (faltam() > 0) {
+        Faltam {{ faltam() }} caractere(s).
+      } @else {
+        Motivo suficiente.
+      }
+    </small>
+
+    @if (erro()) {
+      <p class="cd__erro" role="alert">{{ erro() }}</p>
+    }
+
+    <div class="cd__acoes">
+      <button type="button" class="cd__btn" (click)="fechar.emit()">Voltar</button>
+      <button type="button" class="cd__btn cd__btn--perigo" [disabled]="faltam() > 0" (click)="confirmar()">
+        Confirmar cancelamento
+      </button>
+    </div>
+  </div>
+</div>

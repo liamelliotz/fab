@@ -13,6 +13,7 @@ import { formatarCodigo, montarPayloadQr } from '../../../core/utils/codigo.util
 import { formatarData, formatarDataHora } from '../../../core/utils/date.utils';
 import { LinhaDoTempo, PassoFuturo } from '../../../shared/components/linha-do-tempo/linha-do-tempo';
 import { QrCode } from '../../../shared/components/qr-code/qr-code';
+import { CancelarDialog } from '../components/cancelar-dialog/cancelar-dialog';
 import { TransferirDialog } from '../components/transferir-dialog/transferir-dialog';
 
 /**
@@ -23,7 +24,7 @@ import { TransferirDialog } from '../components/transferir-dialog/transferir-dia
 @Component({
   selector: 'app-emprestimo-detalhes',
   standalone: true,
-  imports: [RouterLink, QrCode, LinhaDoTempo, TransferirDialog],
+  imports: [RouterLink, QrCode, LinhaDoTempo, TransferirDialog, CancelarDialog],
   templateUrl: './emprestimo-detalhes.html',
   styleUrl: './emprestimo-detalhes.css',
 })
@@ -194,9 +195,6 @@ export class EmprestimoDetalhes {
     else this.notificacoes.info('Pedido de transferência cancelado.');
   }
 
-  cancelarPedido(): void {
-    const erro = this.service.cancelar(this.id);
-    if (erro) this.notificacoes.erro(erro);
-    else this.notificacoes.info('Pedido cancelado.');
-  }
+  /** Janela de cancelamento (motivo obrigatório). */
+  readonly cancelamentoAberto = signal(false);
 }

@@ -155,6 +155,9 @@ export interface Emprestimo {
   /** Parecer obrigatório preenchido pelo gestor em caso de reprovação */
   motivoRejeicao?: string;
 
+  /** Motivo obrigatório informado por quem cancelou o pedido antes da retirada */
+  motivoCancelamento?: string;
+
   /** Checklist ou registro de avarias/ressalvas anotadas na devolução */
   observacoesDevolucao?: string;
 

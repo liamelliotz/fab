@@ -9,12 +9,13 @@ import {
 import { NotificationService } from '../../../core/services/notification.service';
 import { formatarCodigo } from '../../../core/utils/codigo.utils';
 import { formatarData } from '../../../core/utils/date.utils';
+import { CancelarDialog } from '../components/cancelar-dialog/cancelar-dialog';
 import { TransferirDialog } from '../components/transferir-dialog/transferir-dialog';
 
 @Component({
   selector: 'app-meus-emprestimos',
   standalone: true,
-  imports: [RouterLink, TransferirDialog],
+  imports: [RouterLink, TransferirDialog, CancelarDialog],
   templateUrl: './meus-emprestimos.html',
   styleUrl: './meus-emprestimos.css',
 })
@@ -83,11 +84,8 @@ export class MeusEmprestimos {
     return s.status === 'pendente' || s.status === 'aprovado';
   }
 
-  cancelar(s: Emprestimo): void {
-    const erro = this.service.cancelar(s.id);
-    if (erro) this.notificacoes.erro(erro);
-    else this.notificacoes.info(`Pedido ${s.protocolo} cancelado.`);
-  }
+  /** Pedido cuja janela de cancelamento (com motivo obrigatório) está aberta. */
+  readonly cancelando = signal<Emprestimo | null>(null);
 
   aceitar(s: Emprestimo): void {
     const erro = this.service.responderTransferencia(s.id, true);

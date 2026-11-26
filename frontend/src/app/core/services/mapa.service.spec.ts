@@ -62,6 +62,22 @@ describe('Mapa de itens e auditoria', () => {
     expect(mapa.movimentos()[0]).toMatchObject({ protocolo: 'EMP-2026-0041' });
   });
 
+  it('cancelar um pedido exige motivo, que vai para o pedido e para a auditoria', () => {
+    const p41 = emprestimos.buscarPorId('p41')!; // aprovado: a unidade está reservada
+    expect(emprestimos.cancelar('p41', '')).toContain('motivo');
+    expect(emprestimos.cancelar('p41', 'não')).toContain('motivo');
+    expect(emprestimos.buscarPorId('p41')!.status).toBe('aprovado');
+
+    expect(emprestimos.cancelar('p41', 'Aula cancelada pela coordenação')).toBeNull();
+    const cancelado = emprestimos.buscarPorId('p41')!;
+    expect(cancelado.status).toBe('cancelado');
+    expect(cancelado.motivoCancelamento).toBe('Aula cancelada pela coordenação');
+    expect(cancelado.historico.at(-1)!.detalhe).toContain('Aula cancelada pela coordenação');
+    expect(mapa.ondeEsta('3').some((i) => i.pedidoId === p41.id)).toBe(false);
+    const registro = TestBed.inject(AuditoriaService).registros().find((r) => r.alvo === p41.protocolo);
+    expect(registro?.detalhe).toContain('Aula cancelada pela coordenação');
+  });
+
   it('a auditoria junta empréstimos, manutenção, baixa com termo e insumos sem repetir eventos', () => {
     const registros = TestBed.inject(AuditoriaService).registros();
     const modulos = new Set(registros.map((r) => r.modulo));

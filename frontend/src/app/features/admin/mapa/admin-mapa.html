@@ -1,214 +1,182 @@
-<section class="mapa" aria-labelledby="titulo-mapa">
-  <header class="mapa__cabecalho">
+<section class="pagina-mapa" aria-labelledby="titulo-mapa">
+  <header class="cabecalho">
     <div>
       <h1 id="titulo-mapa">Mapa de itens</h1>
-      <p>
-        Onde cada equipamento e insumo está agora na <strong>{{ escola }}</strong>, uma escola fictícia criada para a demonstração.
-        O mapa é montado só pelos registros: pedido, balcão, transferência e manutenção.
-      </p>
+      <p>Onde está cada material da {{ escola }} (escola fictícia), conforme os pedidos, o balcão e a manutenção.</p>
     </div>
   </header>
 
   @if (!modoDemo) {
-    <p class="mapa__aviso" role="note">
-      <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
-      O mapa usa os dados da demonstração até a API ganhar o cadastro de locais.
-    </p>
+    <p class="aviso-demo" role="note">O mapa usa os dados da demonstração até a API ganhar o cadastro de locais.</p>
   }
 
-  <div class="mapa__metricas">
-    <div class="mapa__metrica mapa__metrica--uso"><span>Em uso agora</span><strong>{{ totais().emUso }}</strong><small>unidades em {{ totais().locaisEmUso }} local(is)</small></div>
-    <div class="mapa__metrica mapa__metrica--guarda"><span>Guardados</span><strong>{{ totais().guardados }}</strong><small>no local de guarda (inclui reservados)</small></div>
-    <div class="mapa__metrica mapa__metrica--manut"><span>Em manutenção</span><strong>{{ totais().manutencao }}</strong><small>na sala de manutenção ou na assistência</small></div>
-    <div class="mapa__metrica mapa__metrica--falta"><span>Não localizados</span><strong>{{ totais().naoLocalizados }}</strong><small>faltas abertas na devolução</small></div>
+  <div class="resumo">
+    <div class="card"><p>Em uso agora</p><strong>{{ totais().emUso }}</strong></div>
+    <div class="card"><p>Guardados</p><strong>{{ totais().guardados }}</strong></div>
+    <div class="card"><p>Em manutenção</p><strong>{{ totais().manutencao }}</strong></div>
+    <div class="card"><p>Não localizados</p><strong>{{ totais().naoLocalizados }}</strong></div>
   </div>
 
-  <div class="mapa__ferramentas">
-    <div class="busca">
-      <label class="busca__campo">
-        <i class="fa-solid fa-magnifying-glass-location" aria-hidden="true"></i>
-        <span class="sr-only">Onde está? Digite o nome ou o patrimônio</span>
-        <input type="search" placeholder="Onde está? Nome ou patrimônio (ex.: projetor)"
-          [value]="busca()" (input)="digitarBusca($event)" [attr.aria-controls]="opcoesBusca().length && !equipamentoBuscado() ? 'busca-opcoes' : null" />
-        @if (busca()) {
-          <button type="button" class="busca__limpar" (click)="limparBusca()" aria-label="Limpar busca"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
-        }
-      </label>
-      @if (opcoesBusca().length && !equipamentoBuscado()) {
-        <ul class="busca__opcoes" id="busca-opcoes" role="listbox" aria-label="Equipamentos encontrados">
-          @for (e of opcoesBusca(); track e.id) {
-            <li role="option" aria-selected="false">
-              <button type="button" (click)="buscarEquipamento(e.id)">
-                <strong>{{ e.nome }}</strong> <small>{{ e.codigoPatrimonio }} · {{ e.quantidadeTotal }} unidade(s)</small>
-              </button>
-            </li>
-          }
-        </ul>
-      }
-    </div>
-    <div class="camadas" role="radiogroup" aria-label="O que mostrar no mapa">
-      @for (c of camadas; track c.id) {
-        <button type="button" role="radio" class="camada" [class.camada--ativa]="camada() === c.id" [attr.aria-checked]="camada() === c.id" (click)="camada.set(c.id)">
-          <i class="fa-solid {{ c.icone }}" aria-hidden="true"></i> {{ c.nome }}
-        </button>
-      }
-    </div>
-  </div>
-
-  @if (resultadoBusca(); as r) {
-    <div class="onde" aria-live="polite">
-      <div class="onde__topo">
-        <div>
-          <span class="onde__rotulo">Onde está</span>
-          <h2>{{ r.equipamento.nome }}</h2>
-          <small>{{ r.equipamento.codigoPatrimonio }} · {{ r.equipamento.quantidadeTotal }} unidade(s) no acervo</small>
-        </div>
-        <a class="onde__link" [routerLink]="['/admin/equipamentos', r.equipamento.id, 'historico']">Histórico do equipamento</a>
+  <!-- Onde está? -->
+  <section class="painel" aria-labelledby="titulo-busca">
+    <div class="titulo-painel">
+      <div>
+        <h2 id="titulo-busca">Onde está?</h2>
+        <p>Digite o nome ou o patrimônio para ver em que sala cada unidade está.</p>
       </div>
-      <ul class="onde__lista">
-        @for (i of r.onde; track $index) {
-          <li class="onde__item onde__item--{{ i.situacao }}">
-            <span class="pill pill--{{ i.situacao }}">{{ nomeSituacao[i.situacao] }}</span>
-            <strong>{{ i.quantidadeTexto }}</strong>
-            <span>em <button type="button" class="onde__local" [disabled]="!i.localId" (click)="i.localId && escolher(i.localId)">{{ nomeDoLocal(i.localId) }}</button></span>
-            @if (i.responsavel) { <span>· com {{ i.responsavel.nome }}</span> }
-            @if (i.protocolo && i.pedidoId) { <a [routerLink]="['/pedidos', i.pedidoId]">{{ i.protocolo }}</a> }
-            @else if (i.protocolo) { <span>{{ i.protocolo }}</span> }
-            @if (i.desde) { <small>desde {{ dataHora(i.desde) }}</small> }
-            @if (i.atrasado) { <span class="pill pill--atraso">atrasado</span> }
-          </li>
-        } @empty {
-          <li class="onde__item">Nenhuma unidade no acervo.</li>
-        }
-      </ul>
+      <input
+        class="campo-busca"
+        type="search"
+        aria-label="Buscar equipamento ou insumo"
+        placeholder="Ex.: projetor ou PAT-0003"
+        [value]="busca()"
+        (input)="digitarBusca($event)"
+      />
     </div>
-  }
 
-  <div class="mapa__corpo">
-    <figure class="planta">
-      <svg viewBox="0 0 1000 600" role="group" [attr.aria-label]="'Planta da ' + escola + '. Use Tab para percorrer as salas e Enter para ver os itens.'">
-        <rect x="0" y="0" width="1000" height="600" rx="18" class="planta__fundo" />
-        <rect x="16" y="178" width="968" height="34" class="planta__corredor" />
-        <rect x="16" y="382" width="968" height="34" class="planta__corredor" />
-        <text x="500" y="199" class="planta__corredor-texto" text-anchor="middle">corredor</text>
-        <text x="500" y="403" class="planta__corredor-texto" text-anchor="middle">corredor</text>
-        @for (b of blocos; track b.nome) {
-          <text x="32" [attr.y]="b.y" class="planta__bloco">{{ b.nome }}</text>
-        }
-        @for (r of planta(); track r.local.id) {
-          @let l = r.local;
-          @let n = numeroDaSala(r);
-          <g class="sala sala--{{ tom(r) }}"
-            [class.sala--sel]="selecionado() === l.id"
-            [class.sala--destaque]="destacados().has(l.id)"
-            role="button" tabindex="0"
-            [attr.aria-pressed]="selecionado() === l.id"
-            [attr.aria-label]="rotuloSala(r)"
-            (click)="escolher(l)" (keydown)="aoTeclar($event, l)">
-            <rect [attr.x]="l.x" [attr.y]="l.y" [attr.width]="l.w" [attr.height]="l.h" rx="12" class="sala__caixa" />
-            <text [attr.x]="l.x + 12" [attr.y]="l.y + 24" class="sala__nome">{{ l.nome }}</text>
-            <text [attr.x]="l.x + 12" [attr.y]="l.y + l.h - 16" class="sala__numero">{{ n }}</text>
-            <text [attr.x]="l.x + 14 + (n > 9 ? 40 : 20)" [attr.y]="l.y + l.h - 18" class="sala__legenda">
-              {{ camada() === 'insumo' ? 'insumo(s)' : 'unid.' }}
-            </text>
-            @if (r.emUso && camada() !== 'insumo') {
-              <circle [attr.cx]="l.x + l.w - 20" [attr.cy]="l.y + 20" r="7" class="sala__ponto sala__ponto--uso" />
+    @if (resultadoBusca(); as resultado) {
+      <div class="tabela-container" aria-live="polite">
+        <table>
+          <thead>
+            <tr><th>Material</th><th>Quantidade</th><th>Situação</th><th>Local</th><th>Com quem</th><th>Desde</th></tr>
+          </thead>
+          <tbody>
+            @for (i of resultado; track $index) {
+              <tr>
+                <td><strong>{{ i.nome }}</strong>@if (i.patrimonio) {<span class="sub">{{ i.patrimonio }}</span>}</td>
+                <td>{{ i.quantidadeTexto }}</td>
+                <td><span class="situacao situacao--{{ i.situacao }}">{{ nomeSituacao[i.situacao] }}</span>@if (i.atrasado) {<span class="sub atraso">devolução atrasada</span>}</td>
+                <td>
+                  @if (i.localId) {
+                    <button type="button" class="link" (click)="escolher(i.localId)">{{ nomeDoLocal(i.localId) }}</button>
+                  } @else {
+                    {{ nomeDoLocal(null) }}
+                  }
+                </td>
+                <td>
+                  {{ i.responsavel?.nome ?? '—' }}
+                  @if (i.pedidoId) {<a class="sub" [routerLink]="['/pedidos', i.pedidoId]">{{ i.protocolo }}</a>}
+                </td>
+                <td class="data">{{ i.desde ? dataHora(i.desde) : '—' }}</td>
+              </tr>
+            } @empty {
+              <tr><td colspan="6" class="sem-resultados">Nenhum material encontrado com esse nome ou patrimônio.</td></tr>
             }
-            @if (r.atrasados && camada() !== 'insumo') {
-              <circle [attr.cx]="l.x + l.w - 38" [attr.cy]="l.y + 20" r="7" class="sala__ponto sala__ponto--atraso" />
-            }
-            @if (r.manutencao && camada() !== 'insumo') {
-              <circle [attr.cx]="l.x + l.w - (r.atrasados ? 56 : 38)" [attr.cy]="l.y + 20" r="7" class="sala__ponto sala__ponto--manut" />
-            }
-          </g>
-        }
-      </svg>
-      <figcaption class="legenda">
-        <span><i class="legenda__cor legenda__cor--uso"></i> Em uso</span>
-        <span><i class="legenda__cor legenda__cor--atraso"></i> Em uso com atraso</span>
-        <span><i class="legenda__cor legenda__cor--guardado"></i> Guardado</span>
-        <span><i class="legenda__cor legenda__cor--manutencao"></i> Manutenção</span>
-        <span><i class="legenda__cor legenda__cor--insumo"></i> Insumos</span>
-      </figcaption>
-    </figure>
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
 
-    <aside class="painel" aria-live="polite">
-      @if (resumoSelecionado(); as r) {
-        <div class="painel__topo">
-          <span class="painel__bloco">{{ r.local.bloco }}</span>
-          <h2>{{ r.local.nome }}</h2>
-          <div class="painel__numeros">
-            <span><strong>{{ r.emUso }}</strong> em uso</span>
-            <span><strong>{{ r.guardados }}</strong> guardado(s)</span>
-            <span><strong>{{ r.manutencao }}</strong> manutenção</span>
-            <span><strong>{{ r.insumos }}</strong> insumo(s)</span>
+  <!-- Planta + itens da sala -->
+    <section class="painel" aria-labelledby="titulo-planta">
+      <div class="titulo-painel">
+        <div>
+          <h2 id="titulo-planta">Planta da escola</h2>
+          <p>Clique em uma sala para ver a lista do que está nela logo abaixo. O número é a quantidade de equipamentos.</p>
+        </div>
+      </div>
+
+      @for (b of blocos(); track b.nome) {
+        <div class="bloco">
+          <h3>{{ b.nome }}</h3>
+          <div class="salas">
+            @for (r of b.locais; track r.local.id) {
+              <button
+                type="button"
+                class="sala"
+                [class.sala--sel]="selecionado() === r.local.id"
+                [attr.aria-pressed]="selecionado() === r.local.id"
+                [attr.aria-label]="rotuloSala(r)"
+                (click)="escolher(r.local.id)"
+              >
+                <span class="sala__nome">{{ r.local.nome }}</span>
+                <span class="sala__total" [class.sala__total--zero]="!totalDaSala(r)">{{ totalDaSala(r) }}</span>
+                <span class="sala__linha">
+                  @if (r.emUso) {<span class="marca marca--uso">{{ r.emUso }} em uso</span>}
+                  @if (r.manutencao) {<span class="marca marca--manut">{{ r.manutencao }} manut.</span>}
+                  @if (!r.emUso && !r.manutencao) {<span>&nbsp;</span>}
+                </span>
+              </button>
+            }
           </div>
         </div>
-        <ul class="painel__lista">
-          @for (i of itensSelecionados(); track $index) {
-            <li class="painel__item painel__item--{{ i.situacao }}" [class.painel__item--atraso]="i.atrasado">
-              <div class="painel__linha">
-                <span class="pill pill--{{ i.situacao }}">{{ nomeSituacao[i.situacao] }}</span>
-                @if (i.atrasado) { <span class="pill pill--atraso">atrasado</span> }
-                @if (i.estoqueBaixo) { <span class="pill pill--atraso">a repor</span> }
-              </div>
-              <strong>{{ i.nome }}</strong>
-              <small>
-                {{ i.quantidadeTexto }}
-                @if (i.patrimonio) { · {{ i.patrimonio }} }
-              </small>
-              @if (i.responsavel) {
-                <small><i class="fa-solid fa-user" aria-hidden="true"></i> {{ i.responsavel.nome }}
-                  @if (i.pedidoId) { · <a [routerLink]="['/pedidos', i.pedidoId]">{{ i.protocolo }}</a> }
-                </small>
+      }
+    </section>
+
+    <section class="painel" aria-labelledby="titulo-local" aria-live="polite">
+      @if (localSelecionado(); as r) {
+        <div class="titulo-painel">
+          <div>
+            <h2 id="titulo-local">{{ r.local.nome }}</h2>
+            <p>{{ r.local.bloco }} · {{ r.emUso }} em uso · {{ r.guardados }} guardado(s) · {{ r.manutencao }} em manutenção · {{ r.insumos }} insumo(s)</p>
+          </div>
+          <select aria-label="Filtrar itens da sala" (change)="mudarFiltro($event)">
+            <option value="tudo" [selected]="filtro() === 'tudo'">Tudo</option>
+            <option value="equipamentos" [selected]="filtro() === 'equipamentos'">Só equipamentos</option>
+            <option value="em_uso" [selected]="filtro() === 'em_uso'">Em uso ou reservados</option>
+            <option value="manutencao" [selected]="filtro() === 'manutencao'">Manutenção</option>
+            <option value="insumo" [selected]="filtro() === 'insumo'">Só insumos</option>
+          </select>
+        </div>
+
+        <div class="tabela-container">
+          <table>
+            <thead><tr><th>Material</th><th>Quantidade</th><th>Situação</th><th>Responsável</th><th>Desde</th></tr></thead>
+            <tbody>
+              @for (i of itensDoLocal(); track $index) {
+                <tr>
+                  <td>
+                    <strong>{{ i.nome }}</strong>
+                    @if (i.patrimonio) {<span class="sub">{{ i.patrimonio }}</span>}
+                    @if (i.detalhe) {<span class="sub">{{ i.detalhe }}</span>}
+                  </td>
+                  <td class="data">{{ i.quantidadeTexto }}</td>
+                  <td>
+                    <span class="situacao situacao--{{ i.situacao }}">{{ nomeSituacao[i.situacao] }}</span>
+                    @if (i.atrasado) {<span class="sub atraso">devolução atrasada</span>}
+                    @if (i.estoqueBaixo) {<span class="sub atraso">a repor</span>}
+                  </td>
+                  <td>
+                    {{ i.responsavel?.nome ?? '—' }}
+                    @if (i.pedidoId) {<a class="sub" [routerLink]="['/pedidos', i.pedidoId]">{{ i.protocolo }}</a>}
+                  </td>
+                  <td class="data">{{ i.desde ? dataHora(i.desde) : '—' }}</td>
+                </tr>
+              } @empty {
+                <tr><td colspan="5" class="sem-resultados">Nada nesta sala{{ filtro() === 'tudo' ? '' : ' com esse filtro' }}.</td></tr>
               }
-              @if (i.detalhe) { <small class="painel__detalhe">{{ i.detalhe }}</small> }
-              @if (i.desde) { <small class="painel__detalhe">desde {{ dataHora(i.desde) }}</small> }
-            </li>
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+
+  <section class="painel" aria-labelledby="titulo-movs">
+    <div class="titulo-painel">
+      <div>
+        <h2 id="titulo-movs">Últimas mudanças de local</h2>
+        <p>Retiradas, transferências e devoluções registradas no sistema.</p>
+      </div>
+    </div>
+    <div class="tabela-container">
+      <table>
+        <thead><tr><th>Data e hora</th><th>Pedido</th><th>Material</th><th>De</th><th>Para</th><th>Registrado por</th></tr></thead>
+        <tbody>
+          @for (m of movimentos(); track $index) {
+            <tr>
+              <td class="data">{{ dataHora(m.em) }}</td>
+              <td><a class="link" [routerLink]="['/pedidos', m.pedidoId]">{{ m.protocolo }}</a></td>
+              <td>{{ m.itens }}</td>
+              <td>{{ m.de }}</td>
+              <td>{{ m.para }}</td>
+              <td>{{ m.por }}</td>
+            </tr>
           } @empty {
-            <li class="painel__vazio">Nada neste local {{ camada() === 'tudo' ? '' : 'nesta camada' }}.</li>
+            <tr><td colspan="6" class="sem-resultados">Nenhuma movimentação registrada ainda.</td></tr>
           }
-        </ul>
-      }
-    </aside>
-  </div>
-
-  <div class="fora">
-    <article class="fora__card" [class.fora__card--sel]="selecionado() === 'assistencia'">
-      <h2><i class="fa-solid fa-truck-arrow-right" aria-hidden="true"></i> Fora da escola · assistência técnica</h2>
-      @for (i of assistencia().itens; track $index) {
-        <p><strong>{{ i.nome }}</strong> · {{ i.quantidadeTexto }} · {{ i.detalhe }}</p>
-      } @empty {
-        <p class="fora__vazio">Nenhuma unidade na assistência.</p>
-      }
-    </article>
-    <article class="fora__card fora__card--alerta">
-      <h2><i class="fa-solid fa-circle-question" aria-hidden="true"></i> Não localizados</h2>
-      @for (i of semLocal(); track $index) {
-        <p>
-          <strong>{{ i.nome }}</strong> · {{ i.quantidadeTexto }}
-          @if (i.responsavel) { · estava com {{ i.responsavel.nome }} }
-          · {{ i.detalhe ?? 'Sem local informado no pedido' }}
-        </p>
-      } @empty {
-        <p class="fora__vazio">Todas as unidades têm local conhecido.</p>
-      }
-    </article>
-  </div>
-
-  <section class="movs" aria-labelledby="titulo-movs">
-    <h2 id="titulo-movs"><i class="fa-solid fa-route" aria-hidden="true"></i> Últimas mudanças de local</h2>
-    <ol class="movs__lista">
-      @for (m of movimentos(); track $index) {
-        <li>
-          <time>{{ dataHora(m.em) }}</time>
-          <span><a [routerLink]="['/pedidos', m.pedidoId]">{{ m.protocolo }}</a> · {{ m.itens }}</span>
-          <span class="movs__rota">{{ m.de }} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i> {{ m.para }}</span>
-          <small>registrado por {{ m.por }}</small>
-        </li>
-      } @empty {
-        <li>Nenhuma movimentação registrada ainda.</li>
-      }
-    </ol>
+        </tbody>
+      </table>
+    </div>
   </section>
 </section>

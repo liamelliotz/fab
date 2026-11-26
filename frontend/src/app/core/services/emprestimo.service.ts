@@ -27,6 +27,9 @@ import { EquipamentoService } from './equipamento.service';
 import { ManutencaoService, NOME_GRAVIDADE, NOME_TIPO_AVARIA } from './manutencao.service';
 import { resumoDemo, UsuarioService } from './usuario.service';
 
+/** Tamanho mínimo do motivo de cancelamento (evita "ok", "x" e afins). */
+export const MINIMO_MOTIVO_CANCELAMENTO = 10;
+
 export const NOME_STATUS_EMPRESTIMO: Record<StatusEmprestimo, string> = {
   pendente: 'Pendente',
   aprovado: 'Aprovado',
@@ -465,10 +468,17 @@ export class EmprestimoService {
     return null;
   }
 
-  /** Cancela um pedido que ainda não foi retirado (pendente ou aprovado). Aprovado devolve o estoque. */
-  cancelar(id: string): string | null {
+  /**
+   * Cancela um pedido que ainda não foi retirado (pendente ou aprovado). Aprovado devolve o estoque.
+   * O motivo é obrigatório: fica no pedido e na linha do tempo, para a auditoria.
+   */
+  cancelar(id: string, motivo: string): string | null {
     const alvo = this.buscarPorId(id);
     if (!alvo) return 'Pedido não encontrado.';
+    const justificativa = (motivo ?? '').trim();
+    if (justificativa.length < MINIMO_MOTIVO_CANCELAMENTO) {
+      return `Explique o motivo do cancelamento (mínimo de ${MINIMO_MOTIVO_CANCELAMENTO} caracteres).`;
+    }
     if (alvo.status !== 'pendente' && alvo.status !== 'aprovado') {
       return 'Este pedido não pode mais ser cancelado.';
     }
@@ -484,9 +494,10 @@ export class EmprestimoService {
       ...s,
       status: 'cancelado',
       codigoRetirada: undefined,
-      historico: [...s.historico, this.evento('cancelado', eu)],
+      motivoCancelamento: justificativa,
+      historico: [...s.historico, this.evento('cancelado', eu, `Motivo: ${justificativa}`)],
     }));
-    this.avisar(`${eu.nome} cancelou o pedido ${alvo.protocolo}.`, id);
+    this.avisar(`${eu.nome} cancelou o pedido ${alvo.protocolo}. Motivo: ${justificativa}`, id);
     return null;
   }
 
