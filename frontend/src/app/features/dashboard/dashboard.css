@@ -106,7 +106,7 @@
 .actions-grid {
   display: grid;
   align-items: stretch;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 18px;
 }
 
@@ -270,3 +270,5 @@
   color: #24845c;
   text-decoration: underline;
 }
+
+.metric-value--alerta { color: #b91c1c; }

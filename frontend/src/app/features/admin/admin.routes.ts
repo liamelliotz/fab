@@ -65,5 +65,15 @@ export const ADMIN_ROUTES: Routes = [
     loadComponent: () =>
       import('./relatorios/admin-relatorios').then((m) => m.AdminRelatorios),
   },
+  {
+    path: 'mapa',
+    title: 'Mapa de itens | FAB',
+    loadComponent: () => import('./mapa/admin-mapa').then((m) => m.AdminMapa),
+  },
+  {
+    path: 'auditoria',
+    title: 'Auditoria | FAB',
+    loadComponent: () => import('./auditoria/admin-auditoria').then((m) => m.AdminAuditoria),
+  },
   { path: '', redirectTo: 'solicitacoes', pathMatch: 'full' },
 ];

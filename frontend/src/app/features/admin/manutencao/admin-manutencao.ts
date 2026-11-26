@@ -1,16 +1,20 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { Manutencao, StatusManutencao } from '../../../core/models/manutencao.model';
+import { Manutencao, MotivoBaixa, StatusManutencao } from '../../../core/models/manutencao.model';
 import { EquipamentoService } from '../../../core/services/equipamento.service';
 import {
+  DadosBaixa,
+  MOTIVOS_BAIXA,
   ManutencaoService,
   NOME_GRAVIDADE,
+  NOME_MOTIVO_BAIXA,
   NOME_STATUS_MANUTENCAO,
   NOME_TIPO_AVARIA,
 } from '../../../core/services/manutencao.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { formatarData } from '../../../core/utils/date.utils';
 import { AvariaCampos, DadosAvaria } from '../../../shared/components/avaria-campos/avaria-campos';
+import { TermoBaixa } from '../../../shared/components/termo-baixa/termo-baixa';
 import { DialogoDirective } from '../../../shared/directives/dialogo.directive';
 
 type Filtro = 'pendentes' | 'resolvidas' | 'todas';
@@ -24,7 +28,7 @@ type Acao = 'assistencia' | 'concluir' | 'baixa';
 @Component({
   selector: 'app-admin-manutencao',
   standalone: true,
-  imports: [RouterLink, AvariaCampos, DialogoDirective],
+  imports: [RouterLink, AvariaCampos, DialogoDirective, TermoBaixa],
   templateUrl: './admin-manutencao.html',
   styleUrl: './admin-manutencao.css',
 })
@@ -36,6 +40,8 @@ export class AdminManutencao {
   readonly nomeTipo = NOME_TIPO_AVARIA;
   readonly nomeGravidade = NOME_GRAVIDADE;
   readonly nomeStatus = NOME_STATUS_MANUTENCAO;
+  readonly nomeMotivoBaixa = NOME_MOTIVO_BAIXA;
+  readonly motivosBaixa = MOTIVOS_BAIXA;
   readonly data = (iso: string) => formatarData(iso.slice(0, 10));
 
   readonly filtro = signal<Filtro>('pendentes');
@@ -61,6 +67,11 @@ export class AdminManutencao {
   readonly acao = signal<{ tipo: Acao; alvo: Manutencao } | null>(null);
   readonly textoAcao = signal('');
   readonly erroAcao = signal('');
+
+  /** Formulário da baixa (auditoria): tudo vai para o termo. */
+  readonly baixa = signal<DadosBaixa>(this.baixaVazia());
+  /** Ocorrência cujo termo de baixa está aberto. */
+  readonly termoAberto = signal<Manutencao | null>(null);
 
   // Foto ampliada
   readonly fotoAberta = signal<string | null>(null);
@@ -111,6 +122,7 @@ export class AdminManutencao {
 
   abrirAcao(tipo: Acao, alvo: Manutencao): void {
     this.textoAcao.set(tipo === 'assistencia' ? (alvo.assistencia ?? '') : '');
+    this.baixa.set(this.baixaVazia(alvo));
     this.erroAcao.set('');
     this.acao.set({ tipo, alvo });
   }
@@ -133,7 +145,7 @@ export class AdminManutencao {
         ? this.service.enviarParaAssistencia(alvo.id, this.textoAcao())
         : tipo === 'concluir'
           ? this.service.concluir(alvo.id, this.textoAcao())
-          : this.service.darBaixa(alvo.id, this.textoAcao());
+          : this.service.darBaixa(alvo.id, this.baixa());
     if (erro) {
       this.erroAcao.set(erro);
       return;
@@ -144,8 +156,41 @@ export class AdminManutencao {
     } else if (tipo === 'concluir') {
       this.avisos.sucesso(`${alvo.equipamento}: ${alvo.quantidade} unidade(s) de volta ao estoque.`);
     } else {
-      this.avisos.aviso(`${alvo.equipamento}: baixa de ${alvo.quantidade} unidade(s) no acervo.`);
+      const atualizada = this.service.buscarPorId(alvo.id);
+      this.avisos.aviso(
+        `${alvo.equipamento}: baixa de ${alvo.quantidade} unidade(s). Termo ${atualizada?.baixa?.protocolo ?? ''} gerado.`,
+        8000,
+      );
+      if (atualizada?.baixa) this.termoAberto.set(atualizada);
     }
+  }
+
+  mudarBaixa<K extends keyof DadosBaixa>(campo: K, valor: DadosBaixa[K]): void {
+    this.erroAcao.set('');
+    this.baixa.update((b) => ({ ...b, [campo]: valor }));
+  }
+
+  valorDe(evento: Event): string {
+    return (evento.target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement).value;
+  }
+
+  valorEstimado(evento: Event): number | undefined {
+    const texto = this.valorDe(evento).replace(/\./g, '').replace(',', '.').trim();
+    return texto === '' ? undefined : Number(texto);
+  }
+
+  private baixaVazia(alvo?: Manutencao): DadosBaixa {
+    const motivos = alvo ? MOTIVOS_BAIXA[alvo.tipo] : [];
+    return {
+      motivo: motivos.length === 1 ? (motivos[0] as MotivoBaixa) : undefined,
+      parecer: '',
+      laudo: '',
+      processo: '',
+      valorEstimado: undefined,
+      responsavelCiente: false,
+      testemunha: '',
+      confirmacaoPatrimonio: '',
+    };
   }
 
   // ---------- Registro direto ----------

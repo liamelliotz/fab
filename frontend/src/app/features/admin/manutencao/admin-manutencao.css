@@ -143,7 +143,7 @@
 .oc__dados dt { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); font-weight: 700; }
 .oc__dados dd { margin: 2px 0 0; font-size: 0.88rem; }
 .oc__dados a { color: var(--primary-color); font-weight: 600; text-decoration: none; }
-.oc__historico summary { cursor: pointer; font-size: 0.84rem; font-weight: 600; color: var(--primary-color); }
+.oc__historico summary { cursor: pointer; font-size: 0.84rem; font-weight: 600; color: #00796b; /* turquesa escuro: contraste AA sobre branco */ }
 .oc__historico ol { margin: 8px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; font-size: 0.84rem; }
 .oc__historico time { font-weight: 600; margin-right: 4px; }
 .oc__historico em { color: var(--text-secondary); font-style: normal; }
@@ -212,3 +212,15 @@
   .man__cabecalho { flex-direction: column; }
   .oc__corpo { flex-direction: column; }
 }
+
+/* Baixa auditada */
+.man__baixa { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 14px; margin-top: 12px; }
+.man__campo--largo { grid-column: 1 / -1; }
+.man__baixa .man__campo select, .man__baixa .man__campo input {
+  font: inherit; padding: 9px 11px; border: 1px solid var(--border-color); border-radius: 10px; background: #fff;
+}
+.man__check { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 10px; background: #fffbeb; border: 1px solid #fde68a; font-size: 0.88rem; cursor: pointer; }
+.man__check input { margin-top: 3px; }
+.man__confirma { padding: 10px 12px; border-radius: 10px; background: #fef2f2; border: 1px solid #fecaca; }
+.oc__termo { font-size: 0.85rem; font-weight: 600; color: #991b1b; display: inline-flex; gap: 6px; align-items: center; margin-right: auto; }
+@media (max-width: 700px) { .man__baixa { grid-template-columns: 1fr; } }

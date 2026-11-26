@@ -30,6 +30,37 @@ export type GravidadeAvaria = 'leve' | 'moderada' | 'grave';
  */
 export type StatusManutencao = 'registrada' | 'aberta' | 'em_assistencia' | 'concluida' | 'baixa';
 
+/**
+ * Por que a unidade saiu do acervo. Avaria: irreparável, conserto inviável ou obsolescência.
+ * Extravio: perda definitiva ou furto/roubo (este exige o número do boletim de ocorrência).
+ */
+export type MotivoBaixa = 'irreparavel' | 'conserto_inviavel' | 'obsolescencia' | 'extravio_definitivo' | 'furto_roubo';
+
+/**
+ * Registro de auditoria da BAIXA PATRIMONIAL. Gerado uma única vez e nunca alterado:
+ * vira o "Termo de baixa" que a coordenação imprime e arquiva.
+ */
+export interface RegistroBaixa {
+  /** Código do termo, ex.: "TB-2026-0001". */
+  protocolo: string;
+  motivo: MotivoBaixa;
+  /** Parecer técnico ou relato do que aconteceu (mínimo 20 caracteres). */
+  parecer: string;
+  /** Número do laudo da assistência técnica, quando houver. */
+  laudo?: string;
+  /** Número do processo administrativo ou do boletim de ocorrência. */
+  processo?: string;
+  /** Valor estimado do bem baixado, em reais (para a prestação de contas). */
+  valorEstimado?: number;
+  /** Quem estava com o item foi informado da baixa (obrigatório quando havia responsável). */
+  responsavelCiente: boolean;
+  /** Pessoa que conferiu o bem junto com a coordenação. */
+  testemunha?: string;
+  autorizadoPor: UsuarioResumo;
+  /** ISO 8601 completo. */
+  em: string;
+}
+
 /** Um passo da história da ocorrência (só acréscimo). */
 export interface PassoManutencao {
   em: string;
@@ -71,6 +102,8 @@ export interface Manutencao {
   dataRegistro: string;
   dataConclusao?: string;
   historico: PassoManutencao[];
+  /** Termo de baixa (só quando status = 'baixa'). */
+  baixa?: RegistroBaixa;
 }
 
 /** O que o balcão (ou a tela de Manutenção) informa sobre UM item com problema. */

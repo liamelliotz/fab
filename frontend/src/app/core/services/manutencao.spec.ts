@@ -81,9 +81,26 @@ describe('Avarias e faltas na devolução', () => {
     // 8 no total: 6 + 1 (leve volta) = 7 disponíveis; 1 falta fora do estoque
     expect(estoque('3')).toEqual([7, 1, 8, 'disponivel']);
     const falta = manutencoes.doPedido('p41').find((m) => m.tipo === 'extravio')!;
-    expect(manutencoes.darBaixa(falta.id, 'abc')).toContain('motivo');
-    expect(manutencoes.darBaixa(falta.id, 'Não foi encontrado.')).toBeNull();
+    const dados = {
+      motivo: 'extravio_definitivo' as const,
+      parecer: 'Procurado em todas as salas por uma semana e não encontrado.',
+      responsavelCiente: true,
+      confirmacaoPatrimonio: 'PAT-0003',
+    };
+    expect(manutencoes.darBaixa(falta.id, { ...dados, motivo: undefined })).toContain('motivo');
+    expect(manutencoes.darBaixa(falta.id, { ...dados, motivo: 'irreparavel' })).toContain('não vale');
+    expect(manutencoes.darBaixa(falta.id, { ...dados, parecer: 'curto' })).toContain('parecer');
+    expect(manutencoes.darBaixa(falta.id, { ...dados, responsavelCiente: false })).toContain('Ana Lima');
+    expect(manutencoes.darBaixa(falta.id, { ...dados, confirmacaoPatrimonio: 'PAT-9999' })).toContain('PAT-0003');
+    expect(manutencoes.darBaixa(falta.id, { ...dados, motivo: 'furto_roubo' })).toContain('boletim');
+    expect(estoque('3')).toEqual([7, 1, 8, 'disponivel']); // nada mudou com dados inválidos
+
+    expect(manutencoes.darBaixa(falta.id, { ...dados, confirmacaoPatrimonio: ' pat-0003 ' })).toBeNull();
     expect(estoque('3')).toEqual([7, 0, 7, 'disponivel']);
+    const termo = manutencoes.buscarPorId(falta.id)!.baixa!;
+    expect(termo).toMatchObject({ motivo: 'extravio_definitivo', responsavelCiente: true, autorizadoPor: { perfil: 'admin' } });
+    expect(termo.protocolo).toMatch(/^TB-\d{4}-\d{4}$/);
+    expect(manutencoes.darBaixa(falta.id, dados)).toContain('resolvida'); // não dá baixa duas vezes
   });
 
   it('não aceita avaria sem tipo, gravidade e descrição nem quantidade maior que a emprestada', () => {

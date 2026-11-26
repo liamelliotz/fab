@@ -4,6 +4,7 @@ import { Card } from '../../shared/components/card/card';
 import { Emprestimo } from '../../core/models/emprestimo.model';
 import { AuthService } from '../../core/services/auth.service';
 import { EquipamentoService } from '../../core/services/equipamento.service';
+import { InsumoService } from '../../core/services/insumo.service';
 import {
   EmprestimoService,
   NOME_STATUS_EMPRESTIMO,
@@ -21,6 +22,7 @@ export class Dashboard {
   private readonly auth = inject(AuthService);
   private readonly equipamentos = inject(EquipamentoService);
   private readonly emprestimos = inject(EmprestimoService);
+  private readonly insumos = inject(InsumoService);
 
   readonly nomeStatus = NOME_STATUS_EMPRESTIMO;
   readonly data = formatarData;
@@ -36,6 +38,7 @@ export class Dashboard {
   );
   readonly disponiveis = this.equipamentos.unidadesDisponiveis;
   readonly emManutencao = this.equipamentos.emManutencao;
+  readonly insumosARepor = computed(() => this.insumos.aRepor().length);
 
   // ---- Métricas do usuário comum ----
   // Pedidos que a pessoa abriu ou dos quais é responsável (inclui os recebidos por transferência)

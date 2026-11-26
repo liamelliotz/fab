@@ -49,6 +49,8 @@ describe('Navbar', () => {
       'Equipamentos',
       'Manutenção',
       'Insumos',
+      'Mapa de itens',
+      'Auditoria',
       'Usuários',
       'Relatórios',
       'Materiais',

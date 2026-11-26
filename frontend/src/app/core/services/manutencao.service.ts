@@ -2,6 +2,8 @@ import { Injectable, Injector, computed, effect, inject, signal } from '@angular
 import {
   GravidadeAvaria,
   Manutencao,
+  MotivoBaixa,
+  RegistroBaixa,
   PassoManutencao,
   StatusManutencao,
   TipoAvaria,
@@ -16,9 +18,9 @@ import { EquipamentoService } from './equipamento.service';
 import { resumoDemo } from './usuario.service';
 import { EmprestimoService } from './emprestimo.service';
 
-const CHAVE_MANUTENCOES = 'fab_demo_v6_manutencoes';
+const CHAVE_MANUTENCOES = 'fab_demo_v7_manutencoes';
 /** Fotos ficam numa chave separada: se o navegador ficar sem espaço, só as fotos se perdem. */
-const CHAVE_FOTOS = 'fab_demo_v6_fotos';
+const CHAVE_FOTOS = 'fab_demo_v7_fotos';
 /** A demonstração guarda no máximo estas fotos (as mais novas). */
 const MAX_FOTOS = 12;
 
@@ -50,6 +52,33 @@ export const NOME_STATUS_MANUTENCAO: Record<StatusManutencao, string> = {
   concluida: 'Resolvida',
   baixa: 'Baixa',
 };
+
+export const NOME_MOTIVO_BAIXA: Record<MotivoBaixa, string> = {
+  irreparavel: 'Dano irreparável',
+  conserto_inviavel: 'Conserto inviável (custo maior que o valor do bem)',
+  obsolescencia: 'Obsolescência ou fim da vida útil',
+  extravio_definitivo: 'Extravio definitivo (não foi encontrado)',
+  furto_roubo: 'Furto ou roubo',
+};
+
+/** Motivos que fazem sentido para cada tipo de ocorrência. */
+export const MOTIVOS_BAIXA: Record<TipoOcorrencia, MotivoBaixa[]> = {
+  avaria: ['irreparavel', 'conserto_inviavel', 'obsolescencia'],
+  extravio: ['extravio_definitivo', 'furto_roubo'],
+};
+
+/** O que a coordenação informa para dar baixa (tudo fica no termo). */
+export interface DadosBaixa {
+  motivo?: MotivoBaixa;
+  parecer: string;
+  laudo?: string;
+  processo?: string;
+  valorEstimado?: number;
+  responsavelCiente?: boolean;
+  testemunha?: string;
+  /** O número de patrimônio digitado de novo, como confirmação. */
+  confirmacaoPatrimonio: string;
+}
 
 /** Dados para abrir uma ocorrência. */
 export interface NovaOcorrencia {
@@ -96,6 +125,25 @@ function criarManutencoesDemo(): Manutencao[] {
       registradoPor: admin, bloqueia: false, status: 'registrada',
       dataRegistro: horasDepoisISO(-21 * 24),
       historico: [passo(21, 'Avaria leve registrada na devolução. A unidade voltou ao estoque.')],
+    },
+    {
+      id: 'oc0', protocolo: 'OC-2026-0000', tipo: 'avaria', equipamentoId: '3',
+      equipamento: 'Notebook Lenovo IdeaPad 3', codigoPatrimonio: 'PAT-0003', quantidade: 1,
+      tipoAvaria: 'nao_liga', gravidade: 'grave',
+      descricao: 'Não liga depois de queda da bancada. Placa-mãe danificada.',
+      registradoPor: admin, bloqueia: true, assistencia: 'Tech Assistência', status: 'baixa',
+      dataRegistro: horasDepoisISO(-48 * 24), dataConclusao: horasDepoisISO(-40 * 24),
+      historico: [
+        passo(48, 'Encontrado com defeito na conferência do laboratório (1 unidade). Unidade bloqueada para empréstimo.'),
+        passo(46, 'Enviada para conserto: Tech Assistência.'),
+        passo(40, 'Baixa de 1 unidade(s) no acervo (TB-2026-0001) · Conserto inviável (custo maior que o valor do bem) · Laudo da assistência: placa-mãe sem reparo, troca custa mais que um notebook novo. · laudo LT-2231 · processo/BO PROC-2026/014'),
+      ],
+      baixa: {
+        protocolo: 'TB-2026-0001', motivo: 'conserto_inviavel',
+        parecer: 'Laudo da assistência: placa-mãe sem reparo, troca custa mais que um notebook novo.',
+        laudo: 'LT-2231', processo: 'PROC-2026/014', valorEstimado: 2899, responsavelCiente: false,
+        testemunha: 'Carlos Souza', autorizadoPor: admin, em: horasDepoisISO(-40 * 24),
+      },
     },
   ];
 }
@@ -230,17 +278,70 @@ export class ManutencaoService {
     return null;
   }
 
-  /** Sem conserto ou perdida de vez: as unidades saem do acervo. */
-  darBaixa(id: string, motivo: string): string | null {
+  /** Confere os dados da baixa. Devolve a mensagem do 1º problema, ou null. */
+  validarBaixa(m: Manutencao, dados: DadosBaixa): string | null {
+    if (!dados.motivo) return 'Escolha o motivo da baixa.';
+    if (!MOTIVOS_BAIXA[m.tipo].includes(dados.motivo)) return 'Este motivo não vale para este tipo de ocorrência.';
+    if (dados.parecer.trim().length < 20) {
+      return 'Escreva o parecer técnico ou o relato do ocorrido (mínimo 20 caracteres).';
+    }
+    if (dados.motivo === 'furto_roubo' && !dados.processo?.trim()) {
+      return 'Furto ou roubo exige o número do boletim de ocorrência.';
+    }
+    if (dados.valorEstimado !== undefined && (!Number.isFinite(dados.valorEstimado) || dados.valorEstimado < 0)) {
+      return 'Informe um valor estimado válido (ou deixe em branco).';
+    }
+    if (m.responsavel && !dados.responsavelCiente) {
+      return `Confirme que ${m.responsavel.nome}, que estava com o item, foi informado(a) da baixa.`;
+    }
+    const digitado = dados.confirmacaoPatrimonio.trim().toUpperCase();
+    if (!m.codigoPatrimonio || digitado !== m.codigoPatrimonio.toUpperCase()) {
+      return `Digite o patrimônio ${m.codigoPatrimonio} para confirmar a baixa.`;
+    }
+    return null;
+  }
+
+  /**
+   * Sem conserto ou perdida de vez: as unidades saem do acervo.
+   * Gera o termo de baixa (auditoria): motivo, parecer, documentos, quem autorizou e quem estava com o item.
+   */
+  darBaixa(id: string, dados: DadosBaixa): string | null {
     const m = this.buscarPorId(id);
     if (!m || (m.status !== 'aberta' && m.status !== 'em_assistencia')) return 'Esta ocorrência já foi resolvida.';
-    if (motivo.trim().length < 5) return 'Explique o motivo da baixa (mínimo 5 caracteres).';
+    const erro = this.validarBaixa(m, dados);
+    if (erro) return erro;
+
+    const baixa: RegistroBaixa = {
+      protocolo: this.proximoTermo(),
+      motivo: dados.motivo!,
+      parecer: dados.parecer.trim(),
+      laudo: dados.laudo?.trim() || undefined,
+      processo: dados.processo?.trim() || undefined,
+      valorEstimado: dados.valorEstimado,
+      responsavelCiente: !!dados.responsavelCiente,
+      testemunha: dados.testemunha?.trim() || undefined,
+      autorizadoPor: this.ator(),
+      em: agoraISO(),
+    };
     this.equipamentos.baixar(m.equipamentoId, m.quantidade);
-    const texto = `Baixa de ${m.quantidade} unidade(s) no acervo: ${motivo.trim()}`;
-    this.alterar(id, { status: 'baixa', dataConclusao: agoraISO() }, texto);
+    const texto = [
+      `Baixa de ${m.quantidade} unidade(s) no acervo (${baixa.protocolo})`,
+      NOME_MOTIVO_BAIXA[baixa.motivo],
+      baixa.parecer,
+      baixa.laudo ? `laudo ${baixa.laudo}` : '',
+      baixa.processo ? `processo/BO ${baixa.processo}` : '',
+    ].filter(Boolean).join(' · ');
+    this.alterar(id, { status: 'baixa', dataConclusao: baixa.em, baixa }, texto);
     this.anotarNoPedido(m, 'manutencao_baixa', `${m.protocolo} · ${m.equipamento}: ${texto}`);
     return null;
   }
+
+  /** Termos de baixa emitidos, do mais novo para o mais antigo. */
+  readonly baixas = computed(() =>
+    this.todas()
+      .filter((m) => !!m.baixa)
+      .sort((a, b) => b.baixa!.em.localeCompare(a.baixa!.em)),
+  );
 
   /** Volta ao estado inicial da demonstração. */
   reiniciar(): void {
@@ -273,6 +374,11 @@ export class ManutencaoService {
 
   private ator(): UsuarioResumo {
     return this.auth.usuarioAtual();
+  }
+
+  private proximoTermo(): string {
+    const maior = this.todas().reduce((n, m) => Math.max(n, Number(m.baixa?.protocolo.slice(-4)) || 0), 0);
+    return `TB-${new Date().getFullYear()}-${String(maior + 1).padStart(4, '0')}`;
   }
 
   private proximoProtocolo(): string {

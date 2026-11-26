@@ -75,6 +75,15 @@
             <span class="metric-note">Avarias e extravios, fora de circulação</span>
           </div>
         </app-card>
+        <a class="action-link" routerLink="/admin/insumos">
+          <app-card>
+            <div class="metric-card">
+              <span class="metric-label">Insumos a repor</span>
+              <strong class="metric-value" [class.metric-value--alerta]="insumosARepor() > 0">{{ insumosARepor() }}</strong>
+              <span class="metric-note">{{ insumosARepor() > 0 ? 'No estoque mínimo ou abaixo' : 'Todos acima do mínimo' }}</span>
+            </div>
+          </app-card>
+        </a>
       } @else {
         <app-card>
           <div class="metric-card">
@@ -125,6 +134,24 @@
               <span class="action-icon" aria-hidden="true"><i class="fa-solid fa-clipboard-check"></i></span>
               <h3>Gerir solicitações</h3>
               <p>Aprove ou reprove os pedidos de empréstimo enviados.</p>
+            </div>
+          </app-card>
+        </a>
+        <a class="action-link" routerLink="/admin/mapa">
+          <app-card>
+            <div class="action-card">
+              <span class="action-icon" aria-hidden="true"><i class="fa-solid fa-map-location-dot"></i></span>
+              <h3>Mapa de itens</h3>
+              <p>Veja em que sala está cada equipamento e com quem.</p>
+            </div>
+          </app-card>
+        </a>
+        <a class="action-link" routerLink="/admin/auditoria">
+          <app-card>
+            <div class="action-card">
+              <span class="action-icon" aria-hidden="true"><i class="fa-solid fa-shield-halved"></i></span>
+              <h3>Auditoria</h3>
+              <p>Trilha de tudo o que mexeu no patrimônio, com os termos de baixa.</p>
             </div>
           </app-card>
         </a>

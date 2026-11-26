@@ -3,6 +3,7 @@ import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 // Serviço de autenticação: perfil do usuário e logout
 import { AuthService } from '../../../core/services/auth.service';
 import { EmprestimoService } from '../../../core/services/emprestimo.service';
+import { InsumoService } from '../../../core/services/insumo.service';
 
 interface NavItem {
   label: string;
@@ -29,6 +30,7 @@ export class Navbar {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly emprestimos = inject(EmprestimoService);
+  private readonly insumos = inject(InsumoService);
 
   /** true quando o usuário logado tem perfil admin. */
   readonly ehAdmin = computed(() => this.auth.perfilAtual()?.toLowerCase() === 'admin');
@@ -76,7 +78,15 @@ export class Navbar {
     },
     { label: 'Equipamentos', route: '/admin/equipamentos', icon: 'fa-solid fa-laptop', somenteAdmin: true },
     { label: 'Manutenção', route: '/admin/manutencao', icon: 'fa-solid fa-screwdriver-wrench', somenteAdmin: true },
-    { label: 'Insumos', route: '/admin/insumos', icon: 'fa-solid fa-boxes-stacked', somenteAdmin: true },
+    {
+      label: 'Insumos',
+      route: '/admin/insumos',
+      icon: 'fa-solid fa-boxes-stacked',
+      somenteAdmin: true,
+      badge: () => this.insumos.aRepor().length,
+    },
+    { label: 'Mapa de itens', route: '/admin/mapa', icon: 'fa-solid fa-map-location-dot', somenteAdmin: true },
+    { label: 'Auditoria', route: '/admin/auditoria', icon: 'fa-solid fa-shield-halved', somenteAdmin: true },
     { label: 'Usuários', route: '/admin/usuarios', icon: 'fa-solid fa-users', somenteAdmin: true },
     { label: 'Relatórios', route: '/admin/relatorios', icon: 'fa-solid fa-chart-column', somenteAdmin: true },
     { label: 'Materiais', route: '/materiais', icon: 'fa-solid fa-box-open', novoGrupo: true },

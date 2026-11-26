@@ -1,0 +1,124 @@
+<section class="aud" aria-labelledby="titulo-auditoria">
+  <header class="aud__cabecalho">
+    <div>
+      <h1 id="titulo-auditoria">Auditoria do patrimônio</h1>
+      <p>
+        Tudo o que mexeu em equipamentos e insumos: quem fez, quando e o quê.
+        <strong>Os registros não podem ser editados nem apagados</strong>; esta tela só lê.
+      </p>
+    </div>
+    <button type="button" class="aud__btn aud__btn--principal" (click)="exportar()" [disabled]="filtrados().length === 0">
+      <i class="fa-solid fa-file-csv" aria-hidden="true"></i> Exportar CSV ({{ filtrados().length }})
+    </button>
+  </header>
+
+  @if (!modoDemo) {
+    <p class="aud__aviso" role="note">
+      <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+      A trilha usa os dados da demonstração até as rotas de auditoria existirem na API.
+    </p>
+  }
+
+  <div class="aud__metricas">
+    <div class="aud__metrica aud__metrica--baixa">
+      <span>Baixas patrimoniais</span>
+      <strong>{{ baixas().length }}</strong>
+      <small>{{ moeda(valorBaixado()) }} em bens baixados (valor informado)</small>
+    </div>
+    <div class="aud__metrica aud__metrica--manut">
+      <span>Ocorrências abertas</span>
+      <strong>{{ ocorrenciasAbertas() }}</strong>
+      <small>avarias e faltas aguardando providência</small>
+    </div>
+    <div class="aud__metrica aud__metrica--termo">
+      <span>Em uso com termo aceito</span>
+      <strong>{{ emUsoComTermo().comTermo }}/{{ emUsoComTermo().total }}</strong>
+      <small>empréstimos em andamento</small>
+    </div>
+    <div class="aud__metrica aud__metrica--insumo">
+      <span>Perdas de insumo</span>
+      <strong>{{ perdasInsumo() }}</strong>
+      <small>saídas por perda ou vencimento</small>
+    </div>
+  </div>
+
+  @if (baixas().length) {
+    <section class="termos" aria-labelledby="titulo-termos">
+      <h2 id="titulo-termos"><i class="fa-solid fa-stamp" aria-hidden="true"></i> Termos de baixa emitidos</h2>
+      <div class="termos__lista">
+        @for (m of baixas(); track m.id) {
+          <button type="button" class="termo" (click)="termoAberto.set(m)">
+            <span class="termo__prot">{{ m.baixa!.protocolo }}</span>
+            <strong>{{ m.equipamento }} × {{ m.quantidade }}</strong>
+            <small>{{ nomeMotivoBaixa[m.baixa!.motivo] }} · {{ dataHora(m.baixa!.em) }}</small>
+            <small>autorizado por {{ m.baixa!.autorizadoPor.nome }}</small>
+          </button>
+        }
+      </div>
+    </section>
+  }
+
+  <div class="aud__filtros">
+    <label class="aud__busca">
+      <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+      <input type="search" placeholder="Buscar protocolo, item, pessoa ou detalhe" aria-label="Buscar na auditoria"
+        [value]="busca()" (input)="busca.set(valor($event))" />
+    </label>
+    <select aria-label="Período" (change)="periodo.set(+valor($event))">
+      <option value="7" [selected]="periodo() === 7">Últimos 7 dias</option>
+      <option value="30" [selected]="periodo() === 30">Últimos 30 dias</option>
+      <option value="90" [selected]="periodo() === 90">Últimos 90 dias</option>
+      <option value="0" [selected]="periodo() === 0">Todo o período</option>
+    </select>
+    <select aria-label="Pessoa" (change)="pessoa.set(valor($event))">
+      <option value="">Todas as pessoas</option>
+      @for (p of pessoas(); track p) { <option [value]="p" [selected]="p === pessoa()">{{ p }}</option> }
+    </select>
+    <label class="aud__check"><input type="checkbox" [checked]="soAlertas()" (change)="soAlertas.set(!soAlertas())" /> Só alertas</label>
+    <button type="button" class="aud__btn" (click)="limparFiltros()">Limpar filtros</button>
+  </div>
+
+  <div class="aud__modulos" role="radiogroup" aria-label="Módulo">
+    <button type="button" role="radio" class="aud__modulo" [class.aud__modulo--ativo]="modulo() === ''" [attr.aria-checked]="modulo() === ''" (click)="modulo.set('')">
+      Todos <span>{{ filtrados().length }}</span>
+    </button>
+    @for (m of modulos; track m) {
+      <button type="button" role="radio" class="aud__modulo aud__modulo--{{ m }}" [class.aud__modulo--ativo]="modulo() === m" [attr.aria-checked]="modulo() === m" (click)="modulo.set(m)">
+        {{ nomeModulo[m] }} <span>{{ modulo() === '' || modulo() === m ? porModulo()[m] : '' }}</span>
+      </button>
+    }
+  </div>
+
+  <ol class="trilha" aria-label="Trilha de auditoria, do registro mais novo para o mais antigo">
+    @for (r of visiveis(); track r.id) {
+      <li class="reg reg--{{ r.gravidade }}">
+        <time class="reg__quando">{{ dataHora(r.em) }}</time>
+        <div class="reg__corpo">
+          <div class="reg__topo">
+            <span class="tag tag--{{ r.modulo }}">{{ nomeModulo[r.modulo] }}</span>
+            <strong>{{ r.acao }}</strong>
+            @if (r.ocorrenciaId) {
+              <button type="button" class="reg__alvo reg__alvo--botao" (click)="abrirTermo(r.ocorrenciaId)">{{ r.alvo }} · ver termo</button>
+            } @else {
+              <a class="reg__alvo" [routerLink]="r.link">{{ r.alvo }}</a>
+            }
+          </div>
+          @if (r.itens) { <p class="reg__itens">{{ r.itens }}</p> }
+          @if (r.detalhe) { <p class="reg__detalhe">{{ r.detalhe }}</p> }
+        </div>
+        <span class="reg__por"><i class="fa-solid fa-user-shield" aria-hidden="true"></i> {{ r.por }}</span>
+      </li>
+    } @empty {
+      <li class="trilha__vazio">Nenhum registro com estes filtros.</li>
+    }
+  </ol>
+  @if (filtrados().length > visiveis().length) {
+    <button type="button" class="aud__btn aud__mais" (click)="limite.set(limite() + 60)">
+      Mostrar mais ({{ filtrados().length - visiveis().length }} restantes)
+    </button>
+  }
+</section>
+
+@if (termoAberto(); as m) {
+  <app-termo-baixa [ocorrencia]="m" (fechar)="termoAberto.set(null)" />
+}

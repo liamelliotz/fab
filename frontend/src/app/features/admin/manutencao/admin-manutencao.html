@@ -130,6 +130,13 @@
               <i class="fa-solid fa-trash-can" aria-hidden="true"></i> Dar baixa
             </button>
           </div>
+        } @else if (m.baixa) {
+          <div class="oc__acoes">
+            <span class="oc__termo"><i class="fa-solid fa-stamp" aria-hidden="true"></i> Termo {{ m.baixa.protocolo }} · {{ nomeMotivoBaixa[m.baixa.motivo] }}</span>
+            <button type="button" class="man__btn" (click)="termoAberto.set(m)">
+              <i class="fa-solid fa-file-signature" aria-hidden="true"></i> Ver termo de baixa
+            </button>
+          </div>
         } @else if (m.status === 'registrada') {
           <p class="oc__nota"><i class="fa-solid fa-box-open" aria-hidden="true"></i> Avaria leve: só registro, a unidade continuou no estoque.</p>
         }
@@ -146,7 +153,7 @@
 <!-- Diálogo: conserto, conclusão ou baixa -->
 @if (acao(); as a) {
   <div class="man__fundo" (click)="fecharAcao()">
-    <div class="man__dialogo" role="dialog" aria-modal="true" aria-labelledby="man-acao-titulo" appDialogo (fecharDialogo)="fecharAcao()" (click)="$event.stopPropagation()">
+    <div class="man__dialogo" [class.man__dialogo--largo]="a.tipo === 'baixa'" role="dialog" aria-modal="true" aria-labelledby="man-acao-titulo" appDialogo (fecharDialogo)="fecharAcao()" (click)="$event.stopPropagation()">
       @switch (a.tipo) {
         @case ('assistencia') {
           <h2 id="man-acao-titulo">Enviar para conserto</h2>
@@ -168,15 +175,53 @@
           </label>
         }
         @case ('baixa') {
-          <h2 id="man-acao-titulo">Dar baixa no acervo</h2>
+          @let b = baixa();
+          <h2 id="man-acao-titulo"><i class="fa-solid fa-stamp" aria-hidden="true"></i> Baixa patrimonial auditada</h2>
           <p>
-            <strong>{{ a.alvo.quantidade }} unidade(s)</strong> de {{ a.alvo.equipamento }} saem do acervo de vez
-            (sem conserto ou perdidas). Isso não pode ser desfeito.
+            <strong>{{ a.alvo.quantidade }} unidade(s)</strong> de {{ a.alvo.equipamento }} ({{ a.alvo.codigoPatrimonio }}) saem do
+            acervo de vez. Isso não pode ser desfeito e gera um <strong>termo de baixa</strong> para arquivar.
           </p>
-          <label class="man__campo">
-            <span>Motivo da baixa</span>
-            <textarea rows="2" placeholder="Ex.: placa-mãe queimada, conserto mais caro que um novo" [value]="textoAcao()" (input)="escreverAcao($event)"></textarea>
-          </label>
+          <div class="man__baixa">
+            <label class="man__campo">
+              <span>Motivo</span>
+              <select (change)="mudarBaixa('motivo', $any(valorDe($event)))">
+                <option value="" [selected]="!b.motivo">Selecione o motivo</option>
+                @for (mo of motivosBaixa[a.alvo.tipo]; track mo) {
+                  <option [value]="mo" [selected]="mo === b.motivo">{{ nomeMotivoBaixa[mo] }}</option>
+                }
+              </select>
+            </label>
+            <label class="man__campo">
+              <span>Valor estimado do bem (R$, opcional)</span>
+              <input type="text" inputmode="decimal" placeholder="Ex.: 2.899,00" (input)="mudarBaixa('valorEstimado', valorEstimado($event))" />
+            </label>
+            <label class="man__campo man__campo--largo">
+              <span>Parecer técnico ou relato do ocorrido</span>
+              <textarea rows="3" placeholder="Ex.: laudo da assistência: placa-mãe sem reparo, troca custa mais que um equipamento novo." [value]="b.parecer" (input)="mudarBaixa('parecer', valorDe($event))"></textarea>
+            </label>
+            <label class="man__campo">
+              <span>Nº do laudo (opcional)</span>
+              <input type="text" placeholder="Ex.: LT-2231" [value]="b.laudo" (input)="mudarBaixa('laudo', valorDe($event))" />
+            </label>
+            <label class="man__campo">
+              <span>Processo ou boletim de ocorrência {{ b.motivo === 'furto_roubo' ? '(obrigatório)' : '(opcional)' }}</span>
+              <input type="text" placeholder="Ex.: PROC-2026/014" [value]="b.processo" (input)="mudarBaixa('processo', valorDe($event))" />
+            </label>
+            <label class="man__campo man__campo--largo">
+              <span>Testemunha da conferência (opcional)</span>
+              <input type="text" placeholder="Nome de quem conferiu o bem junto com você" [value]="b.testemunha" (input)="mudarBaixa('testemunha', valorDe($event))" />
+            </label>
+            @if (a.alvo.responsavel) {
+              <label class="man__check man__campo--largo">
+                <input type="checkbox" [checked]="b.responsavelCiente" (change)="mudarBaixa('responsavelCiente', !b.responsavelCiente)" />
+                <span><strong>{{ a.alvo.responsavel.nome }}</strong>, que estava com o item no pedido {{ a.alvo.protocoloEmprestimo }}, foi informado(a) da baixa.</span>
+              </label>
+            }
+            <label class="man__campo man__campo--largo man__confirma">
+              <span>Para confirmar, digite o patrimônio <strong>{{ a.alvo.codigoPatrimonio }}</strong></span>
+              <input type="text" autocomplete="off" spellcheck="false" [value]="b.confirmacaoPatrimonio" (input)="mudarBaixa('confirmacaoPatrimonio', valorDe($event))" />
+            </label>
+          </div>
         }
       }
       @if (erroAcao()) {
@@ -191,7 +236,7 @@
           [class.man__btn--perigo-cheio]="a.tipo === 'baixa'"
           (click)="confirmarAcao()"
         >
-          Confirmar
+          {{ a.tipo === 'baixa' ? 'Dar baixa e gerar termo' : 'Confirmar' }}
         </button>
       </div>
     </div>
@@ -247,4 +292,9 @@
   >
     <img [src]="f" alt="Foto da avaria ampliada" />
   </div>
+}
+
+<!-- Termo de baixa -->
+@if (termoAberto(); as m) {
+  <app-termo-baixa [ocorrencia]="m" (fechar)="termoAberto.set(null)" />
 }

@@ -47,6 +47,12 @@ Esta parte vale para a apresentação **sem backend**, com dados salvos no naveg
 | 6 | **Habilitação para equipamentos com treinamento** | Usuários (admin) |
 | 7 | **Cadastro só pelo administrador** (saiu da tela de login) | Usuários → Novo usuário |
 | 8 | Avisos para a coordenação e bolinhas de novidade no menu | Empréstimos, menu lateral |
+| 9 | **Mapa de itens** da escola fictícia (*Escola Estadual Modelo FAB*): onde cada unidade está, com quem e desde quando, e a busca **Onde está?** | Mapa de itens |
+| 10 | **Local de uso** informado no pedido, confirmado no balcão e trocado só com transferência aceita | Solicitar, Balcão, Transferir |
+| 11 | **Termo de responsabilidade** aceito na retirada (sem ele o balcão não entrega) | Balcão |
+| 12 | **Baixa patrimonial auditada**: motivo, parecer, laudo, processo/BO, valor, ciência do responsável, confirmação pelo patrimônio e **termo de baixa** para imprimir | Manutenção, Auditoria |
+| 13 | **Gestão de insumos**: saldo, estoque mínimo, entradas (NF, doação), saídas com professor, local e finalidade, perdas, previsão de término e CSV | Insumos |
+| 14 | **Auditoria do patrimônio**: trilha única e somente-leitura de empréstimos, manutenção, baixas e insumos, com filtros e exportação CSV | Auditoria |
 
 ## 2. Regras da realocação (transferência)
 
@@ -106,6 +112,22 @@ já devolvido com cadeia João → Maria (para mostrar a linha do tempo completa
 **Para o backend:** contrato em `frontend/src/app/core/models/manutencao.model.ts`
 (`Manutencao`, `RegistroAvariaDTO`) e novo campo `quantidadeEmManutencao` no equipamento.
 
+## 3.2 Mapa, auditoria e insumos
+
+- **O mapa nunca é editado à mão.** Cada unidade aparece em exatamente um lugar, calculado pelos
+  registros: guardada no local de guarda (deduzido da *Localização* do equipamento), reservada para
+  um pedido aprovado, em uso no local do pedido/balcão/transferência, na sala de manutenção, na
+  assistência técnica ou "não localizada" (falta aberta). Os insumos aparecem no local onde ficam guardados.
+- **Escola fictícia:** Bloco A (Salas 101 a 104 e Auditório), Bloco B (Lab. de Informática, Lab. Maker,
+  Lab. de Ciências, Lab. de Eletrônica e Biblioteca), Bloco C (Coordenação, Almoxarifado de TI,
+  Sala dos Professores e Sala de Manutenção) e Quadra. A lista fica em
+  `frontend/src/app/core/constants/escola-modelo.constants.ts` e vira o cadastro de locais na API.
+- **Baixa auditada:** gera o termo `TB-AAAA-NNNN`, que nunca muda. Furto/roubo exige o número do BO;
+  quando havia alguém com o item, a coordenação confirma que a pessoa foi informada. Exemplo pronto:
+  **TB-2026-0001** (Notebook Lenovo, conserto inviável).
+- **Insumos:** o saldo só muda por movimentação e nunca fica negativo. O uso em aula exige professor,
+  local e finalidade. Exemplos: **Filamento PLA**, **Jumpers** e **Toner** já estão "a repor".
+
 ## 4. Roteiro de apresentação (≈ 6 minutos)
 
 1. **Admin cria um professor** (Usuários → Novo usuário). Mostre a senha provisória e que o login não tem mais cadastro público.
@@ -115,6 +137,9 @@ já devolvido com cadeia João → Maria (para mostrar a linha do tempo completa
 5. **Entre como Maria** (barra de demonstração) → aceite. Mostre que o **prazo continuou o mesmo** e que o código de devolução mudou.
 6. **Entre como admin** → *Empréstimos*: aviso da transferência, atrasos e quem está com cada coisa. Abra o **EMP-2026-0036**: **linha do tempo** e cadeia de responsáveis.
 7. **Devolução** no Balcão com o código novo: escolha *Com avaria ou falta*, marque 1 avariada (gravidade **grave**, com foto) e mostre em **Manutenção** a unidade bloqueada; depois *Consertado* e ela volta ao estoque.
+8. **Mapa de itens:** busque "lenovo" em *Onde está?*. Volte ao Balcão, entregue o pedido da Ana (código `K7M4PX`) escolhendo **Sala 104** e aceitando o termo; no mapa, as 2 unidades passam do Almoxarifado de TI para a Sala 104.
+9. **Baixa auditada:** em *Manutenção*, dê baixa na Parafusadeira (motivo, parecer e o patrimônio `PAT-0007` para confirmar) e imprima o **termo de baixa**.
+10. **Insumos:** registre a saída de 1 rolo de Filamento PLA para um professor no Lab. Maker; mostre o alerta de estoque mínimo e a previsão de término. Termine na **Auditoria**, filtrando por *Baixa patrimonial* e exportando o CSV.
 
 ## 5. O que o backend precisa para virar produção
 
@@ -137,6 +162,7 @@ já devolvido com cadeia João → Maria (para mostrar a linha do tempo completa
 - Os dados ficam no **navegador** (localStorage): cada computador tem os seus. Não há envio real de e-mail.
 - As **senhas da demo ficam em texto** no navegador. Com o backend, só o hash existe (Card 4).
 - **Sem código não há retirada nem devolução.** Se o professor perder o código, ele o vê de novo em *Meus pedidos* (com o QR).
+- **Mapa, auditoria e insumos** ainda usam os dados da demonstração mesmo com `npm start`: as rotas de locais, auditoria e insumos (cards D) ainda não ligam essas telas à API.
 - O QR é gerado no front; o **leitor** é o USB (ele "digita" o código no campo do Balcão). Ler por câmera fica para a versão com app/PWA.
 
 ## 7. Ideias para ir além (se sobrar tempo)
