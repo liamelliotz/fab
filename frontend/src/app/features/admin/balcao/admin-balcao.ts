@@ -2,13 +2,14 @@ import { Component, DestroyRef, Injector, computed, inject, signal } from '@angu
 import { RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription, finalize } from 'rxjs';
+import { LOCAIS_DE_USO } from '../../../core/constants/escola-modelo.constants';
 import { Emprestimo, ItemEmprestimo } from '../../../core/models/emprestimo.model';
 import { RegistroAvariaDTO } from '../../../core/models/manutencao.model';
 import {
   EmprestimoAdminService,
   mensagemErroAdmin,
 } from '../../../core/services/emprestimo-admin.service';
-import { EmprestimoService, OpcoesDevolucao } from '../../../core/services/emprestimo.service';
+import { EmprestimoService, OpcoesDevolucao, descreverLocalUso } from '../../../core/services/emprestimo.service';
 import { EquipamentoService } from '../../../core/services/equipamento.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { normalizarCodigo } from '../../../core/utils/codigo.utils';
@@ -44,6 +45,8 @@ export class AdminBalcao {
   private codigoConferido = '';
 
   readonly data = formatarData;
+  readonly locais = LOCAIS_DE_USO;
+  readonly descreverLocal = descreverLocalUso;
 
   readonly aba = signal<Aba>('retirada');
   readonly codigo = signal('');
@@ -53,6 +56,11 @@ export class AdminBalcao {
 
   /** Pedido encontrado pelo código, aguardando a confirmação. */
   readonly alvo = signal<Emprestimo | null>(null);
+
+  // Conferência da retirada: onde o material vai ser usado e o termo de responsabilidade
+  readonly localUsoId = signal('');
+  readonly localUsoDetalhe = signal('');
+  readonly termoAceito = signal(false);
 
   // Conferência da devolução
   /** false = tudo em ordem; true = abre o registro de avaria/falta por item. */
@@ -195,6 +203,9 @@ export class AdminBalcao {
           }
           this.codigoConferido = codigo;
           this.alvo.set(resposta.emprestimo);
+          this.localUsoId.set(resposta.emprestimo.localUso?.localId ?? '');
+          this.localUsoDetalhe.set(resposta.emprestimo.localUso?.detalhe ?? '');
+          this.termoAceito.set(false);
         },
         error: (erro) => this.erro.set(mensagemErroAdmin(erro)),
       });
@@ -209,6 +220,18 @@ export class AdminBalcao {
     this.comProblema.set(false);
     this.registros.set({});
     this.observacoes.set('');
+    this.localUsoId.set('');
+    this.localUsoDetalhe.set('');
+    this.termoAceito.set(false);
+  }
+
+  atualizarLocal(evento: Event): void {
+    this.localUsoId.set((evento.target as HTMLSelectElement).value);
+    this.erro.set('');
+  }
+
+  atualizarDetalheLocal(evento: Event): void {
+    this.localUsoDetalhe.set((evento.target as HTMLInputElement).value);
   }
 
   confirmar(): void {
@@ -216,6 +239,14 @@ export class AdminBalcao {
     const devolucao = this.aba() === 'devolucao';
     if (devolucao && this.houveAvaria() && !this.observacoes().trim()) {
       this.erro.set('Informe as observações da avaria ou marque as unidades com problema.');
+      return;
+    }
+    if (!devolucao && this.service.modoDemo && !this.localUsoId()) {
+      this.erro.set('Confirme onde o material será usado.');
+      return;
+    }
+    if (!devolucao && !this.termoAceito()) {
+      this.erro.set('O responsável precisa aceitar o termo de responsabilidade antes da entrega.');
       return;
     }
 
@@ -230,7 +261,12 @@ export class AdminBalcao {
           observacoes: this.observacoes(),
           ocorrencias: this.ocorrencias(),
         })
-      : this.service.retirar(this.codigoConferido);
+      : this.service.retirar(this.codigoConferido, {
+          termoAceito: true,
+          localUso: this.localUsoId()
+            ? { localId: this.localUsoId(), detalhe: this.localUsoDetalhe().trim() || undefined }
+            : undefined,
+        });
 
     operacao
       .pipe(
@@ -259,7 +295,8 @@ export class AdminBalcao {
     r: { aoEstoque: number; emManutencao: number; faltando: number } | null,
   ): void {
     if (!devolucao) {
-      this.notificacoes.sucesso(`Retirada registrada: ${s.protocolo} entregue a ${s.responsavel.nome}.`);
+      const onde = s.localUso ? ` · em uso em ${descreverLocalUso(s.localUso)}` : '';
+      this.notificacoes.sucesso(`Retirada registrada: ${s.protocolo} entregue a ${s.responsavel.nome}${onde}.`);
     } else if (r && (r.emManutencao > 0 || r.faltando > 0)) {
       const partes = [
         `${r.aoEstoque} de volta ao estoque`,

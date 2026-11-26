@@ -1,8 +1,10 @@
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
+import { buscarLocal, nomeLocal } from '../constants/escola-modelo.constants';
 import {
   Emprestimo,
   EventoEmprestimo,
   ItemEmprestimo,
+  LocalUsoEmprestimo,
   SolicitarEmprestimoDTO,
   StatusEmprestimo,
   TipoEventoEmprestimo,
@@ -35,8 +37,8 @@ export const NOME_STATUS_EMPRESTIMO: Record<StatusEmprestimo, string> = {
   cancelado: 'Cancelado',
 };
 
-const CHAVE_EMPRESTIMOS = 'fab_demo_v6_emprestimos';
-const CHAVE_AVISOS = 'fab_demo_v6_avisos';
+const CHAVE_EMPRESTIMOS = 'fab_demo_v7_emprestimos';
+const CHAVE_AVISOS = 'fab_demo_v7_avisos';
 
 /** Aviso mostrado à coordenação (substitui o e-mail/notificação do sistema real). */
 export interface AvisoAdmin {
@@ -59,6 +61,21 @@ export interface OpcoesDevolucao {
   ocorrencias?: RegistroAvariaDTO[];
   /** Forma antiga (só uma marcação, sem detalhes). Continua aceita. */
   houveAvaria?: boolean;
+}
+
+/** O que o balcão confirma na retirada, além do código. */
+export interface OpcoesRetirada {
+  /** Local de uso confirmado (ou corrigido) no balcão. Sem ele, vale o informado no pedido. */
+  localUso?: LocalUsoEmprestimo;
+  /** O responsável leu e aceitou o termo de responsabilidade. */
+  termoAceito?: boolean;
+}
+
+/** "Sala 102 · 2º módulo" (ou só o nome do local). */
+export function descreverLocalUso(local: LocalUsoEmprestimo | undefined): string {
+  if (!local) return 'Local não informado';
+  const detalhe = local.detalhe?.trim();
+  return detalhe ? `${nomeLocal(local.localId)} · ${detalhe}` : nomeLocal(local.localId);
 }
 
 /** Quantas unidades voltaram ao estoque, foram para manutenção ou ficaram como falta. */
@@ -99,7 +116,7 @@ export function criarEmprestimosDemo(): Emprestimo[] {
   return [
     // Pendente de Carlos (Multímetro + Kit de ferramentas)
     {
-      id: 'p45', protocolo: 'EMP-2026-0045', solicitante: carlos, responsavel: carlos,
+      id: 'p45', localUso: { localId: 'lab-eletronica', detalhe: 'Bancada de testes' }, protocolo: 'EMP-2026-0045', solicitante: carlos, responsavel: carlos,
       itens: [{ equipamentoId: '5', quantidade: 1 }, { equipamentoId: '6', quantidade: 1 }],
       status: 'pendente', justificativa: 'Manutenção da bancada de testes do laboratório.',
       dataSolicitacao: d(-1), dataPrevistaRetirada: d(3), dataPrevistaDevolucao: d(9),
@@ -107,7 +124,7 @@ export function criarEmprestimosDemo(): Emprestimo[] {
     },
     // APROVADO do professor: mostra o código e o QR de retirada
     {
-      id: 'p44', protocolo: 'EMP-2026-0044', solicitante: prof, responsavel: prof,
+      id: 'p44', localUso: { localId: 'lab-informatica', detalhe: 'Manutenção dos computadores' }, protocolo: 'EMP-2026-0044', solicitante: prof, responsavel: prof,
       itens: [{ equipamentoId: '6', quantidade: 1 }],
       status: 'aprovado', justificativa: 'Manutenção dos computadores do laboratório de informática.',
       dataSolicitacao: d(-1), dataPrevistaRetirada: d(0), dataPrevistaDevolucao: d(7),
@@ -116,7 +133,7 @@ export function criarEmprestimosDemo(): Emprestimo[] {
     },
     // Pendente de Maria
     {
-      id: 'p43', protocolo: 'EMP-2026-0043', solicitante: maria, responsavel: maria,
+      id: 'p43', localUso: { localId: 'auditorio', detalhe: 'Reunião de pais e mestres' }, protocolo: 'EMP-2026-0043', solicitante: maria, responsavel: maria,
       itens: [{ equipamentoId: '2', quantidade: 1 }],
       status: 'pendente', justificativa: 'Projeção de apresentação na reunião de pais e mestres.',
       dataSolicitacao: d(-1), dataPrevistaRetirada: d(2), dataPrevistaDevolucao: d(4),
@@ -124,7 +141,7 @@ export function criarEmprestimosDemo(): Emprestimo[] {
     },
     // Pendente de João
     {
-      id: 'p42', protocolo: 'EMP-2026-0042', solicitante: joao, responsavel: joao,
+      id: 'p42', localUso: { localId: 'sala-102', detalhe: '2º módulo · lógica de programação' }, protocolo: 'EMP-2026-0042', solicitante: joao, responsavel: joao,
       itens: [{ equipamentoId: '1', quantidade: 2 }],
       status: 'pendente', justificativa: 'Aula prática de lógica de programação com a turma do 2º módulo.',
       dataSolicitacao: d(-2), dataPrevistaRetirada: d(1), dataPrevistaDevolucao: d(6),
@@ -132,7 +149,7 @@ export function criarEmprestimosDemo(): Emprestimo[] {
     },
     // Aprovado de Ana (código para o balcão: K7M4PX)
     {
-      id: 'p41', protocolo: 'EMP-2026-0041', solicitante: ana, responsavel: ana,
+      id: 'p41', localUso: { localId: 'lab-informatica', detalhe: 'Oficina de desenvolvimento web' }, protocolo: 'EMP-2026-0041', solicitante: ana, responsavel: ana,
       itens: [{ equipamentoId: '3', quantidade: 2 }],
       status: 'aprovado', justificativa: 'Oficina de desenvolvimento web.',
       dataSolicitacao: d(-2), dataPrevistaRetirada: d(0), dataPrevistaDevolucao: d(5),
@@ -141,7 +158,7 @@ export function criarEmprestimosDemo(): Emprestimo[] {
     },
     // Em andamento com Carlos, com transferência PENDENTE para o professor (ele aceita ou recusa)
     {
-      id: 'p40', protocolo: 'EMP-2026-0040', solicitante: carlos, responsavel: carlos,
+      id: 'p40', localUso: { localId: 'lab-eletronica', detalhe: 'Projeto de eletrônica analógica' }, termoAceito: true, protocolo: 'EMP-2026-0040', solicitante: carlos, responsavel: carlos,
       itens: [{ equipamentoId: '5', quantidade: 1 }],
       status: 'em_andamento', justificativa: 'Medições do projeto de eletrônica analógica.',
       dataSolicitacao: d(-3), dataPrevistaRetirada: d(-2), dataPrevistaDevolucao: d(4),
@@ -151,7 +168,7 @@ export function criarEmprestimosDemo(): Emprestimo[] {
         motivo: 'Vou viajar para o curso de capacitação e o Pedro dará continuidade ao projeto.',
       },
       historico: [
-        ev('solicitado', carlos, 3), ev('aprovado', admin, 3, undefined, 2), ev('retirado', admin, 2, 'Entregue a Carlos Souza · código conferido'),
+        ev('solicitado', carlos, 3), ev('aprovado', admin, 3, undefined, 2), ev('retirado', admin, 2, 'Entregue a Carlos Souza · código conferido · local de uso: Lab. de Eletrônica · termo de responsabilidade aceito'),
         {
           id: crypto.randomUUID(), tipo: 'transferencia_solicitada', em: horasDepoisISO(-2), por: carlos,
           detalhe: 'Para Pedro Almeida: Vou viajar para o curso de capacitação e o Pedro dará continuidade ao projeto.',
@@ -160,34 +177,34 @@ export function criarEmprestimosDemo(): Emprestimo[] {
     },
     // Em andamento com o professor: Impressora 3D (exige treinamento) -> bom para testar a transferência
     {
-      id: 'p39', protocolo: 'EMP-2026-0039', solicitante: prof, responsavel: prof,
+      id: 'p39', localUso: { localId: 'lab-maker', detalhe: 'Peças do projeto integrador' }, termoAceito: true, protocolo: 'EMP-2026-0039', solicitante: prof, responsavel: prof,
       itens: [{ equipamentoId: '8', quantidade: 1 }],
       status: 'em_andamento', justificativa: 'Impressão das peças do projeto integrador.',
       dataSolicitacao: d(-3), dataPrevistaRetirada: d(-2), dataPrevistaDevolucao: d(3),
       dataRetiradaEfetiva: d(-2), responsavelAprovacao: admin, codigoDevolucao: 'W5X8YZ',
-      historico: [ev('solicitado', prof, 3), ev('aprovado', admin, 3, undefined, 2), ev('retirado', admin, 2, 'Entregue a Pedro Almeida · código conferido')],
+      historico: [ev('solicitado', prof, 3), ev('aprovado', admin, 3, undefined, 2), ev('retirado', admin, 2, 'Entregue a Pedro Almeida · código conferido · local de uso: Lab. Maker · termo de responsabilidade aceito')],
     },
     // Em andamento com o professor: Projetor -> transferir para qualquer professor
     {
-      id: 'p38', protocolo: 'EMP-2026-0038', solicitante: prof, responsavel: prof,
+      id: 'p38', localUso: { localId: 'sala-103', detalhe: '3º módulo · apresentação de trabalhos' }, termoAceito: true, protocolo: 'EMP-2026-0038', solicitante: prof, responsavel: prof,
       itens: [{ equipamentoId: '2', quantidade: 1 }],
       status: 'em_andamento', justificativa: 'Aulas de apresentação de trabalhos do 3º módulo.',
       dataSolicitacao: d(-3), dataPrevistaRetirada: d(-1), dataPrevistaDevolucao: d(2),
       dataRetiradaEfetiva: d(-1), responsavelAprovacao: admin, codigoDevolucao: 'P4R7ST',
-      historico: [ev('solicitado', prof, 3), ev('aprovado', admin, 3, undefined, 2), ev('retirado', admin, 1, 'Entregue a Pedro Almeida · código conferido')],
+      historico: [ev('solicitado', prof, 3), ev('aprovado', admin, 3, undefined, 2), ev('retirado', admin, 1, 'Entregue a Pedro Almeida · código conferido · local de uso: Sala 103 · termo de responsabilidade aceito')],
     },
     // ATRASADO (Maria, Caixa de som): não pode ser transferido
     {
-      id: 'p37', protocolo: 'EMP-2026-0037', solicitante: maria, responsavel: maria,
+      id: 'p37', localUso: { localId: 'quadra', detalhe: 'Evento de integração dos alunos' }, termoAceito: true, protocolo: 'EMP-2026-0037', solicitante: maria, responsavel: maria,
       itens: [{ equipamentoId: '4', quantidade: 1 }],
       status: 'em_andamento', justificativa: 'Som para o evento de integração dos alunos.',
       dataSolicitacao: d(-8), dataPrevistaRetirada: d(-6), dataPrevistaDevolucao: d(-3),
       dataRetiradaEfetiva: d(-6), responsavelAprovacao: admin, codigoDevolucao: 'M2N9QD',
-      historico: [ev('solicitado', maria, 8), ev('aprovado', admin, 8, undefined, 2), ev('retirado', admin, 6, 'Entregue a Maria Santos · código conferido')],
+      historico: [ev('solicitado', maria, 8), ev('aprovado', admin, 8, undefined, 2), ev('retirado', admin, 6, 'Entregue a Maria Santos · código conferido · local de uso: Quadra · termo de responsabilidade aceito')],
     },
     // Devolvido com cadeia de responsáveis: João -> Maria (exemplo completo da linha do tempo)
     {
-      id: 'p36', protocolo: 'EMP-2026-0036', solicitante: joao, responsavel: maria,
+      id: 'p36', localUso: { localId: 'sala-104', detalhe: 'Edição de documentos' }, termoAceito: true, protocolo: 'EMP-2026-0036', solicitante: joao, responsavel: maria,
       itens: [{ equipamentoId: '1', quantidade: 1 }],
       status: 'devolvido', justificativa: 'Atividade de edição de documentos com a turma.',
       dataSolicitacao: d(-14), dataPrevistaRetirada: d(-12), dataPrevistaDevolucao: d(-5),
@@ -202,7 +219,7 @@ export function criarEmprestimosDemo(): Emprestimo[] {
     },
     // Devolvido do professor
     {
-      id: 'p35', protocolo: 'EMP-2026-0035', solicitante: prof, responsavel: prof,
+      id: 'p35', localUso: { localId: 'auditorio', detalhe: 'Feira de ciências' }, termoAceito: true, protocolo: 'EMP-2026-0035', solicitante: prof, responsavel: prof,
       itens: [{ equipamentoId: '4', quantidade: 1 }],
       status: 'devolvido', justificativa: 'Som para a apresentação da feira de ciências.',
       dataSolicitacao: d(-25), dataPrevistaRetirada: d(-23), dataPrevistaDevolucao: d(-21),
@@ -217,7 +234,7 @@ export function criarEmprestimosDemo(): Emprestimo[] {
     },
     // Reprovado do professor
     {
-      id: 'p34', protocolo: 'EMP-2026-0034', solicitante: prof, responsavel: prof,
+      id: 'p34', localUso: { localId: 'lab-maker', detalhe: 'Montagem de bancadas' }, protocolo: 'EMP-2026-0034', solicitante: prof, responsavel: prof,
       itens: [{ equipamentoId: '7', quantidade: 1 }],
       status: 'rejeitado', justificativa: 'Montagem de bancadas para o projeto integrador.',
       dataSolicitacao: d(-26), dataPrevistaRetirada: d(-24), dataPrevistaDevolucao: d(-19),
@@ -369,6 +386,7 @@ export class EmprestimoService {
       }
     }
 
+    if (dto.localUso && !buscarLocal(dto.localUso.localId)) return 'Escolha onde o material será usado.';
     if (dto.dataPrevistaRetirada < hojeISO()) return 'A data de retirada não pode ser anterior a hoje.';
     if (dto.dataPrevistaDevolucao < dto.dataPrevistaRetirada) {
       return 'A devolução deve ser na mesma data da retirada ou depois dela.';
@@ -404,7 +422,10 @@ export class EmprestimoService {
       dataSolicitacao: hojeISO(),
       dataPrevistaRetirada: dto.dataPrevistaRetirada,
       dataPrevistaDevolucao: dto.dataPrevistaDevolucao,
-      historico: [this.evento('solicitado', dono)],
+      localUso: dto.localUso ? { localId: dto.localUso.localId, detalhe: dto.localUso.detalhe?.trim() || undefined } : undefined,
+      historico: [
+        this.evento('solicitado', dono, dto.localUso ? `Uso previsto: ${descreverLocalUso(dto.localUso)}` : undefined),
+      ],
     };
     this.todas.update((lista) => [novo, ...lista]);
     this.avisar(`Nova solicitação ${novo.protocolo} de ${dono.nome}.`, novo.id);
@@ -503,7 +524,7 @@ export class EmprestimoService {
   }
 
   /** Retirada pelo código (digitado, ditado ou lido do QR). */
-  confirmarRetirada(codigoDigitado: string): Resultado<Emprestimo> {
+  confirmarRetirada(codigoDigitado: string, opcoes?: OpcoesRetirada): Resultado<Emprestimo> {
     const codigo = normalizarCodigo(codigoDigitado);
     if (!codigo) return falha('Digite ou escaneie o código de retirada.');
     const alvo = this.todas().find((s) => s.status === 'aprovado' && s.codigoRetirada === codigo);
@@ -515,20 +536,34 @@ export class EmprestimoService {
           : 'Código não encontrado. Confira se o pedido foi aprovado e se o código é o de retirada.',
       );
     }
-    return this.registrarRetirada(alvo.id);
+    return this.registrarRetirada(alvo.id, opcoes);
   }
 
   /** Registra a saída do material. Privado de propósito: só se chega aqui depois de conferir o código. */
-  private registrarRetirada(id: string): Resultado<Emprestimo> {
+  private registrarRetirada(id: string, opcoes?: OpcoesRetirada): Resultado<Emprestimo> {
     const alvo = this.buscarPorId(id);
     if (!alvo || alvo.status !== 'aprovado') return falha('Este pedido não está aguardando retirada.');
     if (alvo.dataPrevistaDevolucao < hojeISO()) {
       return falha('O prazo de devolução deste pedido já passou. Cancele o pedido e peça um novo.');
     }
+    if (opcoes && opcoes.termoAceito !== true) {
+      return falha('O responsável precisa aceitar o termo de responsabilidade antes da entrega.');
+    }
+    const local = opcoes?.localUso ?? alvo.localUso;
+    if (local && !buscarLocal(local.localId)) return falha('Escolha um local de uso válido.');
     const admin = this.ator();
-    const detalhe = `Entregue a ${alvo.responsavel.nome} · código conferido`;
+    const mudouLocal = !!alvo.localUso && !!local && alvo.localUso.localId !== local.localId;
+    const detalhe = [
+      `Entregue a ${alvo.responsavel.nome}`,
+      'código conferido',
+      local ? `local de uso: ${descreverLocalUso(local)}` : '',
+      mudouLocal ? `(no pedido: ${nomeLocal(alvo.localUso!.localId)})` : '',
+      opcoes?.termoAceito ? 'termo de responsabilidade aceito' : '',
+    ].filter(Boolean).join(' · ');
     const atualizado: Emprestimo = {
       ...alvo,
+      localUso: local ? { localId: local.localId, detalhe: local.detalhe?.trim() || undefined } : undefined,
+      termoAceito: opcoes?.termoAceito ?? alvo.termoAceito,
       status: 'em_andamento',
       dataRetiradaEfetiva: hojeISO(),
       codigoRetirada: undefined,
@@ -722,7 +757,7 @@ export class EmprestimoService {
   }
 
   /** O responsável pede para passar o pedido a outro professor. Devolve o erro, ou null se enviou. */
-  solicitarTransferencia(id: string, paraId: string, motivo: string): string | null {
+  solicitarTransferencia(id: string, paraId: string, motivo: string, localUso?: LocalUsoEmprestimo): string | null {
     const alvo = this.buscarPorId(id);
     if (!alvo) return 'Pedido não encontrado.';
     const eu = this.ator();
@@ -740,13 +775,24 @@ export class EmprestimoService {
 
     const bloqueio = this.bloqueioHabilitacao(alvo, destino.id);
     if (bloqueio) return bloqueio;
+    if (localUso && !buscarLocal(localUso.localId)) return 'Escolha um local de uso válido.';
 
     const de = this.usuarios.resumo(eu.id) ?? eu;
+    const novoLocal = localUso && localUso.localId !== alvo.localUso?.localId
+      ? { localId: localUso.localId, detalhe: localUso.detalhe?.trim() || undefined }
+      : undefined;
     const para = this.usuarios.resumo(destino.id) as UsuarioResumo;
     this.atualizarPedido(id, (s) => ({
       ...s,
-      transferenciaPendente: { de, para, motivo: texto, solicitadaEm: agoraISO() },
-      historico: [...s.historico, this.evento('transferencia_solicitada', de, `Para ${para.nome}: ${texto}`)],
+      transferenciaPendente: { de, para, motivo: texto, solicitadaEm: agoraISO(), localUso: novoLocal },
+      historico: [
+        ...s.historico,
+        this.evento(
+          'transferencia_solicitada',
+          de,
+          `Para ${para.nome}: ${texto}${novoLocal ? ` · novo local: ${descreverLocalUso(novoLocal)}` : ''}`,
+        ),
+      ],
     }));
     this.avisar(`${de.nome} pediu para transferir o pedido ${alvo.protocolo} a ${para.nome}.`, id);
     return null;
@@ -782,15 +828,17 @@ export class EmprestimoService {
 
     const novo = this.usuarios.resumo(eu.id) ?? t.para;
     const prazo = formatarData(alvo.dataPrevistaDevolucao);
+    const localTexto = t.localUso ? ` Agora em: ${descreverLocalUso(t.localUso)}.` : '';
     this.atualizarPedido(id, (s) => ({
       ...s,
       responsavel: novo,
+      localUso: t.localUso ?? s.localUso,
       transferenciaPendente: undefined,
       // Código novo: quem passou o material adiante não deve mais conseguir "devolver" por ele.
       codigoDevolucao: this.novoCodigo(),
       historico: [
         ...s.historico,
-        this.evento('transferencia_aceita', novo, `Recebido de ${t.de.nome}. O prazo de devolução continua ${prazo}.`),
+        this.evento('transferencia_aceita', novo, `Recebido de ${t.de.nome}. O prazo de devolução continua ${prazo}.${localTexto}`),
       ],
     }));
     this.avisar(

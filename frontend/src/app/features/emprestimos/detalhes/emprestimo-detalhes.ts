@@ -4,6 +4,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import {
   EmprestimoService,
   NOME_STATUS_EMPRESTIMO,
+  descreverLocalUso,
 } from '../../../core/services/emprestimo.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { ManutencaoService, NOME_GRAVIDADE, NOME_STATUS_MANUTENCAO, NOME_TIPO_AVARIA } from '../../../core/services/manutencao.service';
@@ -38,6 +39,7 @@ export class EmprestimoDetalhes {
   readonly nomeStatus = NOME_STATUS_EMPRESTIMO;
   readonly data = formatarData;
   readonly dataHora = formatarDataHora;
+  readonly descreverLocal = descreverLocalUso;
   readonly codigo = formatarCodigo;
 
   readonly dialogoAberto = signal(false);

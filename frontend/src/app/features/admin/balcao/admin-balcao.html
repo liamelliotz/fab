@@ -85,6 +85,43 @@
           @if (s.solicitante.id !== s.responsavel.id) {
             <p class="bal__info">Pedido aberto por {{ s.solicitante.nome }} e transferido a {{ s.responsavel.nome }}.</p>
           }
+          @if (aba() === 'devolucao' && s.localUso) {
+            <p class="bal__info"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> Estava em uso em <strong>{{ descreverLocal(s.localUso) }}</strong>. Na devolução volta ao local de guarda.</p>
+          }
+
+          @if (aba() === 'retirada') {
+            <div class="ret">
+              @if (service.modoDemo) {
+                <div class="ret__local">
+                  <label class="ret__campo">
+                    <span><i class="fa-solid fa-map-location-dot" aria-hidden="true"></i> Onde será usado</span>
+                    <select (change)="atualizarLocal($event)">
+                      <option value="" [selected]="!localUsoId()">Selecione a sala ou o laboratório</option>
+                      @for (l of locais; track l.id) {
+                        <option [value]="l.id" [selected]="l.id === localUsoId()">{{ l.nome }}</option>
+                      }
+                    </select>
+                  </label>
+                  <label class="ret__campo">
+                    <span>Turma ou atividade</span>
+                    <input type="text" maxlength="80" [value]="localUsoDetalhe()" (input)="atualizarDetalheLocal($event)" placeholder="Ex.: 3º módulo" />
+                  </label>
+                </div>
+                @if (s.localUso && localUsoId() && s.localUso.localId !== localUsoId()) {
+                  <p class="ret__mudou"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Diferente do pedido ({{ descreverLocal(s.localUso) }}). A mudança fica registrada.</p>
+                }
+              }
+              <label class="ret__termo">
+                <input type="checkbox" [checked]="termoAceito()" (change)="termoAceito.set(!termoAceito()); erro.set('')" />
+                <span>
+                  <strong>{{ s.responsavel.nome }} aceita o termo de responsabilidade:</strong>
+                  usar o material só para a finalidade do pedido, no local informado; não emprestar a terceiros sem
+                  transferência registrada; devolver até {{ data(s.dataPrevistaDevolucao) }} nas mesmas condições; e
+                  comunicar na hora qualquer dano, perda ou furto.
+                </span>
+              </label>
+            </div>
+          }
 
           @if (aba() === 'devolucao') {
             <div class="dev" role="group" aria-label="Como o material voltou">

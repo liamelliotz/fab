@@ -28,6 +28,7 @@
             @if (souDestinatario()) {
               <strong>{{ t.de.nome }} quer transferir este material para você.</strong>
               <span>Motivo: {{ t.motivo }}</span>
+              @if (t.localUso) { <span>Local: passa a ser {{ descreverLocal(t.localUso) }}.</span> }
               <span>Ao aceitar, você assume o material e o prazo de devolução continua {{ data(p.dataPrevistaDevolucao) }}.</span>
 
               @if (recusando()) {
@@ -135,6 +136,13 @@
           <h2>Dados do pedido</h2>
           <dl>
             <div><dt>Justificativa</dt><dd>{{ p.justificativa }}</dd></div>
+            <div>
+              <dt>{{ p.status === 'em_andamento' ? 'Em uso em' : p.status === 'devolvido' ? 'Foi usado em' : 'Uso previsto em' }}</dt>
+              <dd><i class="fa-solid fa-location-dot" aria-hidden="true"></i> {{ descreverLocal(p.localUso) }}</dd>
+            </div>
+            @if (p.termoAceito) {
+              <div><dt>Termo de responsabilidade</dt><dd><i class="fa-solid fa-file-signature" aria-hidden="true"></i> Aceito na retirada</dd></div>
+            }
             <div><dt>Solicitado em</dt><dd>{{ data(p.dataSolicitacao) }}</dd></div>
             <div>
               <dt>Retirada</dt>
