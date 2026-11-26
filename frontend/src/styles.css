@@ -109,3 +109,16 @@ a {
 .chip--rejeitado,
 .chip--atrasado { background: #fee2e2; color: #991b1b; }
 .chip--cancelado { background: #e5e7eb; color: #4b5563; }
+
+/* Texto só para leitores de tela (legendas de tabelas, rótulos de ícones). */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

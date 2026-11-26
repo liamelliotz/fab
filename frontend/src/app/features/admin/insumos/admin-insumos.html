@@ -1,0 +1,386 @@
+<section class="ins" aria-labelledby="titulo-insumos">
+  <header class="ins__cabecalho">
+    <div>
+      <h1 id="titulo-insumos">Insumos</h1>
+      <p>Materiais de consumo: saldo, entradas, saídas por professor e local, e quando cada um deve acabar.</p>
+    </div>
+    <button type="button" class="ins__btn ins__btn--principal" (click)="novo()">
+      <i class="fa-solid fa-plus" aria-hidden="true"></i> Novo insumo
+    </button>
+  </header>
+
+  @if (!service.modoDemo) {
+    <p class="ins__aviso" role="note">
+      <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+      Esta tela ainda usa os dados da demonstração. A ligação com a API de insumos é o card D8.
+    </p>
+  }
+
+  <div class="ins__metricas">
+    <div class="ins__metrica">
+      <span>Insumos ativos</span>
+      <strong>{{ totalAtivos() }}</strong>
+      <small>itens de consumo cadastrados</small>
+    </div>
+    <button type="button" class="ins__metrica ins__metrica--alerta" [class.ins__metrica--zero]="totalARepor() === 0"
+      (click)="aba.set('estoque'); soARepor.set(true)">
+      <span>A repor</span>
+      <strong>{{ totalARepor() }}</strong>
+      <small>no estoque mínimo ou abaixo · ver lista</small>
+    </button>
+    <div class="ins__metrica">
+      <span>Saídas em 30 dias</span>
+      <strong>{{ saidasDoMes() }}</strong>
+      <small>registros de uso, perda ou vencimento</small>
+    </div>
+    <div class="ins__metrica ins__metrica--prev">
+      <span>Acaba primeiro</span>
+      @if (proximoAcabar(); as p) {
+        <strong class="ins__metrica-nome">{{ p.insumo.nome }}</strong>
+        <small>~{{ p.diasRestantes }} dia(s) no ritmo atual · {{ data(p.previsaoDeTermino) }}</small>
+      } @else {
+        <strong>—</strong>
+        <small>sem consumo recente</small>
+      }
+    </div>
+  </div>
+
+  <div class="ins__abas" role="tablist" aria-label="Visões de insumos">
+    <button type="button" role="tab" class="ins__aba" [class.ins__aba--ativa]="aba() === 'estoque'" [attr.aria-selected]="aba() === 'estoque'" (click)="aba.set('estoque')">
+      <i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i> Estoque
+    </button>
+    <button type="button" role="tab" class="ins__aba" [class.ins__aba--ativa]="aba() === 'movimentacoes'" [attr.aria-selected]="aba() === 'movimentacoes'" (click)="aba.set('movimentacoes')">
+      <i class="fa-solid fa-right-left" aria-hidden="true"></i> Movimentações
+    </button>
+    <button type="button" role="tab" class="ins__aba" [class.ins__aba--ativa]="aba() === 'consumo'" [attr.aria-selected]="aba() === 'consumo'" (click)="aba.set('consumo')">
+      <i class="fa-solid fa-chart-column" aria-hidden="true"></i> Consumo e previsão
+    </button>
+  </div>
+
+  @switch (aba()) {
+    @case ('estoque') {
+      <div class="ins__filtros">
+        <label class="ins__busca">
+          <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+          <input type="search" placeholder="Buscar por nome, fornecedor ou local" aria-label="Buscar insumo"
+            [value]="busca()" (input)="busca.set(valor($event))" />
+        </label>
+        <select aria-label="Categoria" [value]="categoria()" (change)="categoria.set($any(valor($event)))">
+          <option value="">Todas as categorias</option>
+          @for (c of categorias; track c) { <option [value]="c">{{ nomeCategoria[c] }}</option> }
+        </select>
+        <label class="ins__check"><input type="checkbox" [checked]="soARepor()" (change)="soARepor.set(!soARepor())" /> Só a repor</label>
+        <label class="ins__check"><input type="checkbox" [checked]="mostrarInativos()" (change)="mostrarInativos.set(!mostrarInativos())" /> Mostrar inativos</label>
+      </div>
+
+      <div class="ins__lista">
+        @for (i of lista(); track i.id) {
+          @let nivel = urgencia(i);
+          <article class="card" [class.card--esgotado]="nivel === 0" [class.card--repor]="nivel === 1" [class.card--inativo]="nivel === 9">
+            <div class="card__topo">
+              <div>
+                <h2>{{ i.nome }}</h2>
+                <p class="card__meta">
+                  {{ nomeCategoria[i.categoria] }}
+                  @if (i.fornecedor) { · {{ i.fornecedor }} }
+                </p>
+              </div>
+              @if (nivel === 0) { <span class="selo selo--esgotado">Esgotado</span> }
+              @else if (nivel === 1) { <span class="selo selo--repor">A repor</span> }
+              @else if (nivel === 9) { <span class="selo selo--inativo">Inativo</span> }
+              @else { <span class="selo selo--ok">Em dia</span> }
+            </div>
+
+            <div class="card__saldo">
+              <strong>{{ qtd(i.quantidadeAtual) }}</strong>
+              <span>{{ nomeUnidade[i.unidadeMedida] }} · mínimo {{ qtd(i.estoqueMinimo) }}</span>
+            </div>
+            <div class="barra" role="img" [attr.aria-label]="'Saldo ' + qtd(i.quantidadeAtual) + ', mínimo ' + qtd(i.estoqueMinimo)">
+              <div class="barra__valor" [style.width.%]="barra(i)"></div>
+              <div class="barra__minimo" [style.left.%]="marcaMinimo(i)" title="Estoque mínimo"></div>
+            </div>
+
+            <ul class="card__info">
+              <li><i class="fa-solid fa-location-dot" aria-hidden="true"></i> {{ i.localizacao }}</li>
+              <li><i class="fa-regular fa-clock" aria-hidden="true"></i> {{ previsao(i) }}</li>
+              @if (validade(i); as v) {
+                <li class="card__vence"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> {{ v }}</li>
+              }
+            </ul>
+
+            <div class="card__acoes">
+              @if (i.ativo) {
+                <button type="button" class="ins__btn ins__btn--saida" (click)="movimentar(i, 'saida')" [disabled]="i.quantidadeAtual <= 0">
+                  <i class="fa-solid fa-circle-arrow-up" aria-hidden="true"></i> Saída
+                </button>
+                <button type="button" class="ins__btn ins__btn--entrada" (click)="movimentar(i, 'entrada')">
+                  <i class="fa-solid fa-circle-arrow-down" aria-hidden="true"></i> Entrada
+                </button>
+              }
+              <button type="button" class="ins__btn ins__btn--icone" (click)="verHistorico(i)" [attr.aria-label]="'Histórico de ' + i.nome" title="Histórico">
+                <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>
+              </button>
+              <button type="button" class="ins__btn ins__btn--icone" (click)="editar(i)" [attr.aria-label]="'Editar ' + i.nome" title="Editar cadastro">
+                <i class="fa-solid fa-pen" aria-hidden="true"></i>
+              </button>
+              <button type="button" class="ins__btn ins__btn--icone" (click)="alternarAtivo(i)"
+                [attr.aria-label]="(i.ativo ? 'Desativar ' : 'Reativar ') + i.nome" [title]="i.ativo ? 'Desativar' : 'Reativar'">
+                <i class="fa-solid {{ i.ativo ? 'fa-eye-slash' : 'fa-eye' }}" aria-hidden="true"></i>
+              </button>
+            </div>
+          </article>
+        } @empty {
+          <div class="ins__vazio">
+            <i class="fa-solid fa-box-open" aria-hidden="true"></i>
+            <p>Nenhum insumo encontrado com estes filtros.</p>
+          </div>
+        }
+      </div>
+    }
+
+    @case ('movimentacoes') {
+      <div class="ins__filtros">
+        <select aria-label="Insumo" [value]="filtroInsumo()" (change)="filtroInsumo.set(valor($event))">
+          <option value="">Todos os insumos</option>
+          @for (i of service.insumos(); track i.id) { <option [value]="i.id">{{ i.nome }}</option> }
+        </select>
+        <select aria-label="Tipo" [value]="filtroTipo()" (change)="filtroTipo.set($any(valor($event)))">
+          <option value="">Entradas e saídas</option>
+          <option value="entrada">Só entradas</option>
+          <option value="saida">Só saídas</option>
+        </select>
+        <span class="ins__contagem">{{ movimentacoes().length }} registro(s)</span>
+        <button type="button" class="ins__btn" (click)="exportarMovimentacoes()" [disabled]="movimentacoes().length === 0">
+          <i class="fa-solid fa-file-csv" aria-hidden="true"></i> Exportar CSV
+        </button>
+      </div>
+
+      <div class="tabela">
+        <table>
+          <caption class="sr-only">Histórico de movimentações de insumos, da mais nova para a mais antiga</caption>
+          <thead>
+            <tr>
+              <th scope="col">Quando</th>
+              <th scope="col">Insumo</th>
+              <th scope="col">Movimento</th>
+              <th scope="col" class="num">Qtd.</th>
+              <th scope="col" class="num">Saldo</th>
+              <th scope="col">Registrado por</th>
+              <th scope="col">Detalhe</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (m of movimentacoes(); track m.id) {
+              <tr>
+                <td class="nowrap">{{ dataHora(m.ocorridaEm) }}</td>
+                <td>{{ m.insumo.nome }}</td>
+                <td>
+                  <span class="mov mov--{{ m.tipo }}" [class.mov--perda]="m.motivo === 'perda' || m.motivo === 'vencimento'">
+                    {{ m.tipo === 'entrada' ? 'Entrada' : 'Saída' }}
+                  </span>
+                  <small class="mov__motivo">{{ nomeMotivo[m.motivo] }}</small>
+                </td>
+                <td class="num">{{ m.tipo === 'entrada' ? '+' : '−' }}{{ qtd(m.quantidade) }}</td>
+                <td class="num">{{ qtd(m.saldoApos) }}</td>
+                <td>{{ m.responsavel.nome }}</td>
+                <td class="detalhe">{{ detalheMov(m) || '—' }}</td>
+              </tr>
+            } @empty {
+              <tr><td colspan="7" class="ins__vazio-linha">Nenhuma movimentação com estes filtros.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="ins__nota"><i class="fa-solid fa-lock" aria-hidden="true"></i> Movimentações não podem ser editadas nem apagadas. Um erro se corrige com um ajuste de inventário, que também fica registrado.</p>
+    }
+
+    @case ('consumo') {
+      <div class="ins__filtros">
+        <span>Período:</span>
+        @for (d of [30, 60, 90]; track d) {
+          <button type="button" class="ins__pilula" [class.ins__pilula--ativa]="periodo() === d" (click)="periodo.set(d)">{{ d }} dias</button>
+        }
+      </div>
+      <div class="tabela">
+        <table>
+          <caption class="sr-only">Consumo por insumo no período e previsão de término</caption>
+          <thead>
+            <tr>
+              <th scope="col">Insumo</th>
+              <th scope="col">Consumido no período</th>
+              <th scope="col" class="num">Entradas</th>
+              <th scope="col" class="num">Média/dia</th>
+              <th scope="col" class="num">Saldo</th>
+              <th scope="col">Previsão de término</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (c of relatorio(); track c.insumo.id) {
+              <tr [class.linha--alerta]="c.diasRestantes !== null && c.diasRestantes <= 30">
+                <td>{{ c.insumo.nome }}</td>
+                <td>
+                  <div class="consumo">
+                    <div class="consumo__barra" [style.width.%]="(c.totalConsumido / maiorConsumo()) * 100"></div>
+                    <span>{{ qtd(c.totalConsumido) }} {{ nomeUnidade[c.insumo.unidadeMedida] }}</span>
+                  </div>
+                </td>
+                <td class="num">{{ qtd(c.totalEntradas) }}</td>
+                <td class="num">{{ qtd(c.mediaDiaria) }}</td>
+                <td class="num">{{ qtd(c.insumo.quantidadeAtual) }}</td>
+                <td>
+                  @if (c.diasRestantes === null) { <span class="ins__suave">Sem consumo no período</span> }
+                  @else { <strong>~{{ c.diasRestantes }} dia(s)</strong> · {{ data(c.previsaoDeTermino) }} }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="ins__nota"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> A previsão usa só o consumo em aula (perdas e vencimentos não entram na média).</p>
+    }
+  }
+</section>
+
+<!-- Diálogo: cadastro e edição -->
+@if (editando(); as e) {
+  <div class="ins__fundo" (click)="editando.set(null)">
+    <div class="ins__dialogo" role="dialog" aria-modal="true" aria-labelledby="ins-cad-titulo" appDialogo (fecharDialogo)="editando.set(null)" (click)="$event.stopPropagation()">
+      <h2 id="ins-cad-titulo">{{ e.id ? 'Editar insumo' : 'Novo insumo' }}</h2>
+      <div class="ins__grade">
+        <label class="ins__campo ins__campo--largo">
+          <span>Nome</span>
+          <input type="text" autofocus [value]="e.form.nome" (input)="mudarForm('nome', valor($event))" />
+        </label>
+        <label class="ins__campo">
+          <span>Categoria</span>
+          <select [value]="e.form.categoria" (change)="mudarForm('categoria', $any(valor($event)))">
+            @for (c of categorias; track c) { <option [value]="c" [selected]="c === e.form.categoria">{{ nomeCategoria[c] }}</option> }
+          </select>
+        </label>
+        <label class="ins__campo">
+          <span>Unidade</span>
+          <select [value]="e.form.unidadeMedida" (change)="mudarForm('unidadeMedida', $any(valor($event)))">
+            @for (u of unidades; track u) { <option [value]="u" [selected]="u === e.form.unidadeMedida">{{ nomeUnidade[u] }}</option> }
+          </select>
+        </label>
+        <label class="ins__campo">
+          <span>Estoque mínimo</span>
+          <input type="number" min="0" step="any" [value]="e.form.estoqueMinimo" (input)="mudarForm('estoqueMinimo', numero($event))" />
+        </label>
+        @if (!e.id) {
+          <label class="ins__campo">
+            <span>Saldo inicial</span>
+            <input type="number" min="0" step="any" [value]="e.form.quantidadeInicial" (input)="mudarForm('quantidadeInicial', numero($event))" />
+          </label>
+        } @else {
+          <div class="ins__campo">
+            <span>Saldo</span>
+            <p class="ins__fixo">{{ qtd(service.buscarPorId(e.id)?.quantidadeAtual ?? 0) }} · muda só por movimentação</p>
+          </div>
+        }
+        <label class="ins__campo ins__campo--largo">
+          <span>Onde fica guardado</span>
+          <input type="text" list="ins-locais" placeholder="Ex.: Lab. Maker · Armário 3" [value]="e.form.localizacao" (input)="mudarForm('localizacao', valor($event))" />
+          <datalist id="ins-locais">
+            @for (l of locaisDeUso; track l.id) { <option [value]="l.nome"></option> }
+            <option value="Almoxarifado de TI"></option>
+          </datalist>
+        </label>
+        <label class="ins__campo">
+          <span>Fornecedor (opcional)</span>
+          <input type="text" [value]="e.form.fornecedor" (input)="mudarForm('fornecedor', valor($event))" />
+        </label>
+        <label class="ins__campo">
+          <span>Validade (opcional)</span>
+          <input type="date" [value]="e.form.validade" (input)="mudarForm('validade', valor($event))" />
+        </label>
+        <label class="ins__campo ins__campo--largo">
+          <span>Descrição (opcional)</span>
+          <textarea rows="2" [value]="e.form.descricao" (input)="mudarForm('descricao', valor($event))"></textarea>
+        </label>
+      </div>
+      @if (erroDialogo()) { <p class="ins__erro" role="alert">{{ erroDialogo() }}</p> }
+      <div class="ins__dialogo-acoes">
+        <button type="button" class="ins__btn" (click)="editando.set(null)">Cancelar</button>
+        <button type="button" class="ins__btn ins__btn--principal" (click)="salvarCadastro()">{{ e.id ? 'Salvar' : 'Cadastrar' }}</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Diálogo: entrada ou saída -->
+@if (movimentando(); as m) {
+  <div class="ins__fundo" (click)="movimentando.set(null)">
+    <div class="ins__dialogo" role="dialog" aria-modal="true" aria-labelledby="ins-mov-titulo" appDialogo (fecharDialogo)="movimentando.set(null)" (click)="$event.stopPropagation()">
+      <h2 id="ins-mov-titulo">
+        <i class="fa-solid {{ m.form.tipo === 'entrada' ? 'fa-circle-arrow-down' : 'fa-circle-arrow-up' }}" aria-hidden="true"></i>
+        {{ m.form.tipo === 'entrada' ? 'Entrada' : 'Saída' }} · {{ m.insumo.nome }}
+      </h2>
+      <p class="ins__suave">Saldo atual: <strong>{{ qtd(m.insumo.quantidadeAtual) }} {{ nomeUnidade[m.insumo.unidadeMedida] }}</strong></p>
+
+      <div class="ins__grade">
+        <label class="ins__campo">
+          <span>Motivo</span>
+          <select (change)="mudarMov('motivo', $any(valor($event)))">
+            @for (mo of motivosDe(m.form.tipo); track mo) { <option [value]="mo" [selected]="mo === m.form.motivo">{{ nomeMotivo[mo] }}</option> }
+          </select>
+        </label>
+        <label class="ins__campo">
+          <span>Quantidade ({{ nomeUnidade[m.insumo.unidadeMedida] }})</span>
+          <input type="number" min="0" step="any" autofocus [value]="m.form.quantidade" (input)="mudarMov('quantidade', numero($event))" />
+        </label>
+
+        @if (m.form.tipo === 'saida' && m.form.motivo === 'uso_em_aula') {
+          <label class="ins__campo">
+            <span>Professor que recebeu</span>
+            <select (change)="mudarMov('destinatarioId', valor($event))">
+              <option value="">Selecione</option>
+              @for (p of professores(); track p.id) { <option [value]="p.id" [selected]="p.id === m.form.destinatarioId">{{ p.nome }}</option> }
+            </select>
+          </label>
+          <label class="ins__campo">
+            <span>Onde será usado</span>
+            <select (change)="mudarMov('localId', valor($event))">
+              <option value="">Selecione o local</option>
+              @for (l of locaisDeUso; track l.id) { <option [value]="l.id" [selected]="l.id === m.form.localId">{{ l.nome }}</option> }
+            </select>
+          </label>
+        }
+
+        @if (m.form.tipo === 'entrada') {
+          <label class="ins__campo">
+            <span>Nota fiscal ou termo (opcional)</span>
+            <input type="text" placeholder="Ex.: NF 10.482" [value]="m.form.documento" (input)="mudarMov('documento', valor($event))" />
+          </label>
+          <label class="ins__campo">
+            <span>Validade do lote (opcional)</span>
+            <input type="date" [value]="m.form.validadeLote" (input)="mudarMov('validadeLote', valor($event))" />
+          </label>
+        }
+
+        <label class="ins__campo ins__campo--largo">
+          <span>
+            @if (m.form.tipo === 'saida' && m.form.motivo === 'uso_em_aula') { Finalidade (turma, aula ou projeto) }
+            @else if (m.form.tipo === 'entrada' && m.form.motivo === 'compra') { Observação (opcional) }
+            @else { Explique o motivo }
+          </span>
+          <textarea rows="2" [value]="m.form.observacao" (input)="mudarMov('observacao', valor($event))"
+            [placeholder]="m.form.tipo === 'saida' ? 'Ex.: Peças do projeto integrador · 3º módulo' : 'Ex.: Doação da associação de pais'"></textarea>
+        </label>
+      </div>
+
+      @let depois = saldoPrevisto(m);
+      <p class="ins__previa" [class.ins__previa--alerta]="depois <= m.insumo.estoqueMinimo" [class.ins__previa--erro]="depois < 0" aria-live="polite">
+        Saldo depois: <strong>{{ qtd(depois) }}</strong>
+        @if (depois < 0) { · maior que o saldo disponível }
+        @else if (depois <= m.insumo.estoqueMinimo) { · no estoque mínimo ou abaixo (vai para "a repor") }
+      </p>
+
+      @if (erroDialogo()) { <p class="ins__erro" role="alert">{{ erroDialogo() }}</p> }
+      <div class="ins__dialogo-acoes">
+        <button type="button" class="ins__btn" (click)="movimentando.set(null)">Cancelar</button>
+        <button type="button" class="ins__btn ins__btn--principal" (click)="salvarMovimentacao()">Registrar {{ m.form.tipo === 'entrada' ? 'entrada' : 'saída' }}</button>
+      </div>
+    </div>
+  </div>
+}

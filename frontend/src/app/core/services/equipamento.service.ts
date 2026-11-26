@@ -7,7 +7,7 @@ import {
 } from '../models/equipamento.model';
 import { gravarJson, lerJson, ouvirOutrasAbas } from '../utils/armazenamento.utils';
 
-const CHAVE_EQUIPAMENTOS = 'fab_demo_v6_equipamentos';
+const CHAVE_EQUIPAMENTOS = 'fab_demo_v7_equipamentos';
 
 export const CATEGORIAS: { valor: CategoriaEquipamento; nome: string }[] = [
   { valor: 'ferramenta', nome: 'Ferramenta' },
