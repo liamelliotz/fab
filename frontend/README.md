@@ -1,172 +1,111 @@
-# FAB — Frontend
+# FAB · Frontend
 
-**FAB: Aprender, Organizar e Evoluir.**
-Sistema web para controle e gestão de empréstimos de materiais e equipamentos escolares (notebooks, projetores, ferramentas, etc.).
-
-Projeto Integrador do curso de Qualificação Profissional em Programador Full-Stack — SENAI, Centro de Formação Profissional de Macapá (2026).
-
-## Sobre o projeto
-
-Antes do FAB, o controle dos itens era manual, sem histórico de uso e com risco de extravio. O sistema permite:
-
-- Consultar a disponibilidade dos equipamentos.
-- Solicitar e acompanhar empréstimos.
-- Controlar prazos de devolução e atrasos.
-- Gerenciar acervo, manutenção, usuários e relatórios (área administrativa).
-
-O nome faz alusão à avenida de maior fluxo de Macapá (AP).
-
-## Tecnologias
-
-- [Angular](https://angular.dev) com componentes standalone, *signals* e novo controle de fluxo (`@if` / `@for`)
-- Angular SSR (renderização no servidor) com Express
-- Formulários reativos (`ReactiveFormsModule`)
-- TypeScript e CSS puro (fonte Inter)
+Aplicação Angular do FAB. A visão geral do projeto, as telas e a instalação completa estão no
+[README da raiz](../README.md).
 
 ## Como rodar
 
-Use Node.js 24. Os scripts npm usam a Angular CLI instalada no projeto.
+Use o Node.js 24. Todos os comandos são executados dentro de `frontend/`.
 
 ```bash
-cd frontend
 npm ci
+npm run demo     # demonstração: não precisa de backend (dados no navegador)
 npm start        # login real: suba o backend antes (porta 3000)
-npm run demo     # demonstração: não precisa de backend
 ```
 
-Acesse **http://localhost:4200**.
-
-### Build e servidor SSR
-
-```bash
-npm run build
-```
-
-Depois, sirva o resultado com o Node (o servidor Express escuta na porta **4000**, ou em `PORT`):
-
-```bash
-npm run serve:ssr:frontend
-```
-
-> O caminho acima assume o nome de projeto `frontend`. Confira o `outputPath` no `angular.json` ou um script `serve:ssr` no `package.json`.
-
-O `angular.json` libera o host `localhost` em `security.allowedHosts`. Se publicar em outro domínio, inclua-o ali.
-
-## Execução integrada e hospedagem
-
-Suba primeiro o backend pelo [guia de instalação](../README.md) e confirme as chamadas reais no painel **Rede** do navegador. O endereço local da API é `http://localhost:3000/api`. O `npm start` já usa a API (`modoDemo: false` em `src/environments/environment.development.ts`); se a API estiver em outro endereço, ajuste `apiUrl` nesse arquivo. Confira quais telas da versão usada chamam a API antes do ensaio.
-
-Para a publicação, quando a hospedagem for definida, configure `apiUrl` em `src/environments/environment.ts` com a URL HTTPS do backend, incluindo `/api`, e gere um novo build. Cadastre a origem publicada do frontend em `CORS_ORIGINS` no backend.
-
-## Login real e modo demonstração
+Acesse <http://localhost:4200>.
 
 | Comando | Environment | `modoDemo` | Login |
 | --- | --- | --- | --- |
+| `npm run demo` | `environment.demo.ts` | `true` | Contas de exemplo, sem backend |
 | `npm start` | `environment.development.ts` | `false` | JWT de verdade, pela API (`POST /auth/login`) |
-| `npm run demo` | `environment.demo.ts` | `true` | Contas do `UsuarioService`, sem backend (apresentação) |
-| `npm run build` | `environment.ts` | `true` | Até o card E7, a versão de produção ainda é a demonstração |
-
-Com o login real (card A6), a sessão fica no `sessionStorage` (uma por aba, sobrevive ao F5) e
-nenhuma senha é gravada no navegador. As telas que ainda não foram ligadas à API continuam usando os
-dados de exemplo do navegador; os ids das contas de exemplo são os mesmos do seed da API
-(`usr-admin`, `usr-professor`, `usr-joao`...), então o professor logado de verdade vê os seus pedidos.
-Usuários e Configurações (card A7) já usam a API: lista, busca e paginação no servidor, criar,
-editar perfil, ativar, desativar, bloquear, habilitações e `GET /auth/me`. Com a API, nenhuma conta
-nem senha fica no navegador.
-As telas de Solicitações, Balcão e Empréstimos do admin já chamam a API: só funcionam com `npm start`
-quando as rotas de empréstimos (cards C3 a C5) estiverem no backend; até lá, use `npm run demo`.
-
-"Esqueci minha senha" (`/recuperar-senha` e `/redefinir-senha?token=...`) usa a API do card A5.
-Nesta versão não há envio de e-mail: o link aparece no terminal da API.
-
-Somente o administrador cria usuários; não existe cadastro público.
+| `npm run build` | `environment.ts` | `true` | Versão de produção (demonstração até a API cobrir todas as telas) |
 
 | Perfil | E-mail | Senha |
 | --- | --- | --- |
-| Administrador | `admin@fab.com` | `admin123` |
-| Usuário (professor) | `professor@fab.com` | `prof123` |
+| Coordenação | `admin@fab.com` | `admin123` |
+| Professor | `professor@fab.com` | `prof123` |
 
-O campo `modoDemo` fica em `src/environments/`. O `AuthService` lê essa opção.
+> **Atenção:** no modo demonstração as contas de exemplo ficam no próprio navegador. Use-o só para apresentar e testar.
 
-> **Atenção:** no modo demonstração as senhas ficam em texto puro no navegador. Nunca use em produção.
+No modo demonstração, **Ctrl + Alt + Shift + R** restaura os dados iniciais. Com a API, nenhuma senha fica no
+navegador e a sessão fica no `sessionStorage` (uma por aba, sobrevive ao F5).
+
+## Verificar antes do Pull Request
+
+```bash
+npm run lint
+npm test -- --watch=false
+npm run build
+```
+
+O GitHub Actions roda os mesmos três comandos em todo Pull Request para a `main`.
 
 ## Telas e rotas
 
-| Rota | Quem acessa | Descrição |
+| Rota | Quem | Tela |
 | --- | --- | --- |
-| `/login` | Público | Entrar no sistema |
-| `/recuperar-senha` | Público | Pedir o link para criar uma nova senha |
-| `/redefinir-senha?token=...` | Público | Criar a nova senha pelo link (vale 30 min, uma vez) |
-| `/dashboard` | Todos | Métricas, atalhos e pedidos recentes |
-| `/materiais` | Todos | Catálogo com filtros e botão *Solicitar empréstimo* |
-| `/meus-emprestimos` | Todos | Acompanhamento dos próprios pedidos |
-| `/meus-emprestimos/nova` | Todos | Formulário de nova solicitação |
-| `/configuracoes` | Todos | Dados da conta, sair e sobre o projeto |
-| `/admin/solicitacoes` | Admin | Aprovar ou reprovar pedidos |
-| `/admin/emprestimos` | Admin | Controle de devoluções e atrasos |
-| `/admin/equipamentos` | Admin | Cadastro, edição e ativação/desativação de itens |
-| `/admin/manutencao` | Admin | Registro e andamento de manutenções |
-| `/admin/insumos` | Admin | Tela provisória "Em construção" (D8) |
-| `/admin/usuarios` | Admin | Lista de usuários e perfis |
-| `/admin/relatorios` | Admin | Relatório de utilização por período, com exportação CSV |
+| `/login`, `/recuperar-senha`, `/redefinir-senha` | Público | Entrar e criar uma nova senha pelo link (vale 30 min, uma vez) |
+| `/dashboard` | Todos | Painel *O que fazer agora*, resumo do acervo e pedidos recentes |
+| `/inventario/equipamentos` · `/inventario/insumos` | Professor | Inventário: pedir empréstimo ou insumo |
+| `/meus-emprestimos` | Professor | Meus pedidos (abas Empréstimos e Insumos), código e QR de retirada |
+| `/meus-emprestimos/nova` | Professor | Nova solicitação de empréstimo |
+| `/pedidos/:id` | Todos | Detalhe do pedido e linha do tempo |
+| `/configuracoes` | Todos | Dados da conta e senha |
+| `/admin/solicitacoes` | Coordenação | Pedidos de empréstimo e requisições de insumo para analisar |
+| `/admin/balcao` | Coordenação | Retirada e devolução por código ou QR, avarias e faltas |
+| `/admin/emprestimos` | Coordenação | Empréstimos em andamento, prazos e atrasos |
+| `/admin/inventario/equipamentos` · `/admin/inventario/insumos` | Coordenação | Acervo, estoque, valor, validade e movimentações |
+| `/admin/equipamentos/novo` · `/:id/editar` · `/:id/historico` | Coordenação | Cadastro e histórico de cada equipamento |
+| `/admin/manutencao` | Coordenação | Ocorrências, assistências credenciadas, conserto e baixa (inclusive parcial) |
+| `/admin/mapa` | Coordenação | Onde está cada material, sala por sala |
+| `/admin/auditoria` | Coordenação | Registro de todas as ações, com filtros e CSV |
+| `/admin/usuarios` | Coordenação | Contas, perfis e habilitações |
+| `/admin/relatorios` | Coordenação | Retiradas e consumo por período, com CSV |
 
-A navbar lateral mostra apenas os links permitidos ao perfil. As rotas são protegidas por `authGuard` (exige login) e `adminGuard` (exige perfil admin).
+As rotas são protegidas por `authGuard` (exige login) e `adminGuard` (exige o perfil de coordenação). O menu
+mostra só o que o perfil pode abrir. Endereços antigos (`/materiais`, `/insumos`, `/admin/equipamentos`,
+`/admin/insumos`) redirecionam para o Inventário.
 
-## Estrutura de pastas
+## Estrutura
 
-```
-frontend/src/
-├── main.ts / main.server.ts / server.ts   # bootstrap do app e do servidor SSR
-├── styles.css                             # tema global (tokens, fonte, chips de status)
+```text
+src/
+├── main.ts · main.server.ts · server.ts   bootstrap do app e do servidor SSR
+├── styles.css                             tema global (cores, fonte, estados)
+├── environments/                          modoDemo e apiUrl de cada modo
 └── app/
-    ├── app.routes.ts                      # rotas principais
-    ├── app.routes.server.ts               # modo de renderização por rota (SSR)
+    ├── app.routes.ts                      rotas principais
     ├── core/
-    │   ├── guards/                        # authGuard, adminGuard
-    │   ├── interceptors/                  # token JWT e tratamento de erros HTTP
-    │   ├── models/                        # contratos de dados (Usuário, Equipamento, Empréstimo...)
-    │   ├── services/                      # auth, equipamento, emprestimo
-    │   └── utils/                         # utilitários de data
+    │   ├── guards/                        authGuard e adminGuard
+    │   ├── interceptors/                  token JWT e tratamento de erros HTTP
+    │   ├── models/                        contratos de dados (iguais aos da API)
+    │   ├── services/                      regras de negócio e estado (signals)
+    │   └── utils/                         datas, moeda, armazenamento
     ├── features/
-    │   ├── auth/                          # login e cadastro
-    │   ├── dashboard/
-    │   ├── equipamentos/                  # catálogo (lista, card, filtros)
-    │   ├── emprestimos/                   # meus pedidos e nova solicitação
-    │   ├── configuracoes/
-    │   └── admin/                         # telas administrativas
+    │   ├── auth/  dashboard/  equipamentos/  insumos/  emprestimos/  configuracoes/
+    │   └── admin/                         telas da coordenação
     └── shared/
-        ├── components/                    # navbar, card, button, input, badge-status
-        └── layouts/main-layout/           # navbar + área de conteúdo
+        ├── components/                    navbar, acessibilidade, termo de baixa, QR...
+        ├── directives/                    diálogo acessível (foco preso e Esc)
+        └── layouts/main-layout/           menu + área de conteúdo
 ```
-
-## Dados compartilhados (mocks)
-
-Enquanto não há backend, dois serviços funcionam como fonte única de dados:
-
-- `EquipamentoService` — acervo, catálogo e reserva de unidades.
-- `EmprestimoService` — solicitações, aprovação/reprovação, cancelamento e prazos.
-
-Assim, o que o admin cadastra aparece no catálogo, e aprovar um pedido reduz o estoque. Para integrar a API, troque a implementação desses serviços por chamadas `HttpClient`, mantendo os mesmos métodos.
 
 ## Convenções
 
-- Componentes standalone, um por pasta (`.ts`, `.html`, `.css`).
-- Estado local com *signals*; formulários com `FormBuilder` reativo.
-- Textos da interface em português do Brasil.
-- Commits no padrão `feat(escopo): descrição`.
+- Componentes standalone, um por pasta (`.ts`, `.html`, `.css`), com o novo controle de fluxo (`@if`, `@for`).
+- Estado com *signals*; formulários reativos.
+- Textos da interface em português do Brasil, sem jargão técnico.
+- Toda tela nova precisa funcionar só com o teclado, ter rótulos nos campos e passar no axe (WCAG AA).
 
-## Equipe
+## Acessibilidade
 
-- Alvaro Ronaldy Santos
-- Ana Jolly Garcia da Silva
-- Arthur Costa
-- Jamilly Barbosa da Costa
-- Leonardo Picanço Fontinele
-- Liam Elliot Silva da Costa
+O botão **Acessibilidade** (no menu e na tela de login) liga alto contraste, fonte maior, mais espaço no texto,
+links sublinhados, foco reforçado, menos animação e o tradutor de Libras **VLibras**. O VLibras é carregado de
+`vlibras.gov.br`; sem internet, ele não aparece e o resto do sistema segue funcionando. Para leitores de tela
+como o **NVDA**, cada troca de página é anunciada e o link *Pular para o conteúdo* leva direto ao conteúdo.
 
-Orientador: Instrutor especialista Matheus S Santos.
-
-## Base HTTP (E3)
+## Ligar uma tela à API (`ApiService`)
 
 `ApiService` usa `API_URL` do environment e entrega somente `dados` do envelope.
 Métodos: `get<T>(caminho, filtros?)`, `post<T>(caminho, corpo, filtros?)`,
@@ -174,7 +113,7 @@ Métodos: `get<T>(caminho, filtros?)`, `post<T>(caminho, corpo, filtros?)`,
 `delete<T>(caminho, filtros?)`. Filtros ignoram `null`, `undefined` e strings vazias;
 `false` e `0` são preservados. Arrays viram parâmetros repetidos.
 
-Exemplo de serviço de equipamentos em cinco linhas (os imports ficam abaixo):
+Exemplo de serviço de equipamentos (os imports ficam logo abaixo):
 
 ```ts
 @Injectable({ providedIn: 'root' })
@@ -206,16 +145,13 @@ compatibilidade e não concede acesso. O navegador só decodifica o JWT: assinat
 permissões devem ser validadas pelo backend em cada requisição. Tokens ausentes,
 malformados ou expirados não liberam a navegação no navegador.
 
-### Conferência local
+## Build, SSR e hospedagem
 
 ```bash
 npm run build
-npm test -- --watch=false
-npm start
+npm run serve:ssr:frontend     # servidor Express na porta 4000 (ou em PORT)
 ```
 
-- Em demonstração, entrar como admin deve mostrar Inventário e abrir `/admin/inventario/insumos`.
-- Entrar como professor, definir `sessionStorage.setItem('fab_role', 'admin')` no console,
-  atualizar a página e abrir `/admin/insumos`: deve voltar ao dashboard.
-- Com `modoDemo: false`, erro 400 de validação deve exibir o resumo e os campos no alerta.
-- Os testes HTTP usam respostas controladas: não precisam de servidor nem alteram o banco.
+Para publicar, configure `apiUrl` em `src/environments/environment.ts` com a URL HTTPS do backend
+(terminando em `/api`), gere um novo build e cadastre a origem do frontend em `CORS_ORIGINS` no backend.
+Se publicar em outro domínio, inclua-o em `security.allowedHosts` no `angular.json`.
