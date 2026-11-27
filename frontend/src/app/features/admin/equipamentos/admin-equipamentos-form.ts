@@ -41,7 +41,7 @@ export class AdminEquipamentosForm {
     if (this.id) {
       const item = this.store.buscarPorId(this.id);
       if (!item) {
-        this.router.navigate(['/admin/equipamentos']);
+        this.router.navigate(['/admin/inventario/equipamentos']);
         return;
       }
       this.form.patchValue({
@@ -88,6 +88,6 @@ export class AdminEquipamentosForm {
       this.store.cadastrar({ ...dados, codigoPatrimonio: codigo });
     }
 
-    this.router.navigate(['/admin/equipamentos']);
+    this.router.navigate(['/admin/inventario/equipamentos']);
   }
 }

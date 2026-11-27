@@ -75,7 +75,7 @@
             <span class="metric-note">Avarias e extravios, fora de circulação</span>
           </div>
         </app-card>
-        <a class="action-link" routerLink="/admin/insumos" [queryParams]="{ aba: 'requisicoes' }">
+        <a class="action-link" routerLink="/admin/solicitacoes" [queryParams]="{ aba: 'insumos' }">
           <app-card>
             <div class="metric-card">
               <span class="metric-label">Requisições de insumo</span>
@@ -84,7 +84,7 @@
             </div>
           </app-card>
         </a>
-        <a class="action-link" routerLink="/admin/insumos">
+        <a class="action-link" routerLink="/admin/inventario/insumos">
           <app-card>
             <div class="metric-card">
               <span class="metric-label">Insumos a repor</span>
@@ -108,7 +108,7 @@
             <span class="metric-note">Aprovados e em uso</span>
           </div>
         </app-card>
-        <a class="action-link" routerLink="/insumos">
+        <a class="action-link" routerLink="/meus-emprestimos" [queryParams]="{ aba: 'insumos' }">
           <app-card>
             <div class="metric-card">
               <span class="metric-label">Insumos para retirar</span>
@@ -128,7 +128,7 @@
     </div>
 
     <div class="actions-grid">
-      <a class="action-link" routerLink="/materiais">
+      <a class="action-link" routerLink="/inventario/equipamentos">
         <app-card>
           <div class="action-card">
             <span class="action-icon" aria-hidden="true"><i class="fa-solid fa-magnifying-glass"></i></span>
@@ -166,7 +166,7 @@
             </div>
           </app-card>
         </a>
-        <a class="action-link" routerLink="/admin/equipamentos">
+        <a class="action-link" routerLink="/admin/inventario/equipamentos">
           <app-card>
             <div class="action-card">
               <span class="action-icon" aria-hidden="true"><i class="fa-solid fa-laptop-medical"></i></span>
@@ -185,7 +185,7 @@
             </div>
           </app-card>
         </a>
-        <a class="action-link" routerLink="/insumos">
+        <a class="action-link" routerLink="/inventario/insumos">
           <app-card>
             <div class="action-card">
               <span class="action-icon" aria-hidden="true"><i class="fa-solid fa-box-open"></i></span>

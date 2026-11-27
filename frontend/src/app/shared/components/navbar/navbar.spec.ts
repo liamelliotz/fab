@@ -46,21 +46,19 @@ describe('Navbar', () => {
       'Solicitações',
       'Balcão',
       'Empréstimos',
-      'Equipamentos',
+      'Inventário',
       'Manutenção',
-      'Insumos',
       'Mapa de itens',
       'Auditoria',
       'Usuários',
       'Relatórios',
-      'Materiais',
       'Configurações',
     ]);
   });
 
   it('should hide admin-only links for regular users', () => {
     const { element } = criarNavbar('usuario');
-    expect(rotulos(element)).toEqual(['Dashboard', 'Materiais', 'Meus empréstimos', 'Insumos', 'Configurações']);
+    expect(rotulos(element)).toEqual(['Dashboard', 'Inventário', 'Meus pedidos', 'Configurações']);
   });
 
   it('should render the logout button', () => {

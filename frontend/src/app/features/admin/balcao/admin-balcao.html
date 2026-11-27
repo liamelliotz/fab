@@ -5,7 +5,7 @@
   </header>
 
   @if (insumosParaEntregar() > 0) {
-    <a class="bal__insumos" routerLink="/admin/insumos" [queryParams]="{ aba: 'requisicoes' }">
+    <a class="bal__insumos" routerLink="/admin/solicitacoes" [queryParams]="{ aba: 'insumos' }">
       <i class="fa-solid fa-box-open" aria-hidden="true"></i>
       <span><strong>{{ insumosParaEntregar() }} requisição(ões) de insumo aprovada(s)</strong> esperando entrega. Abrir requisições</span>
     </a>
@@ -64,7 +64,7 @@
         </div>
         <small>
           Leitores de QR USB funcionam sozinhos: basta clicar neste campo e escanear.
-          Sem o código não há registro. Se o professor perdeu, ele vê o código e o QR de novo em Meus empréstimos.
+          Sem o código não há registro. Se o professor perdeu, ele vê o código e o QR de novo em Meus pedidos.
         </small>
       </label>
       @if (erro()) {

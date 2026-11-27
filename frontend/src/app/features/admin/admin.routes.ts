@@ -3,11 +3,6 @@ import { Routes } from '@angular/router';
 // Rotas da área administrativa (prefixo /admin, protegido pelo adminGuard em app.routes.ts)
 export const ADMIN_ROUTES: Routes = [
   {
-    path: 'insumos',
-    title: 'Insumos | FAB',
-    loadComponent: () => import('./insumos/admin-insumos').then((m) => m.AdminInsumos),
-  },
-  {
     path: 'solicitacoes',
     title: 'Solicitações | FAB',
     loadComponent: () =>
@@ -24,12 +19,22 @@ export const ADMIN_ROUTES: Routes = [
     loadComponent: () =>
       import('./emprestimos/admin-emprestimos').then((m) => m.AdminEmprestimos),
   },
+  // INVENTÁRIO: equipamentos e insumos (duas partes da mesma aba)
+  { path: 'inventario', redirectTo: 'inventario/equipamentos', pathMatch: 'full' },
   {
-    path: 'equipamentos',
-    title: 'Equipamentos | FAB',
+    path: 'inventario/equipamentos',
+    title: 'Inventário · Equipamentos | FAB',
     loadComponent: () =>
       import('./equipamentos/admin-equipamentos-lista').then((m) => m.AdminEquipamentosLista),
   },
+  {
+    path: 'inventario/insumos',
+    title: 'Inventário · Insumos | FAB',
+    loadComponent: () => import('./insumos/admin-insumos').then((m) => m.AdminInsumos),
+  },
+  // Endereços antigos continuam funcionando
+  { path: 'equipamentos', redirectTo: 'inventario/equipamentos', pathMatch: 'full' },
+  { path: 'insumos', redirectTo: 'inventario/insumos', pathMatch: 'full' },
   {
     path: 'equipamentos/novo',
     title: 'Novo equipamento | FAB',

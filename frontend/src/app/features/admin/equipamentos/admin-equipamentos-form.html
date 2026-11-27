@@ -1,7 +1,7 @@
 <section class="pagina">
   <header class="cabecalho">
     <h1>{{ editando ? 'Editar equipamento' : 'Novo equipamento' }}</h1>
-    <a class="botao botao-secundario" routerLink="/admin/equipamentos">
+    <a class="botao botao-secundario" routerLink="/admin/inventario/equipamentos">
       <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
       Voltar
     </a>
@@ -72,7 +72,7 @@
     </label>
 
     <div class="rodape campo-largo">
-      <a class="botao botao-secundario" routerLink="/admin/equipamentos">Cancelar</a>
+      <a class="botao botao-secundario" routerLink="/admin/inventario/equipamentos">Cancelar</a>
       <button type="submit" class="botao botao-primario">
         {{ editando ? 'Salvar alterações' : 'Cadastrar' }}
       </button>

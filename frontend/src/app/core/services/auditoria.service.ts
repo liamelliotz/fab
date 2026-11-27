@@ -108,7 +108,7 @@ export class AuditoriaService {
           mv.observacao ?? '',
           mv.documento ? `doc. ${mv.documento}` : '',
         ].filter(Boolean).join(' · '),
-        link: ['/admin/insumos'],
+        link: ['/admin/inventario/insumos'],
       });
     }
 
@@ -125,7 +125,7 @@ export class AuditoriaService {
           itens: `${r.insumo.nome} · ${this.requisicoes.qtd(r.quantidade, r.insumo.unidadeMedida)}`,
           por: ev.por.nome,
           detalhe: [ev.detalhe ?? '', ev.acao === 'solicitada' ? r.finalidade : ''].filter(Boolean).join(' · '),
-          link: ['/admin/insumos'],
+          link: ['/admin/inventario/insumos'],
         });
       });
     }

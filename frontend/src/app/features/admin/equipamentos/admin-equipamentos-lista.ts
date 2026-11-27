@@ -1,3 +1,4 @@
+import { InventarioAbas } from '../../../shared/components/inventario-abas/inventario-abas';
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
@@ -18,7 +19,7 @@ const NOME_STATUS: Record<StatusEquipamento, string> = {
 @Component({
   selector: 'app-admin-equipamentos-lista',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, InventarioAbas],
   templateUrl: './admin-equipamentos-lista.html',
   styleUrl: './admin-equipamentos-lista.css',
 })

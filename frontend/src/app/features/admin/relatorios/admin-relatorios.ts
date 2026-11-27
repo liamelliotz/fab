@@ -1,4 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { EmprestimoService } from '../../../core/services/emprestimo.service';
+import { EquipamentoService } from '../../../core/services/equipamento.service';
+import { InsumoService, NOME_UNIDADE } from '../../../core/services/insumo.service';
+import { formatarData, hojeISO, somarDias } from '../../../core/utils/date.utils';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -19,65 +23,66 @@ interface UtilizacaoMaterial {
   styleUrl: './admin-relatorios.css'
 })
 export class AdminRelatorios {
+  private readonly emprestimos = inject(EmprestimoService);
+  private readonly insumos = inject(InsumoService);
+  private readonly equipamentos = inject(EquipamentoService);
+  readonly data = formatarData;
 
-  dataInicial = '';
-  dataFinal = '';
+  // Abre já com os últimos 30 dias (o usuário pode mudar e gerar de novo).
+  dataInicial = somarDias(hojeISO(), -30);
+  dataFinal = hojeISO();
   relatorioGerado = false;
+  /** Mensagem de validação mostrada na própria tela (no lugar de alert). */
+  erro = '';
 
-  utilizacoes: UtilizacaoMaterial[] = [
-    {
-      id: 1,
-      material: 'Notebook Dell',
-      responsavel: 'João Silva',
-      data: '2026-09-20',
-      quantidade: 1,
-      tipo: 'Empréstimo'
-    },
-    {
-      id: 2,
-      material: 'Projetor Epson',
-      responsavel: 'Maria Santos',
-      data: '2026-09-25',
-      quantidade: 1,
-      tipo: 'Empréstimo'
-    },
-    {
-      id: 3,
-      material: 'Notebook Lenovo',
-      responsavel: 'Carlos Souza',
-      data: '2026-10-01',
-      quantidade: 1,
-      tipo: 'Empréstimo'
-    },
-    {
-      id: 4,
-      material: 'Kit de ferramentas',
-      responsavel: 'Ana Lima',
-      data: '2026-10-02',
-      quantidade: 2,
-      tipo: 'Utilização'
-    },
-    {
-      id: 5,
-      material: 'Multímetro Digital',
-      responsavel: 'Pedro Alves',
-      data: '2026-10-03',
-      quantidade: 1,
-      tipo: 'Utilização'
+  /**
+   * Utilizações REAIS, tiradas dos registros: cada retirada no balcão (empréstimo) e cada
+   * saída de insumo para uso em aula. Nada é digitado à mão aqui.
+   */
+  get utilizacoes(): UtilizacaoMaterial[] {
+    const lista: Omit<UtilizacaoMaterial, 'id'>[] = [];
+    for (const p of this.emprestimos.todas()) {
+      for (const ev of p.historico.filter((h) => h.tipo === 'retirado')) {
+        for (const item of p.itens) {
+          lista.push({
+            material: item.equipamento?.nome ?? this.equipamentos.buscarPorId(item.equipamentoId)?.nome ?? 'Equipamento',
+            responsavel: p.responsavel.nome,
+            data: ev.em.slice(0, 10),
+            quantidade: item.quantidade,
+            tipo: `Empréstimo · ${p.protocolo}`,
+          });
+        }
+      }
     }
-  ];
+    for (const m of this.insumos.movimentacoes().filter((x) => x.motivo === 'uso_em_aula')) {
+      lista.push({
+        material: m.insumo.nome,
+        responsavel: m.destinatario?.nome ?? m.responsavel.nome,
+        data: m.ocorridaEm.slice(0, 10),
+        quantidade: m.quantidade,
+        tipo: `Insumo · em ${NOME_UNIDADE[m.insumo.unidadeMedida]}`,
+      });
+    }
+    return lista
+      .sort((a, b) => b.data.localeCompare(a.data))
+      .map((u, i) => ({ ...u, id: i + 1 }));
+  }
 
   resultados: UtilizacaoMaterial[] = [];
 
-  gerarRelatorio(): void {
+  constructor() {
+    this.gerarRelatorio();
+  }
 
+  gerarRelatorio(): void {
+    this.erro = '';
     if (!this.dataInicial || !this.dataFinal) {
-      alert('Informe a data inicial e a data final.');
+      this.erro = 'Informe a data inicial e a data final.';
       return;
     }
 
     if (this.dataInicial > this.dataFinal) {
-      alert('A data inicial não pode ser maior que a data final.');
+      this.erro = 'A data inicial não pode ser maior que a data final.';
       return;
     }
 
@@ -94,6 +99,7 @@ export class AdminRelatorios {
     this.dataFinal = '';
     this.resultados = [];
     this.relatorioGerado = false;
+    this.erro = '';
   }
 
   get totalRegistros(): number {
@@ -116,7 +122,7 @@ export class AdminRelatorios {
   exportarCSV(): void {
 
     if (this.resultados.length === 0) {
-      alert('Não existem dados para exportar.');
+      this.erro = 'Não existem dados para exportar.';
       return;
     }
 
@@ -133,8 +139,8 @@ export class AdminRelatorios {
       item.id,
       item.material,
       item.responsavel,
-      item.data,
-      item.quantidade,
+      formatarData(item.data),
+      String(item.quantidade).replace('.', ','),
       item.tipo
     ]);
 

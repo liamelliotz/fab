@@ -1,6 +1,6 @@
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { RequisicaoInsumoService } from '../../../core/services/requisicao-insumo.service';
-import { RequisicoesInsumo } from './requisicoes/requisicoes-insumo';
+import { InventarioAbas } from '../../../shared/components/inventario-abas/inventario-abas';
 import { Component, computed, inject, signal } from '@angular/core';
 import { LOCAIS_DE_USO, nomeLocal } from '../../../core/constants/escola-modelo.constants';
 import {
@@ -26,8 +26,8 @@ import { baixarArquivo } from '../../../core/utils/arquivo.utils';
 import { formatarData, formatarDataHora } from '../../../core/utils/date.utils';
 import { DialogoDirective } from '../../../shared/directives/dialogo.directive';
 
-type Aba = 'estoque' | 'requisicoes' | 'movimentacoes' | 'consumo';
-const ABAS: Aba[] = ['estoque', 'requisicoes', 'movimentacoes', 'consumo'];
+type Aba = 'estoque' | 'movimentacoes' | 'consumo';
+const ABAS: Aba[] = ['estoque', 'movimentacoes', 'consumo'];
 
 interface FormInsumo {
   nome: string;
@@ -67,7 +67,7 @@ const FORM_VAZIO: FormInsumo = {
 @Component({
   selector: 'app-admin-insumos',
   standalone: true,
-  imports: [DialogoDirective, RequisicoesInsumo],
+  imports: [DialogoDirective, InventarioAbas, RouterLink],
   templateUrl: './admin-insumos.html',
   styleUrl: './admin-insumos.css',
 })

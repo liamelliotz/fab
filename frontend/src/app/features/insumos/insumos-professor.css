@@ -2,8 +2,8 @@
 :host { display: block; min-width: 0; }
 
 .pagina { display: flex; flex-direction: column; gap: 24px; padding: 8px; }
-.cabecalho h1 { margin: 0 0 6px; color: #172b24; font-size: 30px; font-weight: 700; }
-.cabecalho p { margin: 0; max-width: 820px; color: #6b7280; font-size: 14px; line-height: 1.5; }
+.intro { margin: 0; max-width: 860px; color: #4b5563; font-size: 14px; line-height: 1.5; }
+.intro a { color: #1f6f4c; font-weight: 600; }
 
 .painel { min-width: 0; padding: 18px; border: 1px solid #e5ebe8; border-radius: 12px; background: #fff; }
 .titulo-painel { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; }

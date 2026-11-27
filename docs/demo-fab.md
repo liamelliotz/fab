@@ -43,7 +43,7 @@ Esta parte vale para a apresentação **sem backend**, com dados salvos no naveg
 | 2 | **Código e QR** na retirada **e** na devolução (o QR é gerado no próprio front) | Detalhes do pedido (`/pedidos/:id`) |
 | 3 | **Linha do tempo** de cada pedido: quem fez o quê e quando (auditoria) | Detalhes do pedido |
 | 4 | **Realocação (transferência) entre professores**, com aceite do destinatário | Meus pedidos, Detalhes |
-| 5 | **Prazo máximo por material** (ninguém fica com o item o ano todo) | Equipamentos (admin), Solicitar |
+| 5 | **Prazo máximo por material** (ninguém fica com o item o ano todo) | Inventário › Equipamentos (admin), Solicitar |
 | 6 | **Habilitação para equipamentos com treinamento** | Usuários (admin) |
 | 7 | **Cadastro só pelo administrador** (saiu da tela de login) | Usuários → Novo usuário |
 | 8 | Avisos para a coordenação e bolinhas de novidade no menu | Empréstimos, menu lateral |
@@ -51,10 +51,13 @@ Esta parte vale para a apresentação **sem backend**, com dados salvos no naveg
 | 10 | **Local de uso** informado no pedido, confirmado no balcão e trocado só com transferência aceita | Solicitar, Balcão, Transferir |
 | 11 | **Termo de responsabilidade** aceito na retirada (sem ele o balcão não entrega) | Balcão |
 | 12 | **Baixa patrimonial auditada**: motivo, parecer, laudo, processo/BO, valor, ciência do responsável, confirmação pelo patrimônio e **termo de baixa** para imprimir | Manutenção, Auditoria |
-| 13 | **Gestão de insumos**: saldo, estoque mínimo, entradas (NF, doação), saídas com professor, local e finalidade, perdas, previsão de término e CSV | Insumos |
+| 13 | **Gestão de insumos**: saldo, estoque mínimo, entradas (NF, doação), saídas com professor, local e finalidade, perdas, previsão de término e CSV | Inventário › Insumos |
 | 14 | **Auditoria do patrimônio**: trilha única e somente-leitura de empréstimos, manutenção, baixas e insumos, com filtros e exportação CSV | Auditoria |
 | 15 | **Cancelamento com motivo**: pedido pendente ou aprovado só é cancelado com justificativa (mínimo de 10 caracteres), que aparece no pedido, na linha do tempo e na auditoria | Meus pedidos / Detalhes |
-| 16 | **Requisição de insumos pelo professor**: aba *Insumos* separada de *Materiais*; o professor informa a quantidade prevista, o dia, o local e a finalidade; a coordenação aprova (reserva), entrega (saída do estoque com o protocolo REQ) e registra a sobra (consumo real). Recusa e cancelamento exigem motivo; tudo vai para a auditoria | Insumos (professor) / Insumos › Requisições (coordenação) |
+| 16 | **Requisição de insumos pelo professor**: em *Inventário › Insumos*; o professor informa a quantidade prevista, o dia, o local e a finalidade; a coordenação aprova (reserva), entrega (saída do estoque com o protocolo REQ) e registra a sobra (consumo real). Recusa e cancelamento exigem motivo; tudo vai para a auditoria | Inventário › Insumos e Meus pedidos › Insumos (professor) / Solicitações › Insumos (coordenação) |
+| 17 | **Inventário único**: equipamentos (empréstimo) e insumos (consumo) numa só aba, com duas partes; o menu do professor ficou com 4 itens e o da coordenação com 11 | Inventário |
+| 18 | **Mapa aprimorado**: indicadores clicáveis (lista tudo em uso, guardado, em manutenção ou não localizado), planta compacta com destaque de uso e manutenção, link *Mapa* em cada equipamento do inventário e exportação do **inventário por sala** em CSV | Mapa de itens |
+| 19 | **Relatórios com dados reais**: retiradas no balcão e consumo de insumos do período (abre com os últimos 30 dias), sem dados de exemplo fixos | Relatórios |
 
 ## 2. Regras da realocação (transferência)
 
@@ -104,7 +107,7 @@ já devolvido com cadeia João → Maria (para mostrar a linha do tempo completa
 - Só a **unidade** com problema sai do estoque: um notebook avariado não bloqueia os outros 9.
   O item só fica "Em manutenção" quando **todas** as unidades estão fora.
 - **Quem estava com o item** fica gravado na ocorrência, na **linha do tempo do pedido** e no
-  **histórico do equipamento** (*Equipamentos → Histórico*).
+  **histórico do equipamento** (*Inventário › Equipamentos → Histórico*).
 - Na tela **Manutenção**, a coordenação envia para conserto, marca como **consertado/encontrado**
   (a unidade volta ao estoque) ou **dá baixa** (sai do acervo, com motivo). O desfecho também entra
   na linha do tempo do pedido.
@@ -133,7 +136,7 @@ já devolvido com cadeia João → Maria (para mostrar a linha do tempo completa
 ## 4. Roteiro de apresentação (≈ 6 minutos)
 
 1. **Admin cria um professor** (Usuários → Novo usuário). Mostre a senha provisória e que o login não tem mais cadastro público.
-2. **Prazo por material** (Equipamentos → editar o Projetor: prazo 3 dias). Entre como professor e tente pedir o projetor por 5 dias: o sistema barra e mostra a data limite.
+2. **Prazo por material** (Inventário › Equipamentos → editar o Projetor: prazo 3 dias). Entre como professor e tente pedir o projetor por 5 dias: o sistema barra e mostra a data limite.
 3. **Ciclo:** como professor, peça um material → admin aprova em *Solicitações* → professor vê o **código e o QR** em *Meus pedidos* → admin abre o **Balcão**, digita o código e confirma a entrega.
 4. **Realocação:** como professor, abra o **Projetor** (em andamento) → *Transferir* → Maria, com motivo. Tente a **Impressora 3D**: João, Maria e Carlos aparecem bloqueados (sem habilitação) e a Ana está liberada.
 5. **Entre como Maria** (barra de demonstração) → aceite. Mostre que o **prazo continuou o mesmo** e que o código de devolução mudou.

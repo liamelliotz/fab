@@ -50,21 +50,25 @@ export const routes: Routes = [
         title: 'Dashboard | FAB',
         loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.Dashboard),
       },
+      // INVENTÁRIO: equipamentos (empréstimo) e insumos (consumo) numa aba só, com duas partes
+      { path: 'inventario', redirectTo: 'inventario/equipamentos', pathMatch: 'full' },
       {
-        path: 'materiais',
-        title: 'Materiais | FAB',
+        path: 'inventario/equipamentos',
+        title: 'Inventário · Equipamentos | FAB',
         loadComponent: () =>
           import('./features/equipamentos/lista/equipamento-lista').then((m) => m.EquipamentoLista),
       },
-      // Insumos (material de consumo): o professor pede a quantidade prevista de uso
       {
-        path: 'insumos',
-        title: 'Insumos | FAB',
+        path: 'inventario/insumos',
+        title: 'Inventário · Insumos | FAB',
         loadComponent: () => import('./features/insumos/insumos-professor').then((m) => m.InsumosProfessor),
       },
+      // Endereços antigos continuam funcionando
+      { path: 'materiais', redirectTo: 'inventario/equipamentos', pathMatch: 'full' },
+      { path: 'insumos', redirectTo: 'inventario/insumos', pathMatch: 'full' },
       {
         path: 'meus-emprestimos',
-        title: 'Meus empréstimos | FAB',
+        title: 'Meus pedidos | FAB',
         loadComponent: () =>
           import('./features/emprestimos/meus-emprestimos/meus-emprestimos').then(
             (m) => m.MeusEmprestimos,

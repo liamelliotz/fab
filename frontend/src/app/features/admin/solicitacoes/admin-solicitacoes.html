@@ -1,8 +1,25 @@
 <section class="sol">
   <header class="sol__cabecalho">
     <h1>Solicitações</h1>
-    <p>Analise os pedidos de empréstimo enviados pelos usuários.</p>
+    <p>Analise os pedidos dos professores: empréstimos de equipamentos e requisições de insumos.</p>
   </header>
+
+  <nav class="sol__abas" aria-label="Tipos de solicitação">
+    <a class="sol__aba" routerLink="/admin/solicitacoes" [queryParams]="{ aba: null }" [class.sol__aba--ativa]="aba() === 'emprestimos'"
+      [attr.aria-current]="aba() === 'emprestimos' ? 'page' : null">
+      <i class="fa-solid fa-laptop" aria-hidden="true"></i> Empréstimos
+      @if (pendentesEmprestimo() > 0) {<span class="sol__aba-num">{{ pendentesEmprestimo() }}</span>}
+    </a>
+    <a class="sol__aba" routerLink="/admin/solicitacoes" [queryParams]="{ aba: 'insumos' }" [class.sol__aba--ativa]="aba() === 'insumos'"
+      [attr.aria-current]="aba() === 'insumos' ? 'page' : null">
+      <i class="fa-solid fa-box-open" aria-hidden="true"></i> Insumos
+      @if (requisicoes.paraCoordenacao() > 0) {<span class="sol__aba-num">{{ requisicoes.paraCoordenacao() }}</span>}
+    </a>
+  </nav>
+
+  @if (aba() === 'insumos') {
+    <app-requisicoes-insumo />
+  } @else {
 
   <div class="sol__filtros">
     <input
@@ -78,6 +95,8 @@
       <button type="button" [disabled]="!paginaAtual.temProxima || carregando() || salvando()" (click)="mudarPagina(1)">Próxima</button>
     </nav>
   }
+  }
+
   @if (selecionada(); as alvo) {
     <div class="sol__fundo">
       <div class="sol__painel" role="dialog" aria-modal="true" aria-labelledby="sol-decisao-titulo" appDialogo (fecharDialogo)="!salvando() && cancelar()">

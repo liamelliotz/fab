@@ -61,6 +61,12 @@ export class Navbar {
     this.router.navigate(['/login']);
   }
 
+  /** Requisições de insumo do professor logado já aprovadas (falta retirar no balcão). */
+  private readonly meusInsumosAprovados = () =>
+    this.requisicoes
+      .requisicoes()
+      .filter((r) => r.status === 'aprovada' && r.solicitante.id === this.auth.usuarioAtual().id).length;
+
   readonly items: NavItem[] = [
     { label: 'Dashboard', route: '/dashboard', icon: 'fa-solid fa-gauge-high' },
     {
@@ -68,7 +74,8 @@ export class Navbar {
       route: '/admin/solicitacoes',
       icon: 'fa-solid fa-inbox',
       somenteAdmin: true,
-      badge: () => this.emprestimos.pendentes().length,
+      // Pedidos de empréstimo e requisições de insumo esperando análise
+      badge: () => this.emprestimos.pendentes().length + this.requisicoes.pendentes().length,
     },
     { label: 'Balcão', route: '/admin/balcao', icon: 'fa-solid fa-qrcode', somenteAdmin: true },
     {
@@ -78,40 +85,30 @@ export class Navbar {
       somenteAdmin: true,
       badge: () => this.emprestimos.avisosNaoLidos(),
     },
-    { label: 'Equipamentos', route: '/admin/equipamentos', icon: 'fa-solid fa-laptop', somenteAdmin: true },
-    { label: 'Manutenção', route: '/admin/manutencao', icon: 'fa-solid fa-screwdriver-wrench', somenteAdmin: true },
     {
-      label: 'Insumos',
-      route: '/admin/insumos',
+      label: 'Inventário',
+      route: '/admin/inventario',
       icon: 'fa-solid fa-boxes-stacked',
       somenteAdmin: true,
-      // Requisições para aprovar ou entregar, mais os itens a repor
-      badge: () => this.requisicoes.paraCoordenacao() + this.insumos.aRepor().length,
+      // Insumos no estoque mínimo ou abaixo
+      badge: () => this.insumos.aRepor().length,
     },
+    { label: 'Manutenção', route: '/admin/manutencao', icon: 'fa-solid fa-screwdriver-wrench', somenteAdmin: true },
     { label: 'Mapa de itens', route: '/admin/mapa', icon: 'fa-solid fa-map-location-dot', somenteAdmin: true },
     { label: 'Auditoria', route: '/admin/auditoria', icon: 'fa-solid fa-shield-halved', somenteAdmin: true },
     { label: 'Usuários', route: '/admin/usuarios', icon: 'fa-solid fa-users', somenteAdmin: true },
     { label: 'Relatórios', route: '/admin/relatorios', icon: 'fa-solid fa-chart-column', somenteAdmin: true },
-    { label: 'Materiais', route: '/materiais', icon: 'fa-solid fa-laptop', novoGrupo: true },
+    { label: 'Inventário', route: '/inventario', icon: 'fa-solid fa-boxes-stacked', somenteUsuario: true },
     {
-      label: 'Meus empréstimos',
+      label: 'Meus pedidos',
       route: '/meus-emprestimos',
       icon: 'fa-solid fa-clipboard-list',
       somenteUsuario: true,
-      // Transferências de outros professores esperando a sua resposta
-      badge: () => this.emprestimos.transferenciasRecebidas(this.auth.usuarioAtual().id).length,
-    },
-    {
-      label: 'Insumos',
-      route: '/insumos',
-      icon: 'fa-solid fa-box-open',
-      somenteUsuario: true,
-      // Requisições aprovadas esperando o professor retirar no balcão
+      // Transferências esperando resposta + insumos aprovados para retirar
       badge: () =>
-        this.requisicoes
-          .requisicoes()
-          .filter((r) => r.status === 'aprovada' && r.solicitante.id === this.auth.usuarioAtual().id).length,
+        this.emprestimos.transferenciasRecebidas(this.auth.usuarioAtual().id).length + this.meusInsumosAprovados(),
     },
-    { label: 'Configurações', route: '/configuracoes', icon: 'fa-solid fa-gear' },
+    { label: 'Configurações', route: '/configuracoes', icon: 'fa-solid fa-gear', novoGrupo: true },
   ];
+
 }

@@ -1,11 +1,10 @@
-<section class="pagina" aria-labelledby="titulo-insumos">
-  <header class="cabecalho">
-    <h1 id="titulo-insumos">Insumos</h1>
-    <p>
-      Materiais de consumo, como filamento, papel e componentes. Informe quanto prevê usar; a coordenação aprova e
-      entrega no balcão. O que você usar não volta ao estoque, só a sobra.
-    </p>
-  </header>
+<section class="pagina">
+  <app-inventario-abas />
+  <p class="intro">
+    Material de consumo, como filamento, papel e componentes. Informe quanto prevê usar; a coordenação aprova e entrega
+    no balcão. O que você usar não volta ao estoque, só a sobra. Acompanhe em
+    <a routerLink="/meus-emprestimos" [queryParams]="{ aba: 'insumos' }">Meus pedidos › Insumos</a>.
+  </p>
 
   <!-- Catálogo -->
   <section class="painel" aria-labelledby="titulo-catalogo">
@@ -60,55 +59,6 @@
     </div>
   </section>
 
-  <!-- Minhas requisições -->
-  <section class="painel" aria-labelledby="titulo-minhas">
-    <div class="titulo-painel">
-      <div>
-        <h2 id="titulo-minhas">Minhas requisições</h2>
-        <p>{{ abertas() }} em aberto. Retire no balcão as que estiverem aprovadas.</p>
-      </div>
-    </div>
-    <div class="tabela-container">
-      <table>
-        <thead>
-          <tr><th>Protocolo</th><th>Insumo</th><th>Quantidade</th><th>Uso</th><th>Situação</th><th><span class="sr-only">Ação</span></th></tr>
-        </thead>
-        <tbody>
-          @for (r of minhas(); track r.id) {
-            <tr>
-              <td class="protocolo">{{ r.protocolo }}</td>
-              <td>
-                <strong>{{ r.insumo.nome }}</strong>
-                <span class="sub">{{ r.finalidade }}</span>
-              </td>
-              <td class="numero">
-                {{ qtd(r.quantidade) }} {{ nomeUnidade[r.insumo.unidadeMedida] }}
-                @if (r.quantidadeEntregue !== undefined) {
-                  <span class="sub">entregue: {{ qtd(r.quantidadeEntregue) }}</span>
-                }
-                @if (r.quantidadeDevolvida !== undefined) {
-                  <span class="sub">sobra devolvida: {{ qtd(r.quantidadeDevolvida) }}</span>
-                }
-              </td>
-              <td>{{ data(r.dataUso) }}<span class="sub">{{ local(r.localId) }}</span></td>
-              <td>
-                <span class="status status--{{ r.status }}">{{ nomeStatus[r.status] }}</span>
-                @if (r.motivo) {<span class="sub">{{ r.motivo }}</span>}
-              </td>
-              <td class="acao">
-                @if (r.status === 'pendente' || r.status === 'aprovada') {
-                  <button type="button" class="btn btn--secundario" (click)="abrirCancelamento(r)"
-                    [attr.aria-label]="'Cancelar requisição ' + r.protocolo">Cancelar</button>
-                }
-              </td>
-            </tr>
-          } @empty {
-            <tr><td colspan="6" class="vazio">Você ainda não pediu insumos.</td></tr>
-          }
-        </tbody>
-      </table>
-    </div>
-  </section>
 </section>
 
 @if (pedindo(); as p) {
@@ -165,28 +115,3 @@
   </div>
 }
 
-@if (cancelando(); as r) {
-  <div class="fundo" (click)="cancelando.set(null)">
-    <div class="dialogo dialogo--estreito" role="dialog" aria-modal="true" aria-labelledby="titulo-cancelar" appDialogo
-      (fecharDialogo)="cancelando.set(null)" (click)="$event.stopPropagation()">
-      <h2 id="titulo-cancelar">Cancelar {{ r.protocolo }}</h2>
-      <p class="dialogo__resumo">
-        {{ r.insumo.nome }} · {{ qtd(r.quantidade) }} {{ nomeUnidade[r.insumo.unidadeMedida] }}.
-        @if (r.status === 'aprovada') { A quantidade reservada volta a ficar disponível. }
-      </p>
-      <label class="campo">
-        <span>Motivo do cancelamento <span class="obrig">*</span></span>
-        <textarea rows="3" maxlength="300" placeholder="Ex.: a aula foi remarcada para a próxima semana"
-          [value]="motivoCancelamento()" (input)="escreverMotivo($event)"></textarea>
-      </label>
-      @if (erroCancelamento()) {
-        <p class="erro" role="alert">{{ erroCancelamento() }}</p>
-      }
-      <div class="dialogo__acoes">
-        <button type="button" class="btn btn--secundario" (click)="cancelando.set(null)">Voltar</button>
-        <button type="button" class="btn btn--perigo" [disabled]="motivoCancelamento().trim().length < minimo"
-          (click)="confirmarCancelamento()">Confirmar cancelamento</button>
-      </div>
-    </div>
-  </div>
-}

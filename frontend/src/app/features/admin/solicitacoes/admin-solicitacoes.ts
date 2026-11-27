@@ -1,16 +1,18 @@
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { Subscription, finalize } from 'rxjs';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { RequisicaoInsumoService } from '../../../core/services/requisicao-insumo.service';
+import { RequisicoesInsumo } from '../insumos/requisicoes/requisicoes-insumo';
+import { Subscription, finalize, map } from 'rxjs';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { Emprestimo, StatusEmprestimo } from '../../../core/models/emprestimo.model';
 import { RespostaPaginada } from '../../../core/models/pagination.model';
 import { EmprestimoAdminService, mensagemErroAdmin } from '../../../core/services/emprestimo-admin.service';
-import { NOME_STATUS_EMPRESTIMO } from '../../../core/services/emprestimo.service';
+import { EmprestimoService, NOME_STATUS_EMPRESTIMO } from '../../../core/services/emprestimo.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { formatarData } from '../../../core/utils/date.utils';
 import { DialogoDirective } from '../../../shared/directives/dialogo.directive';
 
-@Component({ selector: 'app-admin-solicitacoes', standalone: true, imports: [RouterLink, DialogoDirective],
+@Component({ selector: 'app-admin-solicitacoes', standalone: true, imports: [RouterLink, DialogoDirective, RequisicoesInsumo],
   templateUrl: './admin-solicitacoes.html', styleUrl: './admin-solicitacoes.css' })
 export class AdminSolicitacoes {
   readonly service = inject(EmprestimoAdminService);
@@ -18,6 +20,15 @@ export class AdminSolicitacoes {
   private readonly destroy = inject(DestroyRef);
   private consulta?: Subscription;
   readonly data = formatarData;
+  readonly requisicoes = inject(RequisicaoInsumoService);
+  private readonly emprestimos = inject(EmprestimoService);
+  readonly pendentesEmprestimo = computed(() => this.emprestimos.pendentes().length);
+  private readonly route = inject(ActivatedRoute);
+  /** Aba ativa: empréstimos ou requisições de insumo (?aba=insumos). */
+  readonly aba = toSignal(
+    this.route.queryParamMap.pipe(map((q) => (q.get('aba') === 'insumos' ? 'insumos' : 'emprestimos'))),
+    { initialValue: this.route.snapshot.queryParamMap.get('aba') === 'insumos' ? 'insumos' : 'emprestimos' },
+  );
   readonly busca = signal('');
   readonly filtroStatus = signal<StatusEmprestimo | ''>('pendente');
   readonly pagina = signal(1);

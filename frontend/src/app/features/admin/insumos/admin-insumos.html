@@ -1,13 +1,9 @@
 <section class="ins" aria-labelledby="titulo-insumos">
-  <header class="ins__cabecalho">
-    <div>
-      <h1 id="titulo-insumos">Insumos</h1>
-      <p>Materiais de consumo: saldo, entradas, saídas por professor e local, e quando cada um deve acabar.</p>
-    </div>
-    <button type="button" class="ins__btn ins__btn--principal" (click)="novo()">
+  <app-inventario-abas [admin]="true">
+    <button acoes type="button" class="ins__btn ins__btn--principal" (click)="novo()">
       <i class="fa-solid fa-plus" aria-hidden="true"></i> Novo insumo
     </button>
-  </header>
+  </app-inventario-abas>
 
   @if (!service.modoDemo) {
     <p class="ins__aviso" role="note">
@@ -28,11 +24,11 @@
       <strong>{{ totalARepor() }}</strong>
       <small>no estoque mínimo ou abaixo · ver lista</small>
     </button>
-    <button type="button" class="ins__metrica ins__metrica--req" (click)="aba.set('requisicoes')">
+    <a class="ins__metrica ins__metrica--req" routerLink="/admin/solicitacoes" [queryParams]="{ aba: 'insumos' }">
       <span>Requisições em aberto</span>
       <strong>{{ requisicoes.paraCoordenacao() }}</strong>
-      <small>{{ requisicoes.pendentes().length }} para aprovar · {{ requisicoes.aguardandoEntrega().length }} para entregar</small>
-    </button>
+      <small>{{ requisicoes.pendentes().length }} para aprovar · {{ requisicoes.aguardandoEntrega().length }} para entregar · em Solicitações</small>
+    </a>
     <div class="ins__metrica ins__metrica--prev">
       <span>Acaba primeiro</span>
       @if (proximoAcabar(); as p) {
@@ -49,12 +45,6 @@
     <button type="button" role="tab" class="ins__aba" [class.ins__aba--ativa]="aba() === 'estoque'" [attr.aria-selected]="aba() === 'estoque'" (click)="aba.set('estoque')">
       <i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i> Estoque
     </button>
-    <button type="button" role="tab" class="ins__aba" [class.ins__aba--ativa]="aba() === 'requisicoes'" [attr.aria-selected]="aba() === 'requisicoes'" (click)="aba.set('requisicoes')">
-      <i class="fa-solid fa-hand-holding" aria-hidden="true"></i> Requisições
-      @if (requisicoes.paraCoordenacao() > 0) {
-        <span class="ins__aba-contador">{{ requisicoes.paraCoordenacao() }}</span>
-      }
-    </button>
     <button type="button" role="tab" class="ins__aba" [class.ins__aba--ativa]="aba() === 'movimentacoes'" [attr.aria-selected]="aba() === 'movimentacoes'" (click)="aba.set('movimentacoes')">
       <i class="fa-solid fa-right-left" aria-hidden="true"></i> Movimentações
     </button>
@@ -64,9 +54,6 @@
   </div>
 
   @switch (aba()) {
-    @case ('requisicoes') {
-      <app-requisicoes-insumo />
-    }
     @case ('estoque') {
       <div class="ins__filtros">
         <label class="ins__busca">

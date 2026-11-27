@@ -4,26 +4,44 @@
       <h1 id="titulo-mapa">Mapa de itens</h1>
       <p>Onde está cada material da {{ escola }} (escola fictícia), conforme os pedidos, o balcão e a manutenção.</p>
     </div>
+    <button type="button" class="btn-principal" (click)="exportar()">
+      <i class="fa-solid fa-file-arrow-down" aria-hidden="true"></i> Exportar por sala (CSV)
+    </button>
   </header>
 
   @if (!modoDemo) {
     <p class="aviso-demo" role="note">O mapa usa os dados da demonstração até a API ganhar o cadastro de locais.</p>
   }
 
-  <div class="resumo">
-    <div class="card"><p>Em uso agora</p><strong>{{ totais().emUso }}</strong></div>
-    <div class="card"><p>Guardados</p><strong>{{ totais().guardados }}</strong></div>
-    <div class="card"><p>Em manutenção</p><strong>{{ totais().manutencao }}</strong></div>
-    <div class="card"><p>Não localizados</p><strong>{{ totais().naoLocalizados }}</strong></div>
+  <div class="resumo" role="group" aria-label="Ver tudo de uma situação">
+    <button type="button" class="card" [attr.aria-pressed]="visao() === 'em_uso'" (click)="alternarVisao('em_uso')">
+      <p>Em uso agora</p><strong>{{ totais().emUso }}</strong><small>com professores, nas salas</small>
+    </button>
+    <button type="button" class="card" [attr.aria-pressed]="visao() === 'guardados'" (click)="alternarVisao('guardados')">
+      <p>Guardados</p><strong>{{ totais().guardados }}</strong><small>no local de guarda, inclui reservados</small>
+    </button>
+    <button type="button" class="card" [attr.aria-pressed]="visao() === 'manutencao'" (click)="alternarVisao('manutencao')">
+      <p>Em manutenção</p><strong>{{ totais().manutencao }}</strong><small>na sala de manutenção ou assistência</small>
+    </button>
+    <button type="button" class="card" [class.card--alerta]="totais().naoLocalizados > 0" [attr.aria-pressed]="visao() === 'nao_localizado'" (click)="alternarVisao('nao_localizado')">
+      <p>Não localizados</p><strong>{{ totais().naoLocalizados }}</strong><small>faltas abertas na devolução</small>
+    </button>
   </div>
 
   <!-- Onde está? -->
   <section class="painel" aria-labelledby="titulo-busca">
     <div class="titulo-painel">
       <div>
-        <h2 id="titulo-busca">Onde está?</h2>
-        <p>Digite o nome ou o patrimônio para ver em que sala cada unidade está.</p>
+        <h2 id="titulo-busca">{{ visao() ? nomeVisao[visao()!] : 'Onde está?' }}</h2>
+        <p>
+          @if (visao()) {
+            Tudo nesta situação, em toda a escola. Clique no indicador de novo para fechar.
+          } @else {
+            Digite o nome ou o patrimônio, ou clique num indicador acima.
+          }
+        </p>
       </div>
+      <div class="busca-acoes">
       <input
         class="campo-busca"
         type="search"
@@ -32,6 +50,10 @@
         [value]="busca()"
         (input)="digitarBusca($event)"
       />
+      @if (busca() || visao()) {
+        <button type="button" class="btn-sec" (click)="limparBusca()">Limpar</button>
+      }
+      </div>
     </div>
 
     @if (resultadoBusca(); as resultado) {
@@ -48,7 +70,7 @@
                 <td><span class="situacao situacao--{{ i.situacao }}">{{ nomeSituacao[i.situacao] }}</span>@if (i.atrasado) {<span class="sub atraso">devolução atrasada</span>}</td>
                 <td>
                   @if (i.localId) {
-                    <button type="button" class="link" (click)="escolher(i.localId)">{{ nomeDoLocal(i.localId) }}</button>
+                    <button type="button" class="link" (click)="escolher(i.localId, true)">{{ nomeDoLocal(i.localId) }}</button>
                   } @else {
                     {{ nomeDoLocal(null) }}
                   }
@@ -60,7 +82,7 @@
                 <td class="data">{{ i.desde ? dataHora(i.desde) : '—' }}</td>
               </tr>
             } @empty {
-              <tr><td colspan="6" class="sem-resultados">Nenhum material encontrado com esse nome ou patrimônio.</td></tr>
+              <tr><td colspan="6" class="sem-resultados">{{ visao() ? 'Nada nesta situação agora.' : 'Nenhum material encontrado com esse nome ou patrimônio.' }}</td></tr>
             }
           </tbody>
         </table>
@@ -73,7 +95,7 @@
       <div class="titulo-painel">
         <div>
           <h2 id="titulo-planta">Planta da escola</h2>
-          <p>Clique em uma sala para ver a lista do que está nela logo abaixo. O número é a quantidade de equipamentos.</p>
+          <p>Clique numa sala para ver o que está nela. O número é a quantidade de equipamentos; azul = em uso, laranja = manutenção.</p>
         </div>
       </div>
 
@@ -86,9 +108,11 @@
                 type="button"
                 class="sala"
                 [class.sala--sel]="selecionado() === r.local.id"
+                [class.sala--uso]="r.emUso > 0"
+                [class.sala--manut]="r.manutencao > 0 && !r.emUso"
                 [attr.aria-pressed]="selecionado() === r.local.id"
                 [attr.aria-label]="rotuloSala(r)"
-                (click)="escolher(r.local.id)"
+                (click)="escolher(r.local.id, true)"
               >
                 <span class="sala__nome">{{ r.local.nome }}</span>
                 <span class="sala__total" [class.sala__total--zero]="!totalDaSala(r)">{{ totalDaSala(r) }}</span>
@@ -104,7 +128,7 @@
       }
     </section>
 
-    <section class="painel" aria-labelledby="titulo-local" aria-live="polite">
+    <section #detalheSala class="painel painel--sala" aria-labelledby="titulo-local" aria-live="polite">
       @if (localSelecionado(); as r) {
         <div class="titulo-painel">
           <div>
@@ -166,7 +190,7 @@
           @for (m of movimentos(); track $index) {
             <tr>
               <td class="data">{{ dataHora(m.em) }}</td>
-              <td><a class="link" [routerLink]="['/pedidos', m.pedidoId]">{{ m.protocolo }}</a></td>
+              <td><a class="link protocolo" [routerLink]="['/pedidos', m.pedidoId]">{{ m.protocolo }}</a></td>
               <td>{{ m.itens }}</td>
               <td>{{ m.de }}</td>
               <td>{{ m.para }}</td>
