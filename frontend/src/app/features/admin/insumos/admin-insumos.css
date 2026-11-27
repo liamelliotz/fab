@@ -140,3 +140,4 @@ tr:last-child td { border-bottom: none; }
 .ins__metrica--req { cursor: pointer; text-align: left; font: inherit; text-decoration: none; }
 .ins__metrica--req:hover { background: #f7faf8; }
 .ins__aba-contador { display: inline-block; min-width: 20px; margin-left: 4px; padding: 1px 7px; border-radius: 999px; background: #b91c1c; color: #fff; font-size: 0.72rem; font-weight: 700; text-align: center; }
+.ins__busca { border-color: #7d8984 !important; }

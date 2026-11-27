@@ -1,3 +1,4 @@
+import { LeitorQr } from '../../../shared/components/leitor-qr/leitor-qr';
 import { RequisicaoInsumoService } from '../../../core/services/requisicao-insumo.service';
 import { Component, DestroyRef, Injector, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
@@ -31,7 +32,7 @@ type Aba = 'retirada' | 'devolucao';
 @Component({
   selector: 'app-admin-balcao',
   standalone: true,
-  imports: [RouterLink, AvariaCampos],
+  imports: [RouterLink, AvariaCampos, LeitorQr],
   templateUrl: './admin-balcao.html',
   styleUrl: './admin-balcao.css',
 })
@@ -169,6 +170,18 @@ export class AdminBalcao {
       ...atual,
       [equipamentoId]: { ...this.registro(equipamentoId), ...mudanca },
     }));
+  }
+
+  /**
+   * QR lido pela câmera: o próprio QR diz se é retirada (FAB:R:...) ou devolução (FAB:D:...),
+   * então a aba certa é escolhida sozinha antes de conferir.
+   */
+  lerQr(texto: string): void {
+    const marcador = /^FAB:([RD]):/i.exec(texto.trim())?.[1]?.toUpperCase();
+    if (marcador === 'R' && this.aba() !== 'retirada') this.trocarAba('retirada');
+    if (marcador === 'D' && this.aba() !== 'devolucao') this.trocarAba('devolucao');
+    this.codigo.set(texto.trim());
+    this.buscar();
   }
 
   /** Procura o pedido pelo código (não altera nada ainda). */

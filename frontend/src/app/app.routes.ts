@@ -27,7 +27,13 @@ export const routes: Routes = [
 
   // O error.interceptor redireciona para /auth/login quando a sessão expira
   { path: 'auth/login', redirectTo: 'login' },
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  // Página inicial pública (apresenta o FAB; o botão leva ao login ou ao painel)
+  {
+    path: '',
+    pathMatch: 'full',
+    title: 'FAB | Gestão de equipamentos e insumos escolares',
+    loadComponent: () => import('./features/inicio/inicio').then((m) => m.Inicio),
+  },
 
   // Rotas internas (com navbar, exigem login)
   {

@@ -214,7 +214,7 @@ npm test -- --watch=false
 npm start
 ```
 
-- Em demonstração, entrar como admin deve mostrar Insumos e abrir `/admin/insumos`.
+- Em demonstração, entrar como admin deve mostrar Inventário e abrir `/admin/inventario/insumos`.
 - Entrar como professor, definir `sessionStorage.setItem('fab_role', 'admin')` no console,
   atualizar a página e abrir `/admin/insumos`: deve voltar ao dashboard.
 - Com `modoDemo: false`, erro 400 de validação deve exibir o resumo e os campos no alerta.

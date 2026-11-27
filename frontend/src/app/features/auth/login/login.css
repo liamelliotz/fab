@@ -99,3 +99,93 @@
   color: #065f46;
   font-size: 0.9rem;
 }
+
+.login__valores {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 28px 0 0;
+  padding: 0;
+  list-style: none;
+  color: #ffffff;
+  font-size: 15px;
+}
+
+.login__valores li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.login__valores i {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.login__demo {
+  margin-top: 8px;
+  padding: 14px;
+  border: 1px dashed #7d8984;
+  border-radius: 12px;
+  background: #f7faf8;
+}
+
+.login__demo-titulo {
+  margin: 0 0 10px;
+  color: #374151;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.login__demo-contas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.login__demo-conta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid #7d8984;
+  border-radius: 10px;
+  background: #fff;
+  color: #172b24;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.login__demo-conta:hover {
+  border-color: #24845c;
+  background: #f0fdf4;
+}
+
+.login__demo-conta:focus-visible {
+  outline: 3px solid #24845c;
+  outline-offset: 2px;
+}
+
+.login__demo-conta strong {
+  font-size: 14px;
+}
+
+.login__demo-conta span {
+  color: #4b5563;
+  font-size: 12px;
+}
+
+@media (max-width: 900px) {
+  .login__valores {
+    display: none;
+  }
+}

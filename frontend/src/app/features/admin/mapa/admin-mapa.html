@@ -2,16 +2,13 @@
   <header class="cabecalho">
     <div>
       <h1 id="titulo-mapa">Mapa de itens</h1>
-      <p>Onde está cada material da {{ escola }} (escola fictícia), conforme os pedidos, o balcão e a manutenção.</p>
+      <p>Onde está cada material da escola agora, montado a partir dos pedidos, do balcão e da manutenção.</p>
     </div>
     <button type="button" class="btn-principal" (click)="exportar()">
       <i class="fa-solid fa-file-arrow-down" aria-hidden="true"></i> Exportar por sala (CSV)
     </button>
   </header>
 
-  @if (!modoDemo) {
-    <p class="aviso-demo" role="note">O mapa usa os dados da demonstração até a API ganhar o cadastro de locais.</p>
-  }
 
   <div class="resumo" role="group" aria-label="Ver tudo de uma situação">
     <button type="button" class="card" [attr.aria-pressed]="visao() === 'em_uso'" (click)="alternarVisao('em_uso')">

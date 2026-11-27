@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { AuthService } from './auth.service';
 import { EmprestimoService } from './emprestimo.service';
 import { EquipamentoService } from './equipamento.service';
@@ -22,6 +22,9 @@ export class DemoService {
   private readonly manutencoes = inject(ManutencaoService);
   private readonly insumos = inject(InsumoService);
   private readonly requisicoes = inject(RequisicaoInsumoService);
+
+  /** true enquanto a janela "Restaurar dados" está aberta (atalho ou barra da demonstração). */
+  readonly confirmandoRestauracao = signal(false);
 
   /** true quando o app está no modo demonstração (sem servidor). */
   readonly ativo = inject(AuthService).modoDemo;

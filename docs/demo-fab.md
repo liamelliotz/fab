@@ -58,6 +58,9 @@ Esta parte vale para a apresentação **sem backend**, com dados salvos no naveg
 | 17 | **Inventário único**: equipamentos (empréstimo) e insumos (consumo) numa só aba, com duas partes; o menu do professor ficou com 4 itens e o da coordenação com 11 | Inventário |
 | 18 | **Mapa aprimorado**: indicadores clicáveis (lista tudo em uso, guardado, em manutenção ou não localizado), planta compacta com destaque de uso e manutenção, link *Mapa* em cada equipamento do inventário e exportação do **inventário por sala** em CSV | Mapa de itens |
 | 19 | **Relatórios com dados reais**: retiradas no balcão e consumo de insumos do período (abre com os últimos 30 dias), sem dados de exemplo fixos | Relatórios |
+| 20 | **Navegação organizada**: menu lateral com nomes e grupos (Operação, Acervo, Gestão), usuário e acessibilidade no rodapé; vira só ícones em telas médias e faixa no topo no celular | Todas |
+| 21 | **Painel "O que fazer agora"**: lista única, do mais urgente ao menos urgente (atrasos, pedidos, balcão de hoje, manutenção, insumos a repor), com o botão que leva direto à ação; resumo do acervo ao lado | Painel |
+| 22 | **Sem aparência de protótipo**: nenhum aviso de demonstração na tela. Restaurar os dados iniciais continua no atalho Ctrl + Alt + Shift + R | Todas |
 
 ## 2. Regras da realocação (transferência)
 
@@ -139,7 +142,7 @@ já devolvido com cadeia João → Maria (para mostrar a linha do tempo completa
 2. **Prazo por material** (Inventário › Equipamentos → editar o Projetor: prazo 3 dias). Entre como professor e tente pedir o projetor por 5 dias: o sistema barra e mostra a data limite.
 3. **Ciclo:** como professor, peça um material → admin aprova em *Solicitações* → professor vê o **código e o QR** em *Meus pedidos* → admin abre o **Balcão**, digita o código e confirma a entrega.
 4. **Realocação:** como professor, abra o **Projetor** (em andamento) → *Transferir* → Maria, com motivo. Tente a **Impressora 3D**: João, Maria e Carlos aparecem bloqueados (sem habilitação) e a Ana está liberada.
-5. **Entre como Maria** (barra de demonstração) → aceite. Mostre que o **prazo continuou o mesmo** e que o código de devolução mudou.
+5. **Entre como Maria** (saia e entre com `maria@escola.br`) → aceite. Mostre que o **prazo continuou o mesmo** e que o código de devolução mudou.
 6. **Entre como admin** → *Empréstimos*: aviso da transferência, atrasos e quem está com cada coisa. Abra o **EMP-2026-0036**: **linha do tempo** e cadeia de responsáveis.
 7. **Devolução** no Balcão com o código novo: escolha *Com avaria ou falta*, marque 1 avariada (gravidade **grave**, com foto) e mostre em **Manutenção** a unidade bloqueada; depois *Consertado* e ela volta ao estoque.
 8. **Mapa de itens:** busque "lenovo" em *Onde está?*. Volte ao Balcão, entregue o pedido da Ana (código `K7M4PX`) escolhendo **Sala 104** e aceitando o termo; no mapa, as 2 unidades passam do Almoxarifado de TI para a Sala 104.

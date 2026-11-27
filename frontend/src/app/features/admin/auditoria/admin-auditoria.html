@@ -10,10 +10,6 @@
     </button>
   </header>
 
-  @if (!modoDemo) {
-    <p class="aviso-demo" role="note">Esta tela usa os dados da demonstração até a API ter as rotas de auditoria.</p>
-  }
-
   <div class="resumo">
     <div class="card"><p>Registros no período</p><strong>{{ filtrados().length }}</strong></div>
     <div class="card"><p>Baixas patrimoniais</p><strong>{{ baixas().length }}</strong></div>

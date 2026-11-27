@@ -91,7 +91,7 @@ export class AuthService {
         () =>
           new HttpErrorResponse({
             status: 400,
-            error: { mensagem: 'Na demonstração não há redefinição de senha. Peça à coordenação.' },
+            error: { mensagem: 'Para redefinir a senha, procure a coordenação.' },
           }),
       );
     }

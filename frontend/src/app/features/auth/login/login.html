@@ -1,4 +1,5 @@
 <!-- Layout de duas áreas lado a lado: painel verde (esquerda) e formulário (direita) -->
+<app-acessibilidade variante="flutuante" />
 <main class="login">
   <!-- PAINEL ESQUERDO: identidade visual do FAB -->
   <section class="login__brand">
@@ -8,6 +9,12 @@
       <p class="login__description">
         Gestão e controle do empréstimo de materiais e equipamentos escolares.
       </p>
+      <ul class="login__valores">
+        <li><i class="fa-solid fa-qrcode" aria-hidden="true"></i> Retirada e devolução com código e QR</li>
+        <li><i class="fa-solid fa-map-location-dot" aria-hidden="true"></i> Onde está cada material, sala por sala</li>
+        <li><i class="fa-solid fa-box-open" aria-hidden="true"></i> Insumos com saldo, consumo e previsão</li>
+        <li><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Auditoria que ninguém edita nem apaga</li>
+      </ul>
     </div>
   </section>
 
@@ -58,6 +65,7 @@
 
       <!-- Não há cadastro público: as contas são criadas pelo administrador (tela Usuários) -->
       <p class="login__register">Não tem acesso? Procure a coordenação do laboratório.</p>
+
 
     </form>
   </section>

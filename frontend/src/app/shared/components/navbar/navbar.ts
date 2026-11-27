@@ -1,3 +1,4 @@
+import { Acessibilidade } from '../acessibilidade/acessibilidade';
 import { Component, computed, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 // Serviço de autenticação: perfil do usuário e logout
@@ -11,8 +12,10 @@ interface NavItem {
   route: string;
   /** Classes do Font Awesome, ex.: 'fa-solid fa-gear' */
   icon: string;
-  /** true = começa um novo grupo (linha separadora, só desenhada para admin) */
-  novoGrupo?: boolean;
+  /** Título do grupo que este item abre (ex.: "Operação"). Só aparece para a coordenação. */
+  grupo?: string;
+  /** true = vai para o rodapé da barra (Configurações). */
+  rodape?: boolean;
   /** true = o link só aparece para quem tem perfil admin */
   somenteAdmin?: boolean;
   /** true = o link só aparece para quem NÃO é admin (usuário comum) */
@@ -23,7 +26,7 @@ interface NavItem {
 
 @Component({
   selector: 'app-navbar',
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, Acessibilidade],
   templateUrl: './navbar.html',
   styleUrl: './navbar.css',
 })
@@ -41,9 +44,22 @@ export class Navbar {
   readonly itensVisiveis = computed(() =>
     this.items.filter(
       (item) =>
-        (!item.somenteAdmin || this.ehAdmin()) && (!item.somenteUsuario || !this.ehAdmin()),
+        !item.rodape && (!item.somenteAdmin || this.ehAdmin()) && (!item.somenteUsuario || !this.ehAdmin()),
     ),
   );
+  readonly itensRodape = computed(() => this.items.filter((item) => item.rodape));
+
+  /** Nome e perfil mostrados no rodapé da barra. */
+  readonly nome = computed(() => this.auth.nomeAtual() ?? '');
+  readonly iniciais = computed(() =>
+    this.nome()
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((p) => p[0]?.toUpperCase())
+      .join(''),
+  );
+  readonly perfil = computed(() => (this.ehAdmin() ? 'Coordenação' : 'Professor'));
 
   /**
    * Nome lido pelo leitor de tela. Inclui as novidades, porque o número na bolinha
@@ -68,7 +84,7 @@ export class Navbar {
       .filter((r) => r.status === 'aprovada' && r.solicitante.id === this.auth.usuarioAtual().id).length;
 
   readonly items: NavItem[] = [
-    { label: 'Dashboard', route: '/dashboard', icon: 'fa-solid fa-gauge-high' },
+    { label: 'Painel', route: '/dashboard', icon: 'fa-solid fa-house', grupo: 'Operação' },
     {
       label: 'Solicitações',
       route: '/admin/solicitacoes',
@@ -90,12 +106,13 @@ export class Navbar {
       route: '/admin/inventario',
       icon: 'fa-solid fa-boxes-stacked',
       somenteAdmin: true,
+      grupo: 'Acervo',
       // Insumos no estoque mínimo ou abaixo
       badge: () => this.insumos.aRepor().length,
     },
     { label: 'Manutenção', route: '/admin/manutencao', icon: 'fa-solid fa-screwdriver-wrench', somenteAdmin: true },
     { label: 'Mapa de itens', route: '/admin/mapa', icon: 'fa-solid fa-map-location-dot', somenteAdmin: true },
-    { label: 'Auditoria', route: '/admin/auditoria', icon: 'fa-solid fa-shield-halved', somenteAdmin: true },
+    { label: 'Auditoria', route: '/admin/auditoria', icon: 'fa-solid fa-shield-halved', somenteAdmin: true, grupo: 'Gestão' },
     { label: 'Usuários', route: '/admin/usuarios', icon: 'fa-solid fa-users', somenteAdmin: true },
     { label: 'Relatórios', route: '/admin/relatorios', icon: 'fa-solid fa-chart-column', somenteAdmin: true },
     { label: 'Inventário', route: '/inventario', icon: 'fa-solid fa-boxes-stacked', somenteUsuario: true },
@@ -108,7 +125,7 @@ export class Navbar {
       badge: () =>
         this.emprestimos.transferenciasRecebidas(this.auth.usuarioAtual().id).length + this.meusInsumosAprovados(),
     },
-    { label: 'Configurações', route: '/configuracoes', icon: 'fa-solid fa-gear', novoGrupo: true },
+    { label: 'Configurações', route: '/configuracoes', icon: 'fa-solid fa-gear', rodape: true },
   ];
 
 }

@@ -28,6 +28,7 @@
             "styles": [
               "src/styles.css"
             ],
+            "allowedCommonJsDependencies": ["jsqr"],
             "server": "src/main.server.ts",
             "outputMode": "server",
             "security": {

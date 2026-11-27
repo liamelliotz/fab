@@ -1,0 +1,55 @@
+<button type="button" class="gatilho gatilho--{{ variante() }}" (click)="aberto.set(true)"
+  [attr.aria-label]="'Acessibilidade' + (service.ativas() ? ', ' + service.ativas() + ' opção(ões) ligada(s)' : '')" title="Acessibilidade">
+  <i class="gatilho__icone fa-solid fa-universal-access" aria-hidden="true"></i>
+  <span class="gatilho__rotulo">Acessibilidade</span>
+  @if (service.ativas() > 0) {
+    <span class="gatilho__num" aria-hidden="true">{{ service.ativas() }}</span>
+  }
+</button>
+
+@if (aberto()) {
+  <div class="fundo" (click)="aberto.set(false)">
+    <div class="painel" role="dialog" aria-modal="true" aria-labelledby="a11y-titulo" appDialogo
+      (fecharDialogo)="aberto.set(false)" (click)="$event.stopPropagation()">
+      <div class="painel__topo">
+        <h2 id="a11y-titulo">Acessibilidade</h2>
+        <button type="button" class="fechar" (click)="aberto.set(false)" aria-label="Fechar">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+      </div>
+      <p class="painel__intro">As escolhas valem para todas as telas e ficam salvas neste navegador.</p>
+
+      <fieldset class="tamanho">
+        <legend>Tamanho do texto</legend>
+        <div class="tamanho__opcoes">
+          @for (t of tamanhos; track t.valor) {
+            <button type="button" class="tamanho__btn" [attr.aria-pressed]="service.preferencias().tamanho === t.valor"
+              (click)="service.mudar('tamanho', t.valor)">
+              <span class="tamanho__a" [style.font-size.px]="t.valor === 100 ? 15 : t.valor === 115 ? 18 : 21" aria-hidden="true">A</span>
+              {{ t.rotulo }}
+            </button>
+          }
+        </div>
+      </fieldset>
+
+      <ul class="opcoes">
+        @for (o of opcoes; track o.chave) {
+          <li>
+            <button type="button" role="switch" class="opcao" [attr.aria-checked]="service.preferencias()[o.chave]" (click)="alternar(o.chave)">
+              <span class="opcao__texto">
+                <strong>{{ o.titulo }}</strong>
+                <small>{{ o.dica }}</small>
+              </span>
+              <span class="chave" aria-hidden="true"><span class="chave__bola"></span></span>
+            </button>
+          </li>
+        }
+      </ul>
+
+      <div class="painel__rodape">
+        <button type="button" class="btn-sec" (click)="service.restaurar()" [disabled]="service.ativas() === 0">Voltar ao padrão</button>
+        <button type="button" class="btn" (click)="aberto.set(false)">Pronto</button>
+      </div>
+    </div>
+  </div>
+}

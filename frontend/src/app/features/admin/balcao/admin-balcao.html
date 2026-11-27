@@ -63,10 +63,11 @@
           </button>
         </div>
         <small>
-          Leitores de QR USB funcionam sozinhos: basta clicar neste campo e escanear.
+          Leitores de QR USB funcionam sozinhos: basta clicar neste campo e escanear. Ou use a câmera abaixo.
           Sem o código não há registro. Se o professor perdeu, ele vê o código e o QR de novo em Meus pedidos.
         </small>
       </label>
+      <app-leitor-qr (lido)="lerQr($event)" />
       @if (erro()) {
         <p class="bal__erro" role="alert">{{ erro() }}</p>
       }

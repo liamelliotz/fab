@@ -1,0 +1,19 @@
+@switch (estado()) {
+  @case ('lendo') {
+    <div class="leitor" role="region" aria-label="Câmera lendo o QR">
+      <video #video class="leitor__video" playsinline muted aria-hidden="true"></video>
+      <span class="leitor__mira" aria-hidden="true"></span>
+      <p class="leitor__dica" aria-live="polite">Aponte para o QR que o professor mostra no celular.</p>
+      <button type="button" class="leitor__btn leitor__btn--sec" (click)="fechar()">Fechar câmera</button>
+    </div>
+  }
+  @default {
+    <button type="button" class="leitor__btn" (click)="abrir()" [disabled]="estado() === 'abrindo'">
+      <i class="fa-solid fa-camera" aria-hidden="true"></i>
+      {{ estado() === 'abrindo' ? 'Abrindo a câmera...' : 'Ler QR pela câmera' }}
+    </button>
+    @if (estado() === 'erro') {
+      <p class="leitor__erro" role="alert">{{ mensagem() }}</p>
+    }
+  }
+}

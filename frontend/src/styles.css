@@ -124,3 +124,51 @@ a {
   white-space: nowrap;
   border: 0;
 }
+
+/* =========================================================================================
+   ACESSIBILIDADE (painel "Acessibilidade"): classes ligadas no <html> pelo AcessibilidadeService
+   ========================================================================================= */
+
+/* Tamanho do texto: amplia a interface inteira, mantendo as proporções */
+html.a11y-texto-115 body { zoom: 1.15; }
+html.a11y-texto-130 body { zoom: 1.3; }
+/* Com zoom, 100vh também é ampliado: o layout de tela cheia compensa para não sobrar rolagem */
+html.a11y-texto-115 .layout { height: calc(100vh / 1.15) !important; }
+html.a11y-texto-130 .layout { height: calc(100vh / 1.3) !important; }
+html.a11y-texto-115 [role='dialog'] { max-height: calc(92vh / 1.15) !important; overflow-y: auto; }
+html.a11y-texto-130 [role='dialog'] { max-height: calc(92vh / 1.3) !important; overflow-y: auto; }
+
+/* Alto contraste: escurece textos cinza, bordas e ícones de todas as telas */
+html.a11y-contraste app-root { display: block; filter: contrast(1.35) saturate(1.1); }
+
+/* Espaçamento de texto (WCAG 1.4.12) */
+html.a11y-espacamento body * { line-height: 1.6 !important; letter-spacing: 0.04em !important; word-spacing: 0.12em !important; }
+
+/* Links sublinhados */
+html.a11y-links a { text-decoration: underline !important; text-underline-offset: 3px; }
+
+/* Foco reforçado para navegação por teclado */
+html.a11y-foco :focus-visible { outline: 4px solid #f59e0b !important; outline-offset: 3px !important; box-shadow: 0 0 0 7px #1f2937 !important; }
+
+/* Menos animação: pelo painel ou pela preferência do sistema operacional */
+html.a11y-sem-animacao *, html.a11y-sem-animacao *::before, html.a11y-sem-animacao *::after {
+  animation-duration: 0.001ms !important; animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important; scroll-behavior: auto !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important; animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important; scroll-behavior: auto !important;
+  }
+}
+
+/* =========================================================================================
+   CONTORNO DOS CAMPOS (WCAG 1.4.11: borda de campo com contraste mínimo de 3:1)
+   Os componentes usam tons bem claros (#e5e7eb, #d5ddd9 ≈ 1,2–1,4:1). Aqui todos os campos
+   com borda passam a #7d8984 (3,6:1 no branco). Foco e erro mantêm as cores próprias.
+   ========================================================================================= */
+html input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not(:focus):not([aria-invalid='true']):not(.ng-invalid.ng-touched),
+html select:not(:focus):not([aria-invalid='true']):not(.ng-invalid.ng-touched),
+html textarea:not(:focus):not([aria-invalid='true']):not(.ng-invalid.ng-touched) {
+  border-color: #7d8984 !important;
+}
