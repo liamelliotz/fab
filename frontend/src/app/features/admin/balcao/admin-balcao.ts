@@ -1,3 +1,4 @@
+import { RequisicaoInsumoService } from '../../../core/services/requisicao-insumo.service';
 import { Component, DestroyRef, Injector, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -37,6 +38,9 @@ type Aba = 'retirada' | 'devolucao';
 export class AdminBalcao {
   readonly service = inject(EmprestimoAdminService);
   private readonly notificacoes = inject(NotificationService);
+  /** Requisições de insumo aprovadas: o professor retira no mesmo balcão. */
+  private readonly requisicoes = inject(RequisicaoInsumoService);
+  readonly insumosParaEntregar = computed(() => this.requisicoes.aguardandoEntrega().length);
   private readonly equipamentos = inject(EquipamentoService);
   private readonly injector = inject(Injector);
   private readonly destroy = inject(DestroyRef);

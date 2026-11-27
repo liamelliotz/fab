@@ -35,17 +35,13 @@
   flex-direction: column;
   gap: 4px;
   padding: 16px 18px;
-  border-radius: 16px;
+  border-radius: 12px;
   background: #fff;
-  border: 1px solid var(--border-color);
-  border-top: 4px solid #94a3b8;
+  border: 1px solid #e5ebe8;
 }
 .man__metrica span { font-size: 0.85rem; color: var(--text-secondary); }
 .man__metrica strong { font-size: 2rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
 .man__metrica small { font-size: 0.76rem; color: var(--text-secondary); }
-.man__metrica--bloq { border-top-color: #f59e0b; }
-.man__metrica--falta { border-top-color: #ef4444; }
-.man__metrica--ok { border-top-color: #10b981; }
 
 /* Abas */
 .man__abas { display: flex; gap: 8px; }
@@ -72,16 +68,13 @@
   flex-direction: column;
   gap: 14px;
   padding: 18px;
-  border-radius: 16px;
+  border-radius: 12px;
   background: #fff;
-  border: 1px solid var(--border-color);
-  border-left: 5px solid #94a3b8;
+  border: 1px solid #e5ebe8;
   animation: fab-surgir 320ms ease-out backwards;
 }
-.oc--grave { border-left-color: #ef4444; }
-.oc--moderada { border-left-color: #f59e0b; }
-.oc--leve { border-left-color: #10b981; }
-.oc--falta { border-left-color: #7c3aed; }
+/* Só o que é grave ou falta ganha uma marca discreta; o texto da etiqueta já diz a gravidade. */
+.oc--grave, .oc--falta { box-shadow: inset 3px 0 0 #b91c1c; }
 .oc__corpo { display: flex; gap: 18px; }
 .oc__foto,
 .oc__icone {
@@ -130,7 +123,7 @@
 .oc__protocolo { margin-left: auto; font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); }
 .oc__info h2 { margin: 2px 0 0; font-size: 1.08rem; display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
 .oc__info h2 a { color: var(--text-primary); text-decoration: none; }
-.oc__info h2 a:hover { color: var(--primary-color); text-decoration: underline; }
+.oc__info h2 a:hover { color: #1f6f4c; text-decoration: underline; }
 .oc__info h2 small { font-size: 0.8rem; font-weight: 500; color: var(--text-secondary); }
 .oc__tipo { margin: 0; font-size: 0.86rem; font-weight: 600; color: var(--text-secondary); }
 .oc__descricao { margin: 0; line-height: 1.45; }
@@ -142,7 +135,7 @@
 }
 .oc__dados dt { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); font-weight: 700; }
 .oc__dados dd { margin: 2px 0 0; font-size: 0.88rem; }
-.oc__dados a { color: var(--primary-color); font-weight: 600; text-decoration: none; }
+.oc__dados a { color: #1f6f4c; font-weight: 600; text-decoration: none; }
 .oc__historico summary { cursor: pointer; font-size: 0.84rem; font-weight: 600; color: #00796b; /* turquesa escuro: contraste AA sobre branco */ }
 .oc__historico ol { margin: 8px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; font-size: 0.84rem; }
 .oc__historico time { font-weight: 600; margin-right: 4px; }

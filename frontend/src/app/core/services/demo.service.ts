@@ -4,13 +4,14 @@ import { EmprestimoService } from './emprestimo.service';
 import { EquipamentoService } from './equipamento.service';
 import { InsumoService } from './insumo.service';
 import { ManutencaoService } from './manutencao.service';
+import { RequisicaoInsumoService } from './requisicao-insumo.service';
 import { UsuarioService } from './usuario.service';
 
 /**
  * Ações da DEMONSTRAÇÃO (só existem enquanto o app roda sem backend).
  *
  * `restaurar()` volta tudo ao estado inicial: usuários, equipamentos (com o estoque),
- * pedidos, avisos, avarias (ocorrências de manutenção, fotos e termos de baixa) e insumos. As outras abas abertas recebem os dados novos na hora.
+ * pedidos, avisos, avarias (ocorrências de manutenção, fotos e termos de baixa), insumos e requisições de insumo. As outras abas abertas recebem os dados novos na hora.
  * A sessão (quem está logado nesta aba) não muda.
  */
 @Injectable({ providedIn: 'root' })
@@ -20,6 +21,7 @@ export class DemoService {
   private readonly emprestimos = inject(EmprestimoService);
   private readonly manutencoes = inject(ManutencaoService);
   private readonly insumos = inject(InsumoService);
+  private readonly requisicoes = inject(RequisicaoInsumoService);
 
   /** true quando o app está no modo demonstração (sem servidor). */
   readonly ativo = inject(AuthService).modoDemo;
@@ -31,5 +33,6 @@ export class DemoService {
     this.emprestimos.reiniciar();
     this.manutencoes.reiniciar();
     this.insumos.reiniciar();
+    this.requisicoes.reiniciar();
   }
 }

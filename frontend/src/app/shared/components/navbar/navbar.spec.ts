@@ -60,7 +60,7 @@ describe('Navbar', () => {
 
   it('should hide admin-only links for regular users', () => {
     const { element } = criarNavbar('usuario');
-    expect(rotulos(element)).toEqual(['Dashboard', 'Materiais', 'Meus pedidos', 'Configurações']);
+    expect(rotulos(element)).toEqual(['Dashboard', 'Materiais', 'Meus empréstimos', 'Insumos', 'Configurações']);
   });
 
   it('should render the logout button', () => {

@@ -339,9 +339,17 @@ export class InsumoService {
       const dia = m.ocorridaEm.slice(0, 10);
       return dia > inicio && dia <= ate;
     });
-    const totalEntradas = arredondar(doPeriodo.filter((m) => m.tipo === 'entrada').reduce((s, m) => s + m.quantidade, 0));
-    const totalConsumido = arredondar(
-      doPeriodo.filter((m) => m.motivo === 'uso_em_aula').reduce((s, m) => s + m.quantidade, 0),
+    // Sobra de requisição (entrada com o protocolo REQ-…) não é compra: desconta do consumo.
+    const ehSobra = (m: MovimentacaoDemo) => m.tipo === 'entrada' && (m.documento ?? '').startsWith('REQ-');
+    const totalEntradas = arredondar(
+      doPeriodo.filter((m) => m.tipo === 'entrada' && !ehSobra(m)).reduce((s, m) => s + m.quantidade, 0),
+    );
+    const totalConsumido = Math.max(
+      0,
+      arredondar(
+        doPeriodo.filter((m) => m.motivo === 'uso_em_aula').reduce((s, m) => s + m.quantidade, 0) -
+          doPeriodo.filter(ehSobra).reduce((s, m) => s + m.quantidade, 0),
+      ),
     );
     const mediaDiaria = totalConsumido / dias;
     if (mediaDiaria <= 0) {

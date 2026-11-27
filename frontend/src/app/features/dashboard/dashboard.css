@@ -79,6 +79,23 @@
   gap: 18px;
 }
 
+/* Coordenação: seis indicadores em duas linhas de três (nunca 5 + 1). */
+.metrics-grid--seis {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 900px) {
+  .metrics-grid--seis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .metrics-grid--seis {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .metric-card {
   display: flex;
   flex-direction: column;
@@ -206,7 +223,7 @@
   align-items: center;
   gap: 6px;
   margin-top: 12px;
-  color: #24845c;
+  color: #1f6f4c;
   font-size: 13px;
   font-weight: 600;
 }
@@ -267,7 +284,7 @@
 }
 
 .recent-link:hover {
-  color: #24845c;
+  color: #1f6f4c;
   text-decoration: underline;
 }
 

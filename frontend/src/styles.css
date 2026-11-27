@@ -113,6 +113,8 @@ a {
 /* Texto só para leitores de tela (legendas de tabelas, rótulos de ícones). */
 .sr-only {
   position: absolute;
+  /* left: 0 evita que o texto escondido, dentro de tabelas largas, crie rolagem lateral na página */
+  left: 0;
   width: 1px;
   height: 1px;
   padding: 0;

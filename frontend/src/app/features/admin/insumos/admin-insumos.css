@@ -1,3 +1,4 @@
+:host { display: block; min-width: 0; }
 .ins { display: flex; flex-direction: column; gap: 20px; }
 .ins__cabecalho { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
 .ins__cabecalho h1 { margin: 0 0 6px; }
@@ -38,10 +39,10 @@
 .ins__metrica .ins__metrica-nome { font-size: 1.05rem; line-height: 1.3; padding: 6px 0 2px; }
 
 /* Abas e filtros */
-.ins__abas { display: flex; gap: 8px; border-bottom: 1px solid var(--border-color); }
+.ins__abas { display: flex; gap: 8px; border-bottom: 1px solid var(--border-color); overflow-x: auto; }
 .ins__aba {
   display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border: none; background: none;
-  border-bottom: 3px solid transparent; margin-bottom: -1px; font-weight: 600; color: var(--text-secondary); cursor: pointer;
+  border-bottom: 3px solid transparent; margin-bottom: -1px; font-weight: 600; color: var(--text-secondary); cursor: pointer; white-space: nowrap; flex: none;
 }
 .ins__aba--ativa { color: #1f7a4d; border-bottom-color: #1f7a4d; }
 .ins__filtros { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
@@ -61,12 +62,11 @@
 /* Cartões de estoque */
 .ins__lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
 .card {
-  display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 16px; background: #fff;
-  border: 1px solid var(--border-color); border-left: 5px solid #10b981;
+  display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 12px; background: #fff;
+  border: 1px solid #e5ebe8;
 }
-.card--repor { border-left-color: #f59e0b; }
-.card--esgotado { border-left-color: #ef4444; background: #fffafa; }
-.card--inativo { border-left-color: #cbd5e1; opacity: 0.75; }
+.card--esgotado { box-shadow: inset 3px 0 0 #b91c1c; }
+.card--inativo { background: #f9fafb; }
 .card__topo { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
 .card__topo h2 { margin: 0; font-size: 1.02rem; }
 .card__meta { margin: 2px 0 0; font-size: 0.8rem; color: var(--text-secondary); }
@@ -136,3 +136,7 @@ tr:last-child td { border-bottom: none; }
   .ins__metricas { grid-template-columns: repeat(2, 1fr); }
   .ins__grade { grid-template-columns: 1fr; }
 }
+
+.ins__metrica--req { cursor: pointer; text-align: left; font: inherit; }
+.ins__metrica--req:hover { background: #f7faf8; }
+.ins__aba-contador { display: inline-block; min-width: 20px; margin-left: 4px; padding: 1px 7px; border-radius: 999px; background: #b91c1c; color: #fff; font-size: 0.72rem; font-weight: 700; text-align: center; }

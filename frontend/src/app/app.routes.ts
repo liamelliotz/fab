@@ -56,9 +56,15 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/equipamentos/lista/equipamento-lista').then((m) => m.EquipamentoLista),
       },
+      // Insumos (material de consumo): o professor pede a quantidade prevista de uso
+      {
+        path: 'insumos',
+        title: 'Insumos | FAB',
+        loadComponent: () => import('./features/insumos/insumos-professor').then((m) => m.InsumosProfessor),
+      },
       {
         path: 'meus-emprestimos',
-        title: 'Meus pedidos | FAB',
+        title: 'Meus empréstimos | FAB',
         loadComponent: () =>
           import('./features/emprestimos/meus-emprestimos/meus-emprestimos').then(
             (m) => m.MeusEmprestimos,

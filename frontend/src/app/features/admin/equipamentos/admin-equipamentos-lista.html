@@ -14,10 +14,11 @@
     <input
       type="search"
       placeholder="Buscar por nome ou código patrimonial"
+      aria-label="Buscar equipamento por nome ou código patrimonial"
       [value]="busca()"
       (input)="atualizarBusca($event)"
     />
-    <select [value]="filtroCategoria()" (change)="atualizarCategoria($event)">
+    <select aria-label="Filtrar por categoria" [value]="filtroCategoria()" (change)="atualizarCategoria($event)">
       <option value="">Todas as categorias</option>
       @for (c of categorias; track c.valor) {
         <option [value]="c.valor">{{ c.nome }}</option>
@@ -44,7 +45,7 @@
         <tbody>
           @for (e of equipamentos(); track e.id) {
             <tr [class.linha-inativa]="e.status === 'inativo'">
-              <td>{{ e.codigoPatrimonio }}</td>
+              <td class="col-codigo">{{ e.codigoPatrimonio }}</td>
               <td>
                 {{ e.nome }}
                 @if (e.requerTreinamento) {

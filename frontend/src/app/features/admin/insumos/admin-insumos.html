@@ -28,11 +28,11 @@
       <strong>{{ totalARepor() }}</strong>
       <small>no estoque mínimo ou abaixo · ver lista</small>
     </button>
-    <div class="ins__metrica">
-      <span>Saídas em 30 dias</span>
-      <strong>{{ saidasDoMes() }}</strong>
-      <small>registros de uso, perda ou vencimento</small>
-    </div>
+    <button type="button" class="ins__metrica ins__metrica--req" (click)="aba.set('requisicoes')">
+      <span>Requisições em aberto</span>
+      <strong>{{ requisicoes.paraCoordenacao() }}</strong>
+      <small>{{ requisicoes.pendentes().length }} para aprovar · {{ requisicoes.aguardandoEntrega().length }} para entregar</small>
+    </button>
     <div class="ins__metrica ins__metrica--prev">
       <span>Acaba primeiro</span>
       @if (proximoAcabar(); as p) {
@@ -49,6 +49,12 @@
     <button type="button" role="tab" class="ins__aba" [class.ins__aba--ativa]="aba() === 'estoque'" [attr.aria-selected]="aba() === 'estoque'" (click)="aba.set('estoque')">
       <i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i> Estoque
     </button>
+    <button type="button" role="tab" class="ins__aba" [class.ins__aba--ativa]="aba() === 'requisicoes'" [attr.aria-selected]="aba() === 'requisicoes'" (click)="aba.set('requisicoes')">
+      <i class="fa-solid fa-hand-holding" aria-hidden="true"></i> Requisições
+      @if (requisicoes.paraCoordenacao() > 0) {
+        <span class="ins__aba-contador">{{ requisicoes.paraCoordenacao() }}</span>
+      }
+    </button>
     <button type="button" role="tab" class="ins__aba" [class.ins__aba--ativa]="aba() === 'movimentacoes'" [attr.aria-selected]="aba() === 'movimentacoes'" (click)="aba.set('movimentacoes')">
       <i class="fa-solid fa-right-left" aria-hidden="true"></i> Movimentações
     </button>
@@ -58,6 +64,9 @@
   </div>
 
   @switch (aba()) {
+    @case ('requisicoes') {
+      <app-requisicoes-insumo />
+    }
     @case ('estoque') {
       <div class="ins__filtros">
         <label class="ins__busca">

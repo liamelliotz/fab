@@ -43,7 +43,7 @@
       <p>Resumo das principais informações do sistema.</p>
     </div>
 
-    <div class="metrics-grid">
+    <div class="metrics-grid" [class.metrics-grid--seis]="ehAdmin()">
       @if (ehAdmin()) {
         <app-card>
           <div class="metric-card">
@@ -75,6 +75,15 @@
             <span class="metric-note">Avarias e extravios, fora de circulação</span>
           </div>
         </app-card>
+        <a class="action-link" routerLink="/admin/insumos" [queryParams]="{ aba: 'requisicoes' }">
+          <app-card>
+            <div class="metric-card">
+              <span class="metric-label">Requisições de insumo</span>
+              <strong class="metric-value" [class.metric-value--alerta]="requisicoesAbertas() > 0">{{ requisicoesAbertas() }}</strong>
+              <span class="metric-note">Para aprovar ou entregar no balcão</span>
+            </div>
+          </app-card>
+        </a>
         <a class="action-link" routerLink="/admin/insumos">
           <app-card>
             <div class="metric-card">
@@ -87,7 +96,7 @@
       } @else {
         <app-card>
           <div class="metric-card">
-            <span class="metric-label">Meus pedidos pendentes</span>
+            <span class="metric-label">Empréstimos pendentes</span>
             <strong class="metric-value">{{ meusPendentes() }}</strong>
             <span class="metric-note">Aguardando aprovação</span>
           </div>
@@ -99,13 +108,15 @@
             <span class="metric-note">Aprovados e em uso</span>
           </div>
         </app-card>
-        <app-card>
-          <div class="metric-card">
-            <span class="metric-label">Materiais disponíveis</span>
-            <strong class="metric-value">{{ disponiveis() }}</strong>
-            <span class="metric-note">Unidades prontas para empréstimo</span>
-          </div>
-        </app-card>
+        <a class="action-link" routerLink="/insumos">
+          <app-card>
+            <div class="metric-card">
+              <span class="metric-label">Insumos para retirar</span>
+              <strong class="metric-value">{{ insumosParaRetirar() }}</strong>
+              <span class="metric-note">{{ insumosAguardando() }} aguardando aprovação</span>
+            </div>
+          </app-card>
+        </a>
       }
     </div>
   </section>
@@ -174,12 +185,21 @@
             </div>
           </app-card>
         </a>
+        <a class="action-link" routerLink="/insumos">
+          <app-card>
+            <div class="action-card">
+              <span class="action-icon" aria-hidden="true"><i class="fa-solid fa-box-open"></i></span>
+              <h3>Pedir insumo</h3>
+              <p>Filamento, papel, componentes: informe quanto vai usar e para qual aula.</p>
+            </div>
+          </app-card>
+        </a>
         <a class="action-link" routerLink="/meus-emprestimos">
           <app-card>
             <div class="action-card">
               <span class="action-icon" aria-hidden="true"><i class="fa-solid fa-list-check"></i></span>
-              <h3>Acompanhar pedidos</h3>
-              <p>Consulte o andamento e os prazos de devolução.</p>
+              <h3>Acompanhar empréstimos</h3>
+              <p>Consulte o andamento, os códigos e os prazos de devolução.</p>
             </div>
           </app-card>
         </a>
@@ -189,7 +209,7 @@
 
   <section class="dashboard-section" aria-labelledby="recent-title">
     <div class="section-heading">
-      <h2 id="recent-title">{{ ehAdmin() ? 'Solicitações recentes' : 'Meus pedidos recentes' }}</h2>
+      <h2 id="recent-title">{{ ehAdmin() ? 'Solicitações recentes' : 'Meus empréstimos recentes' }}</h2>
       <p>Os últimos pedidos registrados no sistema.</p>
     </div>
 

@@ -1,7 +1,7 @@
 .hist { display: flex; flex-direction: column; gap: 18px; }
-.hist__voltar { color: var(--primary-color); font-weight: 600; text-decoration: none; display: inline-flex; gap: 8px; align-items: center; width: fit-content; }
+.hist__voltar { color: #1f6f4c; font-weight: 600; text-decoration: none; display: inline-flex; gap: 8px; align-items: center; width: fit-content; }
 .hist__cabecalho { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
-.hist__eyebrow { font-size: 0.74rem; font-weight: 700; letter-spacing: 0.08em; color: var(--primary-color); }
+.hist__eyebrow { font-size: 0.74rem; font-weight: 700; letter-spacing: 0.08em; color: #1f6f4c; }
 .hist__cabecalho h1 { margin: 4px 0; }
 .hist__cabecalho p { margin: 0; color: var(--text-secondary); }
 .hist__status { padding: 6px 14px; border-radius: 999px; font-weight: 700; font-size: 0.82rem; background: var(--bg-light); }
@@ -58,7 +58,7 @@
 .hist__tabela table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
 .hist__tabela th { text-align: left; font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); padding: 8px; border-bottom: 1px solid var(--border-color); }
 .hist__tabela td { padding: 10px 8px; border-bottom: 1px solid var(--border-color); vertical-align: top; }
-.hist__tabela a { color: var(--primary-color); font-weight: 600; text-decoration: none; }
+.hist__tabela a { color: #1f6f4c; font-weight: 600; text-decoration: none; }
 
 @media (max-width: 900px) {
   .hist__grade { grid-template-columns: 1fr; }

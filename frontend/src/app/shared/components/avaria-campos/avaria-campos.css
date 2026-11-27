@@ -61,7 +61,7 @@
   cursor: pointer;
   background: var(--bg-light);
 }
-.av__enviar:hover { border-color: var(--primary-color); color: var(--primary-color); }
+.av__enviar:hover { border-color: #1f6f4c; color: #1f6f4c; }
 .av__enviar--ocupado { pointer-events: none; opacity: 0.75; }
 .av__enviar input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 .av__girando {

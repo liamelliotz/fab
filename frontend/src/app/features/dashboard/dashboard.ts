@@ -4,6 +4,7 @@ import { Card } from '../../shared/components/card/card';
 import { Emprestimo } from '../../core/models/emprestimo.model';
 import { AuthService } from '../../core/services/auth.service';
 import { EquipamentoService } from '../../core/services/equipamento.service';
+import { RequisicaoInsumoService } from '../../core/services/requisicao-insumo.service';
 import { InsumoService } from '../../core/services/insumo.service';
 import {
   EmprestimoService,
@@ -23,6 +24,7 @@ export class Dashboard {
   private readonly equipamentos = inject(EquipamentoService);
   private readonly emprestimos = inject(EmprestimoService);
   private readonly insumos = inject(InsumoService);
+  private readonly requisicoes = inject(RequisicaoInsumoService);
 
   readonly nomeStatus = NOME_STATUS_EMPRESTIMO;
   readonly data = formatarData;
@@ -39,6 +41,12 @@ export class Dashboard {
   readonly disponiveis = this.equipamentos.unidadesDisponiveis;
   readonly emManutencao = this.equipamentos.emManutencao;
   readonly insumosARepor = computed(() => this.insumos.aRepor().length);
+  readonly requisicoesAbertas = computed(() => this.requisicoes.paraCoordenacao());
+  private readonly minhasRequisicoes = computed(() =>
+    this.requisicoes.requisicoes().filter((r) => r.solicitante.id === this.auth.usuarioAtual().id),
+  );
+  readonly insumosParaRetirar = computed(() => this.minhasRequisicoes().filter((r) => r.status === 'aprovada').length);
+  readonly insumosAguardando = computed(() => this.minhasRequisicoes().filter((r) => r.status === 'pendente').length);
 
   // ---- Métricas do usuário comum ----
   // Pedidos que a pessoa abriu ou dos quais é responsável (inclui os recebidos por transferência)

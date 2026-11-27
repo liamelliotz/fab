@@ -54,6 +54,7 @@ Esta parte vale para a apresentação **sem backend**, com dados salvos no naveg
 | 13 | **Gestão de insumos**: saldo, estoque mínimo, entradas (NF, doação), saídas com professor, local e finalidade, perdas, previsão de término e CSV | Insumos |
 | 14 | **Auditoria do patrimônio**: trilha única e somente-leitura de empréstimos, manutenção, baixas e insumos, com filtros e exportação CSV | Auditoria |
 | 15 | **Cancelamento com motivo**: pedido pendente ou aprovado só é cancelado com justificativa (mínimo de 10 caracteres), que aparece no pedido, na linha do tempo e na auditoria | Meus pedidos / Detalhes |
+| 16 | **Requisição de insumos pelo professor**: aba *Insumos* separada de *Materiais*; o professor informa a quantidade prevista, o dia, o local e a finalidade; a coordenação aprova (reserva), entrega (saída do estoque com o protocolo REQ) e registra a sobra (consumo real). Recusa e cancelamento exigem motivo; tudo vai para a auditoria | Insumos (professor) / Insumos › Requisições (coordenação) |
 
 ## 2. Regras da realocação (transferência)
 

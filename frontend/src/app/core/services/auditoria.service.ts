@@ -5,6 +5,7 @@ import { TipoEventoEmprestimo } from '../models/emprestimo.model';
 import { EmprestimoService } from './emprestimo.service';
 import { InsumoService, NOME_MOTIVO_INSUMO, NOME_UNIDADE, formatarQuantidade } from './insumo.service';
 import { ManutencaoService, NOME_MOTIVO_BAIXA } from './manutencao.service';
+import { NOME_ACAO_REQUISICAO, RequisicaoInsumoService } from './requisicao-insumo.service';
 
 export type ModuloAuditoria = 'emprestimos' | 'manutencao' | 'baixa' | 'insumos';
 export type GravidadeAuditoria = 'info' | 'aviso' | 'critico';
@@ -55,6 +56,7 @@ export class AuditoriaService {
   private readonly emprestimos = inject(EmprestimoService);
   private readonly manutencoes = inject(ManutencaoService);
   private readonly insumos = inject(InsumoService);
+  private readonly requisicoes = inject(RequisicaoInsumoService);
 
   readonly registros = computed<RegistroAuditoria[]>(() => {
     const lista: RegistroAuditoria[] = [];
@@ -107,6 +109,24 @@ export class AuditoriaService {
           mv.documento ? `doc. ${mv.documento}` : '',
         ].filter(Boolean).join(' · '),
         link: ['/admin/insumos'],
+      });
+    }
+
+    // Requisições de insumo: pedido, aprovação, recusa e cancelamento. Entrega e sobra já
+    // aparecem acima como saída e entrada no estoque (sem linha repetida).
+    for (const r of this.requisicoes.requisicoes()) {
+      r.historico.forEach((ev, i) => {
+        if (ev.acao === 'entregue' || ev.acao === 'sobra_devolvida') return;
+        lista.push({
+          id: `req-${r.id}-${i}`, em: ev.em, modulo: 'insumos',
+          gravidade: ev.acao === 'recusada' || ev.acao === 'cancelada' ? 'aviso' : 'info',
+          acao: NOME_ACAO_REQUISICAO[ev.acao],
+          alvo: r.protocolo,
+          itens: `${r.insumo.nome} · ${this.requisicoes.qtd(r.quantidade, r.insumo.unidadeMedida)}`,
+          por: ev.por.nome,
+          detalhe: [ev.detalhe ?? '', ev.acao === 'solicitada' ? r.finalidade : ''].filter(Boolean).join(' · '),
+          link: ['/admin/insumos'],
+        });
       });
     }
 

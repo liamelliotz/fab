@@ -62,7 +62,7 @@ app-card,
 .equip__dados li {
   display: grid;
   grid-template-columns: 16px minmax(0, 1fr);
-  align-items: center;
+  align-items: start;
   gap: 8px;
   color: #6b7280;
   font-size: 13px;
@@ -70,15 +70,16 @@ app-card,
 }
 
 .equip__dados i {
-  color: #24845c;
+  margin-top: 3px;
+  color: #1f6f4c;
   font-size: 12px;
   text-align: center;
 }
 
 .equip__dados span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  line-height: 1.4;
 }
 
 .equip__rodape {

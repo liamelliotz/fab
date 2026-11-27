@@ -121,8 +121,14 @@
   font-weight: 600;
 }
 
-.linha-inativa {
-  opacity: 0.6;
+.linha-inativa td {
+  background: #f9fafb;
+  color: #4b5563;
+}
+
+.col-codigo {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .selo {
@@ -165,8 +171,8 @@
 }
 
 .status-inativo {
-  background: #e4e4e4;
-  color: #444;
+  background: #e5e7eb;
+  color: #374151;
 }
 
 .status-descartado {

@@ -1,3 +1,6 @@
+import { ActivatedRoute } from '@angular/router';
+import { RequisicaoInsumoService } from '../../../core/services/requisicao-insumo.service';
+import { RequisicoesInsumo } from './requisicoes/requisicoes-insumo';
 import { Component, computed, inject, signal } from '@angular/core';
 import { LOCAIS_DE_USO, nomeLocal } from '../../../core/constants/escola-modelo.constants';
 import {
@@ -23,7 +26,8 @@ import { baixarArquivo } from '../../../core/utils/arquivo.utils';
 import { formatarData, formatarDataHora } from '../../../core/utils/date.utils';
 import { DialogoDirective } from '../../../shared/directives/dialogo.directive';
 
-type Aba = 'estoque' | 'movimentacoes' | 'consumo';
+type Aba = 'estoque' | 'requisicoes' | 'movimentacoes' | 'consumo';
+const ABAS: Aba[] = ['estoque', 'requisicoes', 'movimentacoes', 'consumo'];
 
 interface FormInsumo {
   nome: string;
@@ -63,12 +67,13 @@ const FORM_VAZIO: FormInsumo = {
 @Component({
   selector: 'app-admin-insumos',
   standalone: true,
-  imports: [DialogoDirective],
+  imports: [DialogoDirective, RequisicoesInsumo],
   templateUrl: './admin-insumos.html',
   styleUrl: './admin-insumos.css',
 })
 export class AdminInsumos {
   readonly service = inject(InsumoService);
+  readonly requisicoes = inject(RequisicaoInsumoService);
   private readonly usuarios = inject(UsuarioService);
   private readonly avisos = inject(NotificationService);
 
@@ -83,7 +88,10 @@ export class AdminInsumos {
   readonly dataHora = formatarDataHora;
   readonly local = nomeLocal;
 
-  readonly aba = signal<Aba>('estoque');
+  /** Aba inicial pode vir do link (?aba=requisicoes), por exemplo do painel. */
+  readonly aba = signal<Aba>(
+    ((a) => (ABAS.includes(a as Aba) ? (a as Aba) : 'estoque'))(inject(ActivatedRoute).snapshot.queryParamMap.get('aba')),
+  );
 
   // ---------- Estoque ----------
   readonly busca = signal('');
@@ -105,10 +113,6 @@ export class AdminInsumos {
   // Indicadores
   readonly totalAtivos = computed(() => this.service.ativos().length);
   readonly totalARepor = computed(() => this.service.aRepor().length);
-  readonly saidasDoMes = computed(() => {
-    const limite = new Date(Date.now() - 30 * 86_400_000).toISOString();
-    return this.service.movimentacoes().filter((m) => m.tipo === 'saida' && m.ocorridaEm >= limite).length;
-  });
   readonly proximoAcabar = computed(() => this.service.relatorio(30).find((c) => c.diasRestantes !== null) ?? null);
 
   // ---------- Movimentações ----------

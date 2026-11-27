@@ -159,7 +159,7 @@
 }
 
 .bal__eyebrow {
-  color: #24845c;
+  color: #1f6f4c;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 1.4px;
@@ -178,7 +178,7 @@
 }
 
 .bal__link {
-  color: #24845c;
+  color: #1f6f4c;
   font-size: 13px;
   font-weight: 700;
 }
@@ -361,3 +361,25 @@ button:disabled, input:disabled { opacity: .55; cursor: wait; }
 .ret__termo { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 12px; background: #f0fdf4; border: 1px solid #bbf7d0; font-size: 0.88rem; line-height: 1.45; cursor: pointer; }
 .ret__termo input { margin-top: 4px; width: 18px; height: 18px; flex: none; }
 @media (max-width: 700px) { .ret__local { grid-template-columns: 1fr; } }
+
+.bal__insumos {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border: 1px solid #e5ebe8;
+  border-left: 4px solid #24845c;
+  border-radius: 10px;
+  background: #fff;
+  color: #172b24;
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.bal__insumos:hover {
+  background: #f7faf8;
+}
+
+.bal__insumos i {
+  color: #1f6f4c;
+}
