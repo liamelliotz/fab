@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { LOCAIS_DE_USO } from '../../../core/constants/escola-modelo.constants';
 import { AuthService } from '../../../core/services/auth.service';
 import { EmprestimoService } from '../../../core/services/emprestimo.service';
 import { EquipamentoService } from '../../../core/services/equipamento.service';
@@ -25,6 +26,8 @@ export class EmprestimoSolicitar {
   private readonly fb = inject(FormBuilder).nonNullable;
 
   readonly hoje = hojeISO();
+  /** Salas e laboratórios da escola onde o material pode ser usado (alimenta o mapa de itens). */
+  readonly locais = LOCAIS_DE_USO;
   readonly erro = signal('');
 
   readonly form = this.fb.group({
@@ -33,6 +36,8 @@ export class EmprestimoSolicitar {
     dataPrevistaRetirada: [hojeISO(), Validators.required],
     dataPrevistaDevolucao: ['', Validators.required],
     justificativa: ['', [Validators.required, Validators.minLength(10)]],
+    localUsoId: ['', Validators.required],
+    localUsoDetalhe: [''],
   });
 
   /** Só aparecem itens com unidades livres. */
@@ -74,7 +79,7 @@ export class EmprestimoSolicitar {
   }
 
   /** Mostra a mensagem de um campo depois que o usuário mexeu nele. */
-  getError(campo: 'equipamentoId' | 'quantidade' | 'dataPrevistaDevolucao' | 'justificativa'): string {
+  getError(campo: 'equipamentoId' | 'quantidade' | 'dataPrevistaDevolucao' | 'justificativa' | 'localUsoId'): string {
     const c = this.form.controls[campo];
     if (!c.touched || c.valid) return '';
     if (c.hasError('minlength')) return 'Descreva um pouco melhor (mínimo 10 caracteres).';
@@ -85,6 +90,7 @@ export class EmprestimoSolicitar {
       quantidade: 'Informe a quantidade.',
       dataPrevistaDevolucao: 'Informe a data de devolução.',
       justificativa: 'Explique para que o material será usado.',
+      localUsoId: 'Escolha onde o material será usado.',
     };
     return obrigatorios[campo];
   }
@@ -103,6 +109,7 @@ export class EmprestimoSolicitar {
         justificativa: v.justificativa.trim(),
         dataPrevistaRetirada: v.dataPrevistaRetirada,
         dataPrevistaDevolucao: v.dataPrevistaDevolucao,
+        localUso: { localId: v.localUsoId, detalhe: v.localUsoDetalhe.trim() || undefined },
       },
       this.auth.usuarioAtual(),
     );

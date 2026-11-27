@@ -1,23 +1,20 @@
 <section class="pagina">
-  <header class="cabecalho">
-    <div>
-      <h1>Equipamentos</h1>
-      <p class="subtitulo">Cadastre, edite e desative itens do catálogo geral.</p>
-    </div>
-    <a class="botao botao-primario" routerLink="/admin/equipamentos/novo">
+  <app-inventario-abas [admin]="true">
+    <a acoes class="botao botao-primario" routerLink="/admin/equipamentos/novo">
       <i class="fa-solid fa-plus" aria-hidden="true"></i>
       Novo equipamento
     </a>
-  </header>
+  </app-inventario-abas>
 
   <div class="filtros">
     <input
       type="search"
       placeholder="Buscar por nome ou código patrimonial"
+      aria-label="Buscar equipamento por nome ou código patrimonial"
       [value]="busca()"
       (input)="atualizarBusca($event)"
     />
-    <select [value]="filtroCategoria()" (change)="atualizarCategoria($event)">
+    <select aria-label="Filtrar por categoria" [value]="filtroCategoria()" (change)="atualizarCategoria($event)">
       <option value="">Todas as categorias</option>
       @for (c of categorias; track c.valor) {
         <option [value]="c.valor">{{ c.nome }}</option>
@@ -44,7 +41,7 @@
         <tbody>
           @for (e of equipamentos(); track e.id) {
             <tr [class.linha-inativa]="e.status === 'inativo'">
-              <td>{{ e.codigoPatrimonio }}</td>
+              <td class="col-codigo">{{ e.codigoPatrimonio }}</td>
               <td>
                 {{ e.nome }}
                 @if (e.requerTreinamento) {
@@ -64,6 +61,10 @@
               </td>
               <td>
                 <div class="acoes">
+                  <a class="botao botao-secundario" routerLink="/admin/mapa" [queryParams]="{ busca: e.codigoPatrimonio }"
+                    [attr.aria-label]="'Ver ' + e.nome + ' no mapa'" title="Onde está cada unidade">
+                    <i class="fa-solid fa-map-location-dot" aria-hidden="true"></i> Mapa
+                  </a>
                   <a class="botao botao-secundario" [routerLink]="['/admin/equipamentos', e.id, 'historico']" title="Histórico do item">
                     <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> Histórico
                   </a>

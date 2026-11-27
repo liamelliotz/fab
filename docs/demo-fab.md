@@ -43,10 +43,28 @@ Esta parte vale para a apresentação **sem backend**, com dados salvos no naveg
 | 2 | **Código e QR** na retirada **e** na devolução (o QR é gerado no próprio front) | Detalhes do pedido (`/pedidos/:id`) |
 | 3 | **Linha do tempo** de cada pedido: quem fez o quê e quando (auditoria) | Detalhes do pedido |
 | 4 | **Realocação (transferência) entre professores**, com aceite do destinatário | Meus pedidos, Detalhes |
-| 5 | **Prazo máximo por material** (ninguém fica com o item o ano todo) | Equipamentos (admin), Solicitar |
+| 5 | **Prazo máximo por material** (ninguém fica com o item o ano todo) | Inventário › Equipamentos (admin), Solicitar |
 | 6 | **Habilitação para equipamentos com treinamento** | Usuários (admin) |
 | 7 | **Cadastro só pelo administrador** (saiu da tela de login) | Usuários → Novo usuário |
 | 8 | Avisos para a coordenação e bolinhas de novidade no menu | Empréstimos, menu lateral |
+| 9 | **Mapa de itens** da escola fictícia (*Escola Estadual Modelo FAB*): onde cada unidade está, com quem e desde quando, e a busca **Onde está?** | Mapa de itens |
+| 10 | **Local de uso** informado no pedido, confirmado no balcão e trocado só com transferência aceita | Solicitar, Balcão, Transferir |
+| 11 | **Termo de responsabilidade** aceito na retirada (sem ele o balcão não entrega) | Balcão |
+| 12 | **Baixa patrimonial auditada**: motivo, parecer, laudo, processo/BO, valor, ciência do responsável, confirmação pelo patrimônio e **termo de baixa** para imprimir | Manutenção, Auditoria |
+| 13 | **Gestão de insumos**: saldo, estoque mínimo, entradas (NF, doação), saídas com professor, local e finalidade, perdas, previsão de término e CSV | Inventário › Insumos |
+| 14 | **Auditoria do patrimônio**: trilha única e somente-leitura de empréstimos, manutenção, baixas e insumos, com filtros e exportação CSV | Auditoria |
+| 15 | **Cancelamento com motivo**: pedido pendente ou aprovado só é cancelado com justificativa (mínimo de 10 caracteres), que aparece no pedido, na linha do tempo e na auditoria | Meus pedidos / Detalhes |
+| 16 | **Requisição de insumos pelo professor**: em *Inventário › Insumos*; o professor informa a quantidade prevista, o dia, o local e a finalidade; a coordenação aprova (reserva), entrega (saída do estoque com o protocolo REQ) e registra a sobra (consumo real). Recusa e cancelamento exigem motivo; tudo vai para a auditoria | Inventário › Insumos e Meus pedidos › Insumos (professor) / Solicitações › Insumos (coordenação) |
+| 17 | **Inventário único**: equipamentos (empréstimo) e insumos (consumo) numa só aba, com duas partes; o menu do professor ficou com 4 itens e o da coordenação com 11 | Inventário |
+| 18 | **Mapa aprimorado**: indicadores clicáveis (lista tudo em uso, guardado, em manutenção ou não localizado), planta compacta com destaque de uso e manutenção, link *Mapa* em cada equipamento do inventário e exportação do **inventário por sala** em CSV | Mapa de itens |
+| 19 | **Relatórios com dados reais**: retiradas no balcão e consumo de insumos do período (abre com os últimos 30 dias), sem dados de exemplo fixos | Relatórios |
+| 20 | **Navegação organizada**: menu lateral com nomes e grupos (Operação, Acervo, Gestão), usuário e acessibilidade no rodapé; vira só ícones em telas médias e faixa no topo no celular | Todas |
+| 21 | **Painel "O que fazer agora"**: lista única, do mais urgente ao menos urgente (atrasos, pedidos, balcão de hoje, manutenção, insumos a repor), com o botão que leva direto à ação; resumo do acervo ao lado | Painel |
+| 22 | **Sem aparência de protótipo**: nenhum aviso de demonstração na tela. Restaurar os dados iniciais continua no atalho Ctrl + Alt + Shift + R | Todas |
+| 23 | **Valor do patrimônio**: equipamento e insumo têm valor unitário obrigatório; a **baixa calcula o valor sozinha** (valor × unidades), sem digitação | Inventário / Manutenção |
+| 24 | **Insumo perecível**: marcar como perecível obriga a validade no cadastro e em cada compra | Inventário › Insumos |
+| 25 | **Assistências credenciadas**: cadastro com CNPJ validado, especialidades e prazo; o conserto só vai para quem está em dia e conserta aquela categoria | Manutenção › Assistências credenciadas |
+| 26 | **VLibras e NVDA**: tradutor de Libras do Governo Federal (liga e desliga em Acessibilidade) e anúncio de troca de página para leitores de tela | Todas |
 
 ## 2. Regras da realocação (transferência)
 
@@ -96,7 +114,7 @@ já devolvido com cadeia João → Maria (para mostrar a linha do tempo completa
 - Só a **unidade** com problema sai do estoque: um notebook avariado não bloqueia os outros 9.
   O item só fica "Em manutenção" quando **todas** as unidades estão fora.
 - **Quem estava com o item** fica gravado na ocorrência, na **linha do tempo do pedido** e no
-  **histórico do equipamento** (*Equipamentos → Histórico*).
+  **histórico do equipamento** (*Inventário › Equipamentos → Histórico*).
 - Na tela **Manutenção**, a coordenação envia para conserto, marca como **consertado/encontrado**
   (a unidade volta ao estoque) ou **dá baixa** (sai do acervo, com motivo). O desfecho também entra
   na linha do tempo do pedido.
@@ -106,15 +124,34 @@ já devolvido com cadeia João → Maria (para mostrar a linha do tempo completa
 **Para o backend:** contrato em `frontend/src/app/core/models/manutencao.model.ts`
 (`Manutencao`, `RegistroAvariaDTO`) e novo campo `quantidadeEmManutencao` no equipamento.
 
+## 3.2 Mapa, auditoria e insumos
+
+- **O mapa nunca é editado à mão.** Cada unidade aparece em exatamente um lugar, calculado pelos
+  registros: guardada no local de guarda (deduzido da *Localização* do equipamento), reservada para
+  um pedido aprovado, em uso no local do pedido/balcão/transferência, na sala de manutenção, na
+  assistência técnica ou "não localizada" (falta aberta). Os insumos aparecem no local onde ficam guardados.
+- **Escola fictícia:** Bloco A (Salas 101 a 104 e Auditório), Bloco B (Lab. de Informática, Lab. Maker,
+  Lab. de Ciências, Lab. de Eletrônica e Biblioteca), Bloco C (Coordenação, Almoxarifado de TI,
+  Sala dos Professores e Sala de Manutenção) e Quadra. A lista fica em
+  `frontend/src/app/core/constants/escola-modelo.constants.ts` e vira o cadastro de locais na API.
+- **Baixa auditada:** gera o termo `TB-AAAA-NNNN`, que nunca muda. Furto/roubo exige o número do BO;
+  quando havia alguém com o item, a coordenação confirma que a pessoa foi informada. Exemplo pronto:
+  **TB-2026-0001** (Notebook Lenovo, conserto inviável).
+- **Insumos:** o saldo só muda por movimentação e nunca fica negativo. O uso em aula exige professor,
+  local e finalidade. Exemplos: **Filamento PLA**, **Jumpers** e **Toner** já estão "a repor".
+
 ## 4. Roteiro de apresentação (≈ 6 minutos)
 
 1. **Admin cria um professor** (Usuários → Novo usuário). Mostre a senha provisória e que o login não tem mais cadastro público.
-2. **Prazo por material** (Equipamentos → editar o Projetor: prazo 3 dias). Entre como professor e tente pedir o projetor por 5 dias: o sistema barra e mostra a data limite.
+2. **Prazo por material** (Inventário › Equipamentos → editar o Projetor: prazo 3 dias). Entre como professor e tente pedir o projetor por 5 dias: o sistema barra e mostra a data limite.
 3. **Ciclo:** como professor, peça um material → admin aprova em *Solicitações* → professor vê o **código e o QR** em *Meus pedidos* → admin abre o **Balcão**, digita o código e confirma a entrega.
 4. **Realocação:** como professor, abra o **Projetor** (em andamento) → *Transferir* → Maria, com motivo. Tente a **Impressora 3D**: João, Maria e Carlos aparecem bloqueados (sem habilitação) e a Ana está liberada.
-5. **Entre como Maria** (barra de demonstração) → aceite. Mostre que o **prazo continuou o mesmo** e que o código de devolução mudou.
+5. **Entre como Maria** (saia e entre com `maria@escola.br`) → aceite. Mostre que o **prazo continuou o mesmo** e que o código de devolução mudou.
 6. **Entre como admin** → *Empréstimos*: aviso da transferência, atrasos e quem está com cada coisa. Abra o **EMP-2026-0036**: **linha do tempo** e cadeia de responsáveis.
 7. **Devolução** no Balcão com o código novo: escolha *Com avaria ou falta*, marque 1 avariada (gravidade **grave**, com foto) e mostre em **Manutenção** a unidade bloqueada; depois *Consertado* e ela volta ao estoque.
+8. **Mapa de itens:** busque "lenovo" em *Onde está?*. Volte ao Balcão, entregue o pedido da Ana (código `K7M4PX`) escolhendo **Sala 104** e aceitando o termo; no mapa, as 2 unidades passam do Almoxarifado de TI para a Sala 104.
+9. **Baixa auditada:** em *Manutenção*, dê baixa na Parafusadeira (motivo, parecer e o patrimônio `PAT-0007` para confirmar) e imprima o **termo de baixa**.
+10. **Insumos:** registre a saída de 1 rolo de Filamento PLA para um professor no Lab. Maker; mostre o alerta de estoque mínimo e a previsão de término. Termine na **Auditoria**, filtrando por *Baixa patrimonial* e exportando o CSV.
 
 ## 5. O que o backend precisa para virar produção
 
@@ -137,6 +174,7 @@ já devolvido com cadeia João → Maria (para mostrar a linha do tempo completa
 - Os dados ficam no **navegador** (localStorage): cada computador tem os seus. Não há envio real de e-mail.
 - As **senhas da demo ficam em texto** no navegador. Com o backend, só o hash existe (Card 4).
 - **Sem código não há retirada nem devolução.** Se o professor perder o código, ele o vê de novo em *Meus pedidos* (com o QR).
+- **Mapa, auditoria e insumos** ainda usam os dados da demonstração mesmo com `npm start`: as rotas de locais, auditoria e insumos (cards D) ainda não ligam essas telas à API.
 - O QR é gerado no front; o **leitor** é o USB (ele "digita" o código no campo do Balcão). Ler por câmera fica para a versão com app/PWA.
 
 ## 7. Ideias para ir além (se sobrar tempo)

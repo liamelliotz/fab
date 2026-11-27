@@ -1,0 +1,86 @@
+<div class="ast">
+  <div class="ast__topo">
+    <p>
+      Só empresas <strong>credenciadas, em dia e com a especialidade</strong> do equipamento aparecem na hora de enviar
+      para conserto. Descredenciar não apaga: o histórico das manutenções continua apontando para ela.
+    </p>
+    <button type="button" class="btn btn--ok" (click)="novo()"><i class="fa-solid fa-plus" aria-hidden="true"></i> Nova assistência</button>
+  </div>
+
+  <div class="ast__tabela">
+    <table>
+      <thead>
+        <tr><th>Assistência</th><th>Especialidades</th><th>Contato</th><th>Credenciamento</th><th><span class="sr-only">Ações</span></th></tr>
+      </thead>
+      <tbody>
+        @for (a of lista(); track a.id) {
+          @let s = situacao(a);
+          <tr>
+            <td>
+              <strong>{{ a.nomeFantasia }}</strong>
+              <span class="sub">{{ a.razaoSocial }}</span>
+              <span class="sub">CNPJ {{ cnpj(a.cnpj) }}</span>
+            </td>
+            <td>
+              @for (c of a.especialidades; track c) {<span class="tag">{{ nomeCategoria(c) }}</span>}
+            </td>
+            <td>
+              {{ telefone(a.telefone) }}
+              <a class="sub link" [href]="'mailto:' + a.email">{{ a.email }}</a>
+            </td>
+            <td>
+              <span class="sit sit--{{ s.classe }}">{{ s.texto }}</span>
+              <span class="sub">até {{ data(a.credenciadaAte) }}@if (a.contrato) { · {{ a.contrato }} }</span>
+            </td>
+            <td class="acoes">
+              <button type="button" class="btn" (click)="editar(a)" [attr.aria-label]="'Editar ' + a.nomeFantasia">Editar</button>
+              <button type="button" class="btn" (click)="alternar(a)">{{ a.ativa ? 'Descredenciar' : 'Credenciar' }}</button>
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="5" class="vazio">Nenhuma assistência cadastrada.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+@if (editando(); as e) {
+  <div class="fundo" (click)="editando.set(null)">
+    <form class="dialogo" novalidate role="dialog" aria-modal="true" aria-labelledby="ast-titulo" appDialogo
+      (fecharDialogo)="editando.set(null)" (click)="$event.stopPropagation()" (submit)="$event.preventDefault(); salvar()">
+      <h2 id="ast-titulo">{{ e.id ? 'Editar assistência' : 'Nova assistência credenciada' }}</h2>
+      <div class="grade">
+        <label class="campo"><span>Nome fantasia <span class="obrig">*</span></span>
+          <input type="text" maxlength="80" [value]="e.dados.nomeFantasia" (input)="campo('nomeFantasia', $event)" /></label>
+        <label class="campo"><span>CNPJ <span class="obrig">*</span></span>
+          <input type="text" inputmode="numeric" maxlength="18" placeholder="00.000.000/0000-00" [value]="e.dados.cnpj" (input)="campo('cnpj', $event)" /></label>
+        <label class="campo campo--largo"><span>Razão social <span class="obrig">*</span></span>
+          <input type="text" maxlength="120" [value]="e.dados.razaoSocial" (input)="campo('razaoSocial', $event)" /></label>
+        <label class="campo"><span>Telefone com DDD <span class="obrig">*</span></span>
+          <input type="tel" maxlength="16" placeholder="(96) 99123-4567" [value]="e.dados.telefone" (input)="campo('telefone', $event)" /></label>
+        <label class="campo"><span>E-mail <span class="obrig">*</span></span>
+          <input type="email" maxlength="120" [value]="e.dados.email" (input)="campo('email', $event)" /></label>
+        <label class="campo campo--largo"><span>Endereço <span class="opc">opcional</span></span>
+          <input type="text" maxlength="160" [value]="e.dados.endereco" (input)="campo('endereco', $event)" /></label>
+        <fieldset class="campo campo--largo especialidades">
+          <legend>Conserta <span class="obrig">*</span></legend>
+          <div>
+            @for (c of categorias; track c.valor) {
+              <label class="check"><input type="checkbox" [checked]="e.dados.especialidades.includes(c.valor)" (change)="alternarEspecialidade(c.valor)" /> {{ c.nome }}</label>
+            }
+          </div>
+        </fieldset>
+        <label class="campo"><span>Credenciada até <span class="obrig">*</span></span>
+          <input type="date" [min]="e.id ? null : hoje" [value]="e.dados.credenciadaAte" (input)="campo('credenciadaAte', $event)" /></label>
+        <label class="campo"><span>Contrato ou ata <span class="opc">opcional</span></span>
+          <input type="text" maxlength="60" placeholder="Ata de credenciamento 004/2026" [value]="e.dados.contrato" (input)="campo('contrato', $event)" /></label>
+      </div>
+      @if (erro()) { <p class="erro" role="alert">{{ erro() }}</p> }
+      <div class="dialogo__acoes">
+        <button type="button" class="btn" (click)="editando.set(null)">Cancelar</button>
+        <button type="submit" class="btn btn--ok">{{ e.id ? 'Salvar' : 'Credenciar' }}</button>
+      </div>
+    </form>
+  </div>
+}

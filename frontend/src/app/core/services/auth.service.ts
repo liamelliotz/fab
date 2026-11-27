@@ -91,7 +91,7 @@ export class AuthService {
         () =>
           new HttpErrorResponse({
             status: 400,
-            error: { mensagem: 'Na demonstração não há redefinição de senha. Peça à coordenação.' },
+            error: { mensagem: 'Para redefinir a senha, procure a coordenação.' },
           }),
       );
     }
@@ -119,12 +119,12 @@ export class AuthService {
     };
   }
 
-  /** true quando o app roda no modo demonstração (sem backend). A barra amarela de demonstração só aparece assim. */
+  /** true quando o app roda no modo demonstração (sem backend). */
   readonly modoDemo: boolean = environment.modoDemo;
 
   /**
    * Modo demonstração: entra como uma das contas do UsuarioService sem digitar senha
-   * (usado pela barra de demonstração para mostrar os dois lados de um fluxo).
+   * (acesso rápido da tela de login e testes automatizados).
    * Devolve false se a conta não existe, está inativa ou se o modo demonstração está desligado.
    */
   entrarComoDemo(id: string): boolean {

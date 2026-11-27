@@ -1,0 +1,72 @@
+.cd__fundo {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.cd__painel {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(500px, 100%);
+  max-height: 92vh;
+  padding: 22px;
+  overflow: hidden auto;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.cd__painel h2 { margin: 0; color: #172b24; font-size: 19px; }
+.cd__resumo { margin: 0; color: #6b7280; font-size: 13px; }
+.cd__regra { margin: 0; padding: 10px 12px; border-left: 3px solid #b91c1c; background: #fef2f2; color: #7f1d1d; font-size: 13px; line-height: 1.5; }
+
+.cd__rapidos { margin: 0; padding: 0; border: 0; }
+.cd__rapidos legend { margin-bottom: 6px; color: #374151; font-size: 13px; font-weight: 600; }
+.cd__rapidos div { display: flex; flex-wrap: wrap; gap: 6px; }
+.cd__chip {
+  padding: 6px 10px;
+  border: 1px solid #d5ddd9;
+  border-radius: 8px;
+  background: #fff;
+  color: #172b24;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.cd__chip[aria-pressed='true'] { border-color: #24845c; background: #f0fdf4; color: #14532d; font-weight: 600; }
+
+.cd__campo { color: #172b24; font-size: 14px; font-weight: 600; }
+.cd__obrig { color: #b91c1c; font-weight: 400; font-size: 13px; }
+.cd__painel textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d5ddd9;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 14px;
+  resize: vertical;
+}
+.cd__dica { margin-top: -6px; color: #6b7280; font-size: 12px; }
+.cd__erro { margin: 0; color: #b91c1c; font-size: 13px; font-weight: 600; }
+
+.cd__acoes { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
+.cd__btn {
+  padding: 9px 16px;
+  border: 1px solid #d5ddd9;
+  border-radius: 8px;
+  background: #fff;
+  color: #172b24;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.cd__btn--perigo { border-color: #b91c1c; background: #b91c1c; color: #fff; }
+.cd__btn:disabled { opacity: 0.5; cursor: not-allowed; }

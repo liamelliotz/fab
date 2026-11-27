@@ -2,13 +2,38 @@
   <header class="cabecalho">
     <div>
       <h1>Meus pedidos</h1>
-      <p>Acompanhe suas solicitações, os códigos de retirada e devolução e os prazos.</p>
+      <p>Seus empréstimos de equipamentos e requisições de insumos, com códigos, prazos e situação.</p>
     </div>
-    <a class="btn-principal" routerLink="/meus-emprestimos/nova">
-      <i class="fa-solid fa-plus" aria-hidden="true"></i>
-      Nova solicitação
-    </a>
+    @if (aba() === 'insumos') {
+      <a class="btn-principal" routerLink="/inventario/insumos">
+        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+        Pedir insumo
+      </a>
+    } @else {
+      <a class="btn-principal" routerLink="/meus-emprestimos/nova">
+        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+        Nova solicitação
+      </a>
+    }
   </header>
+
+  <nav class="abas" aria-label="Tipos de pedido">
+    <a class="aba" routerLink="/meus-emprestimos" [queryParams]="{ aba: null }" [class.aba--ativa]="aba() === 'emprestimos'"
+      [attr.aria-current]="aba() === 'emprestimos' ? 'page' : null">
+      <i class="fa-solid fa-laptop" aria-hidden="true"></i> Empréstimos
+      @if (recebidas().length > 0) {<span class="aba__num">{{ recebidas().length }}</span>}
+    </a>
+    <a class="aba" routerLink="/meus-emprestimos" [queryParams]="{ aba: 'insumos' }" [class.aba--ativa]="aba() === 'insumos'"
+      [attr.aria-current]="aba() === 'insumos' ? 'page' : null">
+      <i class="fa-solid fa-box-open" aria-hidden="true"></i> Insumos
+      @if (insumosParaRetirar() > 0) {<span class="aba__num">{{ insumosParaRetirar() }}</span>}
+    </a>
+  </nav>
+
+  @if (aba() === 'insumos') {
+    <app-minhas-requisicoes />
+  } @else {
+
 
   @if (enviado) {
     <p class="aviso-ok" role="status">
@@ -95,6 +120,9 @@
           @if (atrasado(s)) {
             <p class="item__alerta">Prazo de devolução vencido. Devolva o material o quanto antes.</p>
           }
+          @if (s.motivoCancelamento) {
+            <p class="item__alerta">Motivo do cancelamento: {{ s.motivoCancelamento }}</p>
+          }
           @if (s.motivoRejeicao) {
             <p class="item__alerta">Motivo da reprovação: {{ s.motivoRejeicao }}</p>
           }
@@ -118,7 +146,7 @@
               </button>
             }
             @if (podeCancelar(s)) {
-              <button type="button" class="btn-secundario" (click)="cancelar(s)">Cancelar pedido</button>
+              <button type="button" class="btn-secundario" (click)="cancelando.set(s)">Cancelar pedido</button>
             }
           </div>
         </article>
@@ -127,11 +155,16 @@
   } @else {
     <div class="vazio">
       <p>Você ainda não fez nenhuma solicitação.</p>
-      <a class="btn-principal" routerLink="/materiais">Ver materiais disponíveis</a>
+      <a class="btn-principal" routerLink="/inventario/equipamentos">Ver materiais disponíveis</a>
     </div>
+  }
+
   }
 
   @if (dialogo(); as d) {
     <app-transferir-dialog [pedido]="d" (fechar)="dialogo.set(null)" />
+  }
+  @if (cancelando(); as c) {
+    <app-cancelar-dialog [pedido]="c" (fechar)="cancelando.set(null)" />
   }
 </section>

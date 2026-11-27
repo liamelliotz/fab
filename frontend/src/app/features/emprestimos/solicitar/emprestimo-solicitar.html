@@ -79,6 +79,25 @@
       }
     </label>
 
+    <label class="campo">
+      <span>Onde será usado</span>
+      <select formControlName="localUsoId">
+        <option value="">Selecione a sala ou o laboratório</option>
+        @for (l of locais; track l.id) {
+          <option [value]="l.id">{{ l.nome }} · {{ l.bloco }}</option>
+        }
+      </select>
+      <small class="dica">Aparece no mapa de itens da escola enquanto o material estiver com você.</small>
+      @if (getError('localUsoId')) {
+        <small class="erro">{{ getError('localUsoId') }}</small>
+      }
+    </label>
+
+    <label class="campo">
+      <span>Turma ou atividade (opcional)</span>
+      <input type="text" maxlength="80" placeholder="Ex.: 2º módulo · aula de lógica" formControlName="localUsoDetalhe" />
+    </label>
+
     <label class="campo campo--largo">
       <span>Justificativa</span>
       <textarea

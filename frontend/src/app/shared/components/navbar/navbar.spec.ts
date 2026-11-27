@@ -42,23 +42,23 @@ describe('Navbar', () => {
   it('should render the admin navigation links in the expected order', () => {
     const { element } = criarNavbar('admin');
     expect(rotulos(element)).toEqual([
-      'Dashboard',
+      'Painel',
       'Solicitações',
       'Balcão',
       'Empréstimos',
-      'Equipamentos',
+      'Inventário',
       'Manutenção',
-      'Insumos',
+      'Mapa de itens',
+      'Auditoria',
       'Usuários',
       'Relatórios',
-      'Materiais',
       'Configurações',
     ]);
   });
 
   it('should hide admin-only links for regular users', () => {
     const { element } = criarNavbar('usuario');
-    expect(rotulos(element)).toEqual(['Dashboard', 'Materiais', 'Meus pedidos', 'Configurações']);
+    expect(rotulos(element)).toEqual(['Painel', 'Inventário', 'Meus pedidos', 'Configurações']);
   });
 
   it('should render the logout button', () => {

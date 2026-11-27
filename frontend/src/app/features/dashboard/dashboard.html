@@ -1,194 +1,94 @@
-<div class="dashboard-page">
-  <header class="dashboard-header">
-    <div class="page-title">
-      <span class="eyebrow">VISÃO GERAL</span>
-      <h1>Olá{{ primeiroNome() ? ', ' + primeiroNome() : '' }}!</h1>
-      <p>Acompanhe as informações e atividades do FAB.</p>
+<div class="painel">
+  <header class="topo">
+    <div>
+      <p class="topo__data">{{ dataPorExtenso }}</p>
+      <h1>Olá{{ primeiroNome() ? ', ' + primeiroNome() : '' }}</h1>
     </div>
-    @if (ehAdmin()) {
-      <a class="btn-principal" routerLink="/admin/solicitacoes">
-        <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i>
-        Analisar solicitações
-      </a>
-    } @else {
-      <a class="btn-principal" routerLink="/meus-emprestimos/nova">
-        <i class="fa-solid fa-plus" aria-hidden="true"></i>
-        Nova solicitação
-      </a>
+    @if (!ehAdmin()) {
+      <div class="topo__acoes">
+        <a class="btn btn--sec" routerLink="/inventario/insumos">
+          <i class="fa-solid fa-box-open" aria-hidden="true"></i> Pedir insumo
+        </a>
+        <a class="btn" routerLink="/meus-emprestimos/nova">
+          <i class="fa-solid fa-plus" aria-hidden="true"></i> Pedir empréstimo
+        </a>
+      </div>
     }
   </header>
 
-  @if (!ehAdmin() && transferenciasParaMim() > 0) {
-    <a class="alerta-destaque" routerLink="/meus-emprestimos">
-      <i class="fa-solid fa-right-left" aria-hidden="true"></i>
-      <span>
-        <strong>{{ transferenciasParaMim() }} transferência(s) esperando a sua resposta.</strong>
-        Um colega quer passar um material para você. Toque para aceitar ou recusar.
-      </span>
-    </a>
-  }
-  @if (ehAdmin() && (avisosNaoLidos() > 0 || transferenciasPendentes() > 0)) {
-    <a class="alerta-destaque" routerLink="/admin/emprestimos">
-      <i class="fa-solid fa-bell" aria-hidden="true"></i>
-      <span>
-        <strong>{{ avisosNaoLidos() }} movimentação(ões) nova(s).</strong>
-        {{ transferenciasPendentes() }} transferência(s) entre professores aguardando resposta.
-      </span>
-    </a>
-  }
+  <div class="grade">
+    <section class="cartao" aria-labelledby="titulo-tarefas">
+      <div class="cartao__topo">
+        <h2 id="titulo-tarefas">O que fazer agora</h2>
+        <p>{{ tarefas().length ? 'Do mais urgente para o menos urgente.' : '' }}</p>
+      </div>
 
-  <section class="dashboard-section" aria-labelledby="overview-title">
-    <div class="section-heading">
-      <h2 id="overview-title">Visão geral</h2>
-      <p>Resumo das principais informações do sistema.</p>
-    </div>
-
-    <div class="metrics-grid">
-      @if (ehAdmin()) {
-        <app-card>
-          <div class="metric-card">
-            <span class="metric-label">Solicitações pendentes</span>
-            <strong class="metric-value">{{ pendentes() }}</strong>
-            <span class="metric-note">Aguardando análise</span>
-          </div>
-        </app-card>
-        <app-card>
-          <div class="metric-card">
-            <span class="metric-label">Empréstimos ativos</span>
-            <strong class="metric-value">{{ ativos() }}</strong>
-            <span class="metric-note">
-              {{ atrasados() > 0 ? atrasados() + ' com devolução atrasada' : 'Nenhum atraso' }}
-            </span>
-          </div>
-        </app-card>
-        <app-card>
-          <div class="metric-card">
-            <span class="metric-label">Materiais disponíveis</span>
-            <strong class="metric-value">{{ disponiveis() }}</strong>
-            <span class="metric-note">Unidades prontas para empréstimo</span>
-          </div>
-        </app-card>
-        <app-card>
-          <div class="metric-card">
-            <span class="metric-label">Unidades em manutenção</span>
-            <strong class="metric-value">{{ emManutencao() }}</strong>
-            <span class="metric-note">Avarias e extravios, fora de circulação</span>
-          </div>
-        </app-card>
-      } @else {
-        <app-card>
-          <div class="metric-card">
-            <span class="metric-label">Meus pedidos pendentes</span>
-            <strong class="metric-value">{{ meusPendentes() }}</strong>
-            <span class="metric-note">Aguardando aprovação</span>
-          </div>
-        </app-card>
-        <app-card>
-          <div class="metric-card">
-            <span class="metric-label">Meus empréstimos ativos</span>
-            <strong class="metric-value">{{ meusAtivos() }}</strong>
-            <span class="metric-note">Aprovados e em uso</span>
-          </div>
-        </app-card>
-        <app-card>
-          <div class="metric-card">
-            <span class="metric-label">Materiais disponíveis</span>
-            <strong class="metric-value">{{ disponiveis() }}</strong>
-            <span class="metric-note">Unidades prontas para empréstimo</span>
-          </div>
-        </app-card>
-      }
-    </div>
-  </section>
-
-  <section class="dashboard-section" aria-labelledby="actions-title">
-    <div class="section-heading">
-      <h2 id="actions-title">Ações rápidas</h2>
-      <p>Atalhos para as tarefas mais frequentes.</p>
-    </div>
-
-    <div class="actions-grid">
-      <a class="action-link" routerLink="/materiais">
-        <app-card>
-          <div class="action-card">
-            <span class="action-icon" aria-hidden="true"><i class="fa-solid fa-magnifying-glass"></i></span>
-            <h3>Consultar materiais</h3>
-            <p>Veja a disponibilidade dos equipamentos do catálogo.</p>
-          </div>
-        </app-card>
-      </a>
-
-      @if (ehAdmin()) {
-        <a class="action-link" routerLink="/admin/solicitacoes">
-          <app-card>
-            <div class="action-card">
-              <span class="action-icon" aria-hidden="true"><i class="fa-solid fa-clipboard-check"></i></span>
-              <h3>Gerir solicitações</h3>
-              <p>Aprove ou reprove os pedidos de empréstimo enviados.</p>
-            </div>
-          </app-card>
-        </a>
-        <a class="action-link" routerLink="/admin/equipamentos">
-          <app-card>
-            <div class="action-card">
-              <span class="action-icon" aria-hidden="true"><i class="fa-solid fa-laptop-medical"></i></span>
-              <h3>Cadastrar equipamento</h3>
-              <p>Inclua novos itens e controle o patrimônio.</p>
-            </div>
-          </app-card>
-        </a>
-      } @else {
-        <a class="action-link" routerLink="/meus-emprestimos/nova">
-          <app-card>
-            <div class="action-card">
-              <span class="action-icon" aria-hidden="true"><i class="fa-solid fa-paper-plane"></i></span>
-              <h3>Solicitar empréstimo</h3>
-              <p>Peça um material informando as datas de retirada e devolução.</p>
-            </div>
-          </app-card>
-        </a>
-        <a class="action-link" routerLink="/meus-emprestimos">
-          <app-card>
-            <div class="action-card">
-              <span class="action-icon" aria-hidden="true"><i class="fa-solid fa-list-check"></i></span>
-              <h3>Acompanhar pedidos</h3>
-              <p>Consulte o andamento e os prazos de devolução.</p>
-            </div>
-          </app-card>
-        </a>
-      }
-    </div>
-  </section>
-
-  <section class="dashboard-section" aria-labelledby="recent-title">
-    <div class="section-heading">
-      <h2 id="recent-title">{{ ehAdmin() ? 'Solicitações recentes' : 'Meus pedidos recentes' }}</h2>
-      <p>Os últimos pedidos registrados no sistema.</p>
-    </div>
-
-    <app-card>
-      @if (recentes().length > 0) {
-        <ul class="recent-list">
-          @for (s of recentes(); track s.id) {
-            <li class="recent-item">
-              <div class="recent-info">
-                <a class="recent-link" [routerLink]="['/pedidos', s.id]">{{ s.protocolo }}</a>
-                <span>
-                  {{ ehAdmin() ? s.solicitante.nome + ' · ' : '' }}{{ itens(s) }}
-                </span>
-                <small>Devolução prevista: {{ data(s.dataPrevistaDevolucao) }}</small>
+      @if (tarefas().length) {
+        <ul class="tarefas">
+          @for (t of tarefas(); track $index) {
+            <li class="tarefa tarefa--{{ t.tom }}">
+              <span class="tarefa__icone" aria-hidden="true"><i [class]="t.icone"></i></span>
+              <div class="tarefa__texto">
+                <strong>{{ t.titulo }}</strong>
+                @if (t.detalhe) {<span>{{ t.detalhe }}</span>}
               </div>
-              <span class="chip chip--{{ statusExibido(s) }}">{{ nomeStatusExibido(s) }}</span>
+              <a class="tarefa__acao" [routerLink]="t.rota" [queryParams]="t.query ?? null">
+                {{ t.botao }} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+              </a>
             </li>
           }
         </ul>
-        <a class="ver-todos" [routerLink]="ehAdmin() ? '/admin/solicitacoes' : '/meus-emprestimos'">
-          Ver todos
-          <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-        </a>
       } @else {
-        <p class="recent-vazio">Nenhum pedido registrado ainda.</p>
+        <div class="vazio">
+          <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+          <div>
+            <strong>Tudo em dia</strong>
+            <span>Nenhuma pendência agora.</span>
+          </div>
+        </div>
       }
-    </app-card>
+    </section>
+
+    <aside class="cartao resumo" aria-labelledby="titulo-resumo">
+      <h2 id="titulo-resumo">{{ ehAdmin() ? 'Acervo agora' : 'Seus materiais' }}</h2>
+      @if (ehAdmin()) {
+        <p class="resumo__grande"><strong>{{ unidadesEmUso() }}</strong> de {{ unidadesTotal() }} unidades em uso</p>
+        <div class="barra" role="img" [attr.aria-label]="percentualEmUso() + '% do acervo em uso'">
+          <span class="barra__valor" [style.width.%]="percentualEmUso()"></span>
+        </div>
+        <dl class="resumo__lista">
+          <div><dt>Disponíveis</dt><dd>{{ unidadesDisponiveis() }}</dd></div>
+          <div><dt>Em manutenção</dt><dd>{{ unidadesManutencao() }}</dd></div>
+        </dl>
+        <a class="resumo__link" routerLink="/admin/mapa">Ver no mapa <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+      } @else {
+        <p class="resumo__grande"><strong>{{ meusEmUso() }}</strong> {{ meusEmUso() === 1 ? 'empréstimo com você' : 'empréstimos com você' }}</p>
+        <dl class="resumo__lista">
+          <div><dt>Disponíveis no inventário</dt><dd>{{ unidadesDisponiveis() }}</dd></div>
+        </dl>
+        <a class="resumo__link" routerLink="/inventario">Ver inventário <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+      }
+    </aside>
+  </div>
+
+  <section class="cartao" aria-labelledby="titulo-recentes">
+    <div class="cartao__topo cartao__topo--linha">
+      <h2 id="titulo-recentes">{{ ehAdmin() ? 'Pedidos recentes' : 'Seus pedidos recentes' }}</h2>
+      <a class="resumo__link" [routerLink]="ehAdmin() ? '/admin/emprestimos' : '/meus-emprestimos'">Ver todos <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+    </div>
+    @if (recentes().length > 0) {
+      <ul class="recentes">
+        @for (s of recentes(); track s.id) {
+          <li class="recente">
+            <a class="recente__protocolo" [routerLink]="['/pedidos', s.id]">{{ s.protocolo }}</a>
+            <span class="recente__itens">{{ ehAdmin() ? s.solicitante.nome + ' · ' : '' }}{{ itens(s) }}</span>
+            <span class="recente__data">até {{ data(s.dataPrevistaDevolucao) }}</span>
+            <span class="chip chip--{{ statusExibido(s) }}">{{ nomeStatusExibido(s) }}</span>
+          </li>
+        }
+      </ul>
+    } @else {
+      <p class="recentes__vazio">Nenhum pedido registrado ainda.</p>
+    }
   </section>
 </div>

@@ -1,8 +1,9 @@
 <section class="lista">
-  <header class="lista__cabecalho">
-    <h1>Materiais</h1>
-    <p>Consulte os equipamentos e materiais disponíveis no laboratório.</p>
-  </header>
+  <app-inventario-abas />
+  <p class="lista__intro">
+    Equipamentos para empréstimo: você retira com código, usa e devolve no prazo. Material de consumo, como filamento ou
+    papel, fica em <a routerLink="/inventario/insumos">Insumos</a>.
+  </p>
 
   <app-equipamento-filtros (filtrosChange)="filtros.set($event)" />
 

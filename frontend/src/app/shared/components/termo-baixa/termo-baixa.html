@@ -1,0 +1,49 @@
+<div class="tb__fundo" (click)="fechar.emit()">
+  <div class="tb__painel" role="dialog" aria-modal="true" aria-labelledby="tb-titulo" appDialogo (fecharDialogo)="fechar.emit()" (click)="$event.stopPropagation()">
+    @if (baixa(); as b) {
+      @let m = ocorrencia();
+      <header class="tb__topo">
+        <div>
+          <span class="tb__rotulo"><i class="fa-solid fa-stamp" aria-hidden="true"></i> Termo de baixa patrimonial</span>
+          <h2 id="tb-titulo">{{ m.equipamento }}</h2>
+          <p>{{ escola }}</p>
+        </div>
+        <div class="tb__protocolo">
+          <strong>{{ b.protocolo }}</strong>
+          <small>{{ dataHora(b.em) }}</small>
+        </div>
+      </header>
+
+      <dl class="tb__dados">
+        <div><dt>Patrimônio</dt><dd>{{ m.codigoPatrimonio }} · {{ m.quantidade }} unidade(s)@if (m.identificacao) { · {{ m.identificacao }}}</dd></div>
+        <div><dt>Ocorrência de origem</dt><dd>{{ m.protocolo }}@if (m.origemProtocolo) { (separada de {{ m.origemProtocolo }})} · {{ origem() }}</dd></div>
+        <div><dt>Estava com</dt><dd>{{ m.responsavel ? m.responsavel.nome + (m.protocoloEmprestimo ? ' · pedido ' + m.protocoloEmprestimo : '') : 'Encontrado no laboratório' }}</dd></div>
+        <div><dt>Motivo</dt><dd><strong>{{ nomeMotivo[b.motivo] }}</strong></dd></div>
+        <div class="tb__largo"><dt>Parecer técnico ou relato</dt><dd>{{ b.parecer }}</dd></div>
+        <div><dt>Laudo</dt><dd>{{ b.laudo || '—' }}</dd></div>
+        <div><dt>Processo ou BO</dt><dd>{{ b.processo || '—' }}</dd></div>
+        <div><dt>Valor estimado</dt><dd>{{ valor() }}</dd></div>
+        <div><dt>Responsável informado</dt><dd>{{ m.responsavel ? (b.responsavelCiente ? 'Sim' : 'Não') : 'Não se aplica' }}</dd></div>
+        <div><dt>Testemunha</dt><dd>{{ b.testemunha || '—' }}</dd></div>
+        <div><dt>Autorizado por</dt><dd>{{ b.autorizadoPor.nome }}</dd></div>
+      </dl>
+
+      <details class="tb__historico">
+        <summary>Histórico da ocorrência ({{ m.historico.length }})</summary>
+        <ol>
+          @for (p of m.historico; track $index) {
+            <li><time>{{ dataHora(p.em) }}</time> {{ p.texto }} <em>· {{ p.por.nome }}</em></li>
+          }
+        </ol>
+      </details>
+
+      <p class="tb__nota"><i class="fa-solid fa-lock" aria-hidden="true"></i> Gerado a partir de registros que não podem ser editados nem apagados.</p>
+    }
+    <div class="tb__acoes">
+      <button type="button" class="tb__btn" (click)="fechar.emit()">Fechar</button>
+      <button type="button" class="tb__btn tb__btn--principal" (click)="imprimir()">
+        <i class="fa-solid fa-print" aria-hidden="true"></i> Imprimir termo
+      </button>
+    </div>
+  </div>
+</div>

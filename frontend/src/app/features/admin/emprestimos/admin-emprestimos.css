@@ -175,8 +175,29 @@
   font-size: 14px;
 }
 
-.filtros input {
+.filtros input[type='search'],
+.filtros input[type='text'] {
   min-width: 250px;
+}
+
+.filtro-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 4px;
+  color: #374151;
+  font-size: 14px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.filtros .filtro-check input {
+  width: 16px;
+  height: 16px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  accent-color: #24845c;
 }
 
 .tabela-container {
@@ -207,7 +228,7 @@ td {
 }
 
 .protocolo {
-  color: #24845c;
+  color: #1f6f4c;
   font-weight: 700;
   white-space: nowrap;
 }

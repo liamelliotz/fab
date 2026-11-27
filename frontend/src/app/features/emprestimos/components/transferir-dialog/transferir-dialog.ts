@@ -1,6 +1,7 @@
 import { Component, computed, inject, input, output, signal } from '@angular/core';
+import { LOCAIS_DE_USO } from '../../../../core/constants/escola-modelo.constants';
 import { Emprestimo } from '../../../../core/models/emprestimo.model';
-import { EmprestimoService } from '../../../../core/services/emprestimo.service';
+import { EmprestimoService, descreverLocalUso } from '../../../../core/services/emprestimo.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { formatarData } from '../../../../core/utils/date.utils';
 import { DialogoDirective } from '../../../../shared/directives/dialogo.directive';
@@ -26,6 +27,11 @@ export class TransferirDialog {
   readonly paraId = signal('');
   readonly motivo = signal('');
   readonly erro = signal('');
+  /** Novo local de uso ('' = continua onde está). */
+  readonly localId = signal('');
+  readonly localDetalhe = signal('');
+  readonly locais = LOCAIS_DE_USO;
+  readonly localAtual = computed(() => descreverLocalUso(this.pedido().localUso));
 
   readonly data = formatarData;
   readonly candidatos = computed(() => this.service.candidatosTransferencia(this.pedido()));
@@ -42,7 +48,10 @@ export class TransferirDialog {
       return;
     }
     const pedido = this.pedido();
-    const erro = this.service.solicitarTransferencia(pedido.id, this.paraId(), this.motivo());
+    const novoLocal = this.localId()
+      ? { localId: this.localId(), detalhe: this.localDetalhe().trim() || undefined }
+      : undefined;
+    const erro = this.service.solicitarTransferencia(pedido.id, this.paraId(), this.motivo(), novoLocal);
     if (erro) {
       this.erro.set(erro);
       return;

@@ -192,7 +192,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #24845c;
+  color: #1f6f4c;
   font-size: 13px;
   font-weight: 600;
 }
@@ -201,3 +201,42 @@
 .paginacao-admin button { padding: 8px 14px; border: 1px solid #cbd5e1; border-radius: 8px; background: white; cursor: pointer; }
 button:disabled { opacity: .55; cursor: wait; }
 .erro-admin { color: #b91c1c; }
+
+.sol__abas {
+  display: flex;
+  border-bottom: 1px solid #e5ebe8;
+  overflow-x: auto;
+}
+
+.sol__aba {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  padding: 10px 18px 12px;
+  margin-bottom: -1px;
+  border-bottom: 3px solid transparent;
+  color: #4b5563;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.sol__aba:hover {
+  background: #f7faf8;
+  color: #172b24;
+}
+
+.sol__aba--ativa {
+  border-bottom-color: #24845c;
+  color: #14532d;
+}
+
+.sol__aba-num {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #b91c1c;
+  color: #fff;
+  font-size: 12px;
+}

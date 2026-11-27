@@ -1,28 +1,54 @@
 <nav class="navbar" aria-label="Navegação principal">
+  <a class="navbar__marca" routerLink="/dashboard" aria-label="FAB, ir para o painel">
+    <span class="navbar__logo" aria-hidden="true">F</span>
+    <span class="navbar__marca-texto">
+      <strong>FAB</strong>
+      <small>Patrimônio escolar</small>
+    </span>
+  </a>
+
   <ul class="navbar__list">
     @for (item of itensVisiveis(); track item.route) {
-      <li class="navbar__item" [class.navbar__item--grupo]="item.novoGrupo && ehAdmin()">
+      @if (item.grupo && ehAdmin()) {
+        <li class="navbar__grupo" aria-hidden="true">{{ item.grupo }}</li>
+      }
+      <li class="navbar__item">
         <a
           class="navbar__link"
           [routerLink]="item.route"
           routerLinkActive="navbar__link--active"
           ariaCurrentWhenActive="page"
           [attr.aria-label]="rotuloDoLink(item)"
-          [title]="item.label"
         >
           <i class="navbar__icon" [class]="item.icon" aria-hidden="true"></i>
+          <span class="navbar__label">{{ item.label }}</span>
           @if (item.badge && item.badge() > 0) {
             <span class="navbar__badge" aria-hidden="true">{{ item.badge() }}</span>
           }
-          <span class="navbar__label">{{ item.label }}</span>
         </a>
       </li>
     }
   </ul>
 
-  <!-- Botão Sair, fixo no rodapé da barra -->
-  <button type="button" class="navbar__sair" (click)="sair()" aria-label="Sair" title="Sair">
-    <i class="navbar__icon fa-solid fa-right-from-bracket" aria-hidden="true"></i>
-    <span class="navbar__label">Sair</span>
-  </button>
+  <div class="navbar__rodape">
+    @for (item of itensRodape(); track item.route) {
+      <a class="navbar__link navbar__link--fino" [routerLink]="item.route" routerLinkActive="navbar__link--active" ariaCurrentWhenActive="page" [attr.aria-label]="item.label">
+        <i class="navbar__icon" [class]="item.icon" aria-hidden="true"></i>
+        <span class="navbar__label">{{ item.label }}</span>
+      </a>
+    }
+    <!-- Preferências de leitura (texto maior, contraste, espaçamento...) -->
+    <app-acessibilidade variante="navbar" />
+
+    <div class="navbar__usuario">
+      <span class="navbar__avatar" aria-hidden="true">{{ iniciais() }}</span>
+      <span class="navbar__quem">
+        <strong>{{ nome() }}</strong>
+        <small>{{ perfil() }}</small>
+      </span>
+      <button type="button" class="navbar__sair" (click)="sair()" aria-label="Sair" title="Sair">
+        <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>
 </nav>

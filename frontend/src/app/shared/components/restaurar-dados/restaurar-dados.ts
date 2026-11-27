@@ -1,4 +1,4 @@
-import { Component, HostListener, inject, signal } from '@angular/core';
+import { Component, HostListener, inject } from '@angular/core';
 import { DemoService } from '../../../core/services/demo.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { DialogoDirective } from '../../directives/dialogo.directive';
@@ -19,7 +19,8 @@ export class RestaurarDados {
   private readonly dados = inject(DemoService);
   private readonly avisos = inject(NotificationService);
 
-  readonly confirmando = signal(false);
+  /** Janela aberta: o estado fica no DemoService. */
+  readonly confirmando = this.dados.confirmandoRestauracao;
 
   @HostListener('document:keydown', ['$event'])
   atalho(evento: KeyboardEvent): void {

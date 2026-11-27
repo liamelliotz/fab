@@ -1,0 +1,23 @@
+.tb__fundo { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5); display: flex; align-items: center; justify-content: center; z-index: 1100; padding: 16px; }
+.tb__painel { background: #fff; border-radius: 18px; width: min(720px, 100%); max-height: 92vh; overflow: auto; padding: 24px; box-shadow: 0 24px 60px rgba(15, 23, 42, 0.3); }
+.tb__topo { display: flex; justify-content: space-between; gap: 16px; padding-bottom: 14px; border-bottom: 3px solid #0b3d2e; }
+.tb__rotulo { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #b91c1c; display: inline-flex; gap: 6px; align-items: center; }
+.tb__topo h2 { margin: 6px 0 2px; font-size: 1.3rem; }
+.tb__topo p { margin: 0; color: var(--text-secondary); font-size: 0.85rem; }
+.tb__protocolo { text-align: right; display: flex; flex-direction: column; }
+.tb__protocolo strong { font-size: 1.2rem; color: #b91c1c; font-variant-numeric: tabular-nums; }
+.tb__protocolo small { color: var(--text-secondary); }
+.tb__dados { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px; margin: 18px 0 0; }
+.tb__dados div { display: flex; flex-direction: column; gap: 2px; }
+.tb__dados dt { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary); font-weight: 600; }
+.tb__dados dd { margin: 0; font-size: 0.92rem; }
+.tb__largo { grid-column: 1 / -1; }
+.tb__historico { margin-top: 16px; font-size: 0.86rem; }
+.tb__historico summary { cursor: pointer; font-weight: 600; }
+.tb__historico ol { padding-left: 18px; color: var(--text-secondary); }
+.tb__historico time { font-weight: 600; color: var(--text-primary); }
+.tb__nota { margin: 14px 0 0; font-size: 0.8rem; color: var(--text-secondary); display: flex; gap: 6px; align-items: center; }
+.tb__acoes { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+.tb__btn { display: inline-flex; gap: 7px; align-items: center; padding: 9px 15px; border-radius: 10px; border: 1px solid var(--border-color); background: #fff; font-weight: 600; cursor: pointer; }
+.tb__btn--principal { background: #0b3d2e; border-color: #0b3d2e; color: #fff; }
+@media (max-width: 640px) { .tb__dados { grid-template-columns: 1fr; } }

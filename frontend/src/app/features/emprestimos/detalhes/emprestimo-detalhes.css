@@ -15,7 +15,7 @@
   align-items: center;
   gap: 8px;
   align-self: flex-start;
-  color: #24845c;
+  color: #1f6f4c;
   font-size: 14px;
   font-weight: 600;
 }
@@ -29,7 +29,7 @@
 }
 
 .det__eyebrow {
-  color: #24845c;
+  color: #1f6f4c;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 1.4px;

@@ -1,0 +1,16 @@
+{
+  "name": "FAB · Gestão de equipamentos e insumos escolares",
+  "short_name": "FAB",
+  "description": "Empréstimo de equipamentos e controle de insumos da escola, do pedido à devolução.",
+  "lang": "pt-BR",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7f8f6",
+  "theme_color": "#2e7d32",
+  "icons": [
+    { "src": "icone-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icone-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icone-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

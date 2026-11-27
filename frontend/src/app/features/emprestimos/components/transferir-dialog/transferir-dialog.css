@@ -157,3 +157,7 @@
   background: #24845c;
   color: #fff;
 }
+
+.td__local { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.td__local select, .td__local input { font: inherit; padding: 9px 11px; border: 1px solid var(--border-color); border-radius: 10px; background: #fff; }
+@media (max-width: 600px) { .td__local { grid-template-columns: 1fr; } }

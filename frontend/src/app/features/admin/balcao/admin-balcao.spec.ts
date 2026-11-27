@@ -35,6 +35,10 @@ describe('Balcão administrativo pela tela e HTTP', () => {
     input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
     f.detectChanges();
   }
+  /** O responsável aceita o termo de responsabilidade (obrigatório na retirada). */
+  function aceitarTermo(f: ComponentFixture<AdminBalcao>) {
+    (f.nativeElement.querySelector('.ret__termo input') as HTMLInputElement).click(); f.detectChanges();
+  }
   function confirmar(f: ComponentFixture<AdminBalcao>) {
     (f.nativeElement.querySelector('.bal__acoes .bal__btn--ok') as HTMLButtonElement).click(); f.detectChanges();
   }
@@ -44,6 +48,10 @@ describe('Balcão administrativo pela tela e HTTP', () => {
     expect(req.request.method).toBe('GET');
     req.flush({ dados: { tipo: 'retirada', emprestimo: pedido() } }); f.detectChanges();
     http.expectNone((r) => r.method === 'POST');
+    // Sem o termo de responsabilidade aceito, a entrega não sai.
+    confirmar(f); http.expectNone((r) => r.method === 'POST');
+    expect(f.nativeElement.querySelector('[role=alert]').textContent).toContain('termo de responsabilidade');
+    (f.nativeElement.querySelector('.ret__termo input') as HTMLInputElement).click(); f.detectChanges();
     confirmar(f); f.componentInstance.confirmar();
     const retirada = http.expectOne(`${API_URL}/emprestimos/balcao/retirada`);
     expect(retirada.request.body).toEqual({ codigo: 'K7M4PX' });
@@ -90,7 +98,7 @@ describe('Balcão administrativo pela tela e HTTP', () => {
   it('após disputa de código no POST exige nova conferência e mantém o erro da API', () => {
     const f = abrir(); digitar(f, 'K7M4PX');
     http.expectOne(`${API_URL}/emprestimos/balcao/consulta?codigo=K7M4PX`)
-      .flush({ dados: { tipo: 'retirada', emprestimo: pedido() } }); f.detectChanges(); confirmar(f);
+      .flush({ dados: { tipo: 'retirada', emprestimo: pedido() } }); f.detectChanges(); aceitarTermo(f); confirmar(f);
     http.expectOne(`${API_URL}/emprestimos/balcao/retirada`)
       .flush({ mensagem: 'Código já utilizado por outro atendimento' }, { status: 409, statusText: 'Conflict' }); f.detectChanges();
     expect(f.componentInstance.alvo()).toBeNull(); expect(f.nativeElement.textContent).toContain('Código já utilizado por outro atendimento');
@@ -106,7 +114,7 @@ describe('Balcão administrativo pela tela e HTTP', () => {
       .flush({ dados: { itens: [], totalItens: 0, paginaAtual: 1, totalPaginas: 0, temAnterior: false, temProxima: false } });
     const f = abrir(); digitar(f, 'K7M4PX');
     http.expectOne(`${API_URL}/emprestimos/balcao/consulta?codigo=K7M4PX`)
-      .flush({ dados: { tipo: 'retirada', emprestimo: pedido() } }); f.detectChanges(); confirmar(f);
+      .flush({ dados: { tipo: 'retirada', emprestimo: pedido() } }); f.detectChanges(); aceitarTermo(f); confirmar(f);
     http.expectOne(`${API_URL}/emprestimos/balcao/retirada`).flush({ dados: { ...pedido('em_andamento'), codigoDevolucao: 'P8X2MJ' } });
     f.componentInstance.trocarAba('devolucao'); f.detectChanges(); digitar(f, 'FAB:D:EMP-2026-0042:P8X2MJ');
     http.expectOne(`${API_URL}/emprestimos/balcao/consulta?codigo=P8X2MJ`)

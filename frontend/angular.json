@@ -28,6 +28,7 @@
             "styles": [
               "src/styles.css"
             ],
+            "allowedCommonJsDependencies": ["jsqr"],
             "server": "src/main.server.ts",
             "outputMode": "server",
             "security": {
@@ -42,12 +43,12 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
+                  "maximumWarning": "550kB",
                   "maximumError": "1MB"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "8kB",
+                  "maximumWarning": "10kB",
                   "maximumError": "16kB"
                 }
               ],

@@ -17,12 +17,15 @@ describe('Navegação de Insumos', () => {
     TestBed.configureTestingModule({ providers: [provideHttpClient(), provideRouter(routes)] });
   });
   afterEach(() => localStorage.clear());
-  it('admin abre a rota provisória e encontra o item no menu', async () => {
+  it('admin abre os insumos dentro do Inventário (o endereço antigo redireciona)', async () => {
     TestBed.inject(AuthService).entrarComoDemo('usr-admin');
     const harness = await RouterTestingHarness.create('/admin/insumos');
-    expect(TestBed.inject(Router).url).toBe('/admin/insumos');
-    expect(harness.routeNativeElement?.textContent).toContain('Em construção');
-    expect(harness.routeNativeElement?.querySelector('a[href="/admin/insumos"]')).not.toBeNull();
+    expect(TestBed.inject(Router).url).toBe('/admin/inventario/insumos');
+    expect(harness.routeNativeElement?.textContent).toContain('Filamento PLA 1,75 mm');
+    expect(harness.routeNativeElement?.textContent).toContain('A repor');
+    // As duas partes do inventário aparecem como abas
+    expect(harness.routeNativeElement?.querySelector('a[href="/admin/inventario/equipamentos"]')).not.toBeNull();
+    expect(harness.routeNativeElement?.querySelector('a[href="/admin/inventario/insumos"]')).not.toBeNull();
   });
   it('professor não entra mesmo alterando fab_role para admin', async () => {
     TestBed.inject(AuthService).entrarComoDemo('usr-professor');
@@ -30,5 +33,24 @@ describe('Navegação de Insumos', () => {
     const harness = await RouterTestingHarness.create('/admin/insumos');
     expect(TestBed.inject(Router).url).toBe('/dashboard');
     expect(harness.routeNativeElement?.querySelector('a[href="/admin/insumos"]')).toBeNull();
+  });
+  it('professor: endereços antigos levam ao Inventário e os pedidos de insumo ficam em Meus pedidos', async () => {
+    TestBed.inject(AuthService).entrarComoDemo('usr-professor');
+    const router = TestBed.inject(Router);
+    const harness = await RouterTestingHarness.create('/materiais');
+    expect(router.url).toBe('/inventario/equipamentos');
+    await harness.navigateByUrl('/insumos');
+    expect(router.url).toBe('/inventario/insumos');
+    expect(harness.routeNativeElement?.textContent).toContain('Disponíveis para pedido');
+    await harness.navigateByUrl('/meus-emprestimos?aba=insumos');
+    expect(harness.routeNativeElement?.textContent).toContain('Minhas requisições');
+    expect(harness.routeNativeElement?.textContent).toContain('REQ-');
+  });
+  it('coordenação vê as requisições de insumo em Solicitações', async () => {
+    TestBed.inject(AuthService).entrarComoDemo('usr-admin');
+    const harness = await RouterTestingHarness.create('/admin/solicitacoes?aba=insumos');
+    const texto = harness.routeNativeElement?.textContent ?? '';
+    expect(texto).toContain('Aguardando aprovação');
+    expect(texto).toContain('Papel A4 75 g');
   });
 });

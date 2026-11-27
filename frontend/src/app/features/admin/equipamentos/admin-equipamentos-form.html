@@ -1,7 +1,7 @@
 <section class="pagina">
   <header class="cabecalho">
     <h1>{{ editando ? 'Editar equipamento' : 'Novo equipamento' }}</h1>
-    <a class="botao botao-secundario" routerLink="/admin/equipamentos">
+    <a class="botao botao-secundario" routerLink="/admin/inventario/equipamentos">
       <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
       Voltar
     </a>
@@ -53,6 +53,18 @@
     </label>
 
     <label class="campo">
+      <span>Valor de cada unidade (R$)</span>
+      <input type="text" inputmode="decimal" formControlName="valorUnitario" placeholder="2.899,00" autocomplete="off" />
+      @if (form.controls.valorUnitario.touched && form.controls.valorUnitario.invalid) {
+        <small class="erro">{{ form.controls.valorUnitario.errors?.['valor'] ?? 'Informe o valor de cada unidade, como na nota fiscal.' }}</small>
+      } @else if (valorTotal(); as total) {
+        <small class="dica">Valor no acervo: {{ total }}. É o valor usado na baixa patrimonial.</small>
+      } @else {
+        <small class="dica">Valor da nota fiscal ou da avaliação. É usado na baixa patrimonial.</small>
+      }
+    </label>
+
+    <label class="campo">
       <span>Prazo máximo de empréstimo (dias)</span>
       <input type="number" min="1" max="365" formControlName="prazoMaximoDias" />
       <small class="dica">Quanto tempo, no máximo, uma pessoa pode ficar com este material.</small>
@@ -72,7 +84,7 @@
     </label>
 
     <div class="rodape campo-largo">
-      <a class="botao botao-secundario" routerLink="/admin/equipamentos">Cancelar</a>
+      <a class="botao botao-secundario" routerLink="/admin/inventario/equipamentos">Cancelar</a>
       <button type="submit" class="botao botao-primario">
         {{ editando ? 'Salvar alterações' : 'Cadastrar' }}
       </button>

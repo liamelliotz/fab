@@ -44,9 +44,9 @@ export interface ColegaResumo {
   habilitacoes: string[];
 }
 
-const CHAVE_USUARIOS = 'fab_demo_v6_usuarios';
+const CHAVE_USUARIOS = 'fab_demo_v8_usuarios';
 /** Senhas da demonstração. Ficam separadas das contas e só existem no `npm run demo`. */
-const CHAVE_SENHAS = 'fab_demo_v6_senhas';
+const CHAVE_SENHAS = 'fab_demo_v8_senhas';
 
 /** Senhas das contas de exemplo (só para a demonstração, por e-mail). */
 const SENHAS_DEMO: Record<string, string> = {

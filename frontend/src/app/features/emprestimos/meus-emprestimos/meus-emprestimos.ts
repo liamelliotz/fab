@@ -9,12 +9,17 @@ import {
 import { NotificationService } from '../../../core/services/notification.service';
 import { formatarCodigo } from '../../../core/utils/codigo.utils';
 import { formatarData } from '../../../core/utils/date.utils';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs';
+import { RequisicaoInsumoService } from '../../../core/services/requisicao-insumo.service';
+import { MinhasRequisicoes } from '../../insumos/minhas-requisicoes/minhas-requisicoes';
+import { CancelarDialog } from '../components/cancelar-dialog/cancelar-dialog';
 import { TransferirDialog } from '../components/transferir-dialog/transferir-dialog';
 
 @Component({
   selector: 'app-meus-emprestimos',
   standalone: true,
-  imports: [RouterLink, TransferirDialog],
+  imports: [RouterLink, TransferirDialog, CancelarDialog, MinhasRequisicoes],
   templateUrl: './meus-emprestimos.html',
   styleUrl: './meus-emprestimos.css',
 })
@@ -27,6 +32,19 @@ export class MeusEmprestimos {
   readonly nomeStatus = NOME_STATUS_EMPRESTIMO;
   readonly data = formatarData;
   readonly codigo = formatarCodigo;
+
+  /** Aba ativa: empréstimos de equipamentos ou requisições de insumo (?aba=insumos). */
+  readonly aba = toSignal(
+    this.route.queryParamMap.pipe(map((q) => (q.get('aba') === 'insumos' ? 'insumos' : 'emprestimos'))),
+    { initialValue: this.route.snapshot.queryParamMap.get('aba') === 'insumos' ? 'insumos' : 'emprestimos' },
+  );
+  private readonly requisicoes = inject(RequisicaoInsumoService);
+  readonly insumosParaRetirar = computed(
+    () =>
+      this.requisicoes
+        .requisicoes()
+        .filter((r) => r.status === 'aprovada' && r.solicitante.id === this.auth.usuarioAtual().id).length,
+  );
 
   /** true logo após enviar uma solicitação (a tela de envio redireciona com ?enviado=1). */
   readonly enviado = this.route.snapshot.queryParamMap.get('enviado') === '1';
@@ -83,11 +101,8 @@ export class MeusEmprestimos {
     return s.status === 'pendente' || s.status === 'aprovado';
   }
 
-  cancelar(s: Emprestimo): void {
-    const erro = this.service.cancelar(s.id);
-    if (erro) this.notificacoes.erro(erro);
-    else this.notificacoes.info(`Pedido ${s.protocolo} cancelado.`);
-  }
+  /** Pedido cuja janela de cancelamento (com motivo obrigatório) está aberta. */
+  readonly cancelando = signal<Emprestimo | null>(null);
 
   aceitar(s: Emprestimo): void {
     const erro = this.service.responderTransferencia(s.id, true);

@@ -203,3 +203,10 @@ td {
     padding: 18px;
   }
 }
+
+.erro {
+  margin: 12px 0 0;
+  color: #b91c1c;
+  font-size: 14px;
+  font-weight: 600;
+}

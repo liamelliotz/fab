@@ -151,7 +151,7 @@
   align-items: center;
   gap: 6px;
   padding: 8px 4px;
-  color: #24845c;
+  color: #1f6f4c;
   font-size: 13px;
   font-weight: 600;
 }
@@ -253,4 +253,43 @@
 
 .item__codigo--devolucao small {
   color: #1d4ed8;
+}
+
+.abas {
+  display: flex;
+  border-bottom: 1px solid #e5ebe8;
+  overflow-x: auto;
+}
+
+.aba {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  padding: 10px 18px 12px;
+  margin-bottom: -1px;
+  border-bottom: 3px solid transparent;
+  color: #4b5563;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.aba:hover {
+  background: #f7faf8;
+  color: #172b24;
+}
+
+.aba--ativa {
+  border-bottom-color: #24845c;
+  color: #14532d;
+}
+
+.aba__num {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #b91c1c;
+  color: #fff;
+  font-size: 12px;
 }

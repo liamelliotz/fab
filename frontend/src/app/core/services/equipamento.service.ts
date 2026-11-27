@@ -7,7 +7,7 @@ import {
 } from '../models/equipamento.model';
 import { gravarJson, lerJson, ouvirOutrasAbas } from '../utils/armazenamento.utils';
 
-const CHAVE_EQUIPAMENTOS = 'fab_demo_v6_equipamentos';
+const CHAVE_EQUIPAMENTOS = 'fab_demo_v8_equipamentos';
 
 export const CATEGORIAS: { valor: CategoriaEquipamento; nome: string }[] = [
   { valor: 'ferramenta', nome: 'Ferramenta' },
@@ -41,6 +41,7 @@ export function criarEquipamentosDemo(): Equipamento[] {
       localizacao: 'Armário de TI - Prateleira 1',
       requerTreinamento: false,
       prazoMaximoDias: 7,
+      valorUnitario: 3899,
       quantidadeDisponivel: 10,
       quantidadeTotal: 10,
       criadoEm: '2026-08-01',
@@ -55,6 +56,7 @@ export function criarEquipamentosDemo(): Equipamento[] {
       localizacao: 'Armário de TI - Prateleira 2',
       requerTreinamento: false,
       prazoMaximoDias: 3,
+      valorUnitario: 3299,
       quantidadeDisponivel: 3,
       quantidadeTotal: 4,
       criadoEm: '2026-08-01',
@@ -69,6 +71,7 @@ export function criarEquipamentosDemo(): Equipamento[] {
       localizacao: 'Armário de TI - Prateleira 1',
       requerTreinamento: false,
       prazoMaximoDias: 7,
+      valorUnitario: 2899,
       quantidadeDisponivel: 6,
       quantidadeTotal: 8,
       criadoEm: '2026-08-03',
@@ -83,6 +86,7 @@ export function criarEquipamentosDemo(): Equipamento[] {
       localizacao: 'Armário de TI - Prateleira 3',
       requerTreinamento: false,
       prazoMaximoDias: 3,
+      valorUnitario: 349,
       quantidadeDisponivel: 2,
       quantidadeTotal: 3,
       criadoEm: '2026-08-05',
@@ -97,6 +101,7 @@ export function criarEquipamentosDemo(): Equipamento[] {
       localizacao: 'Bancada 03 - Gaveteiro B',
       requerTreinamento: false,
       prazoMaximoDias: 7,
+      valorUnitario: 189,
       quantidadeDisponivel: 4,
       quantidadeTotal: 5,
       criadoEm: '2026-08-10',
@@ -111,6 +116,7 @@ export function criarEquipamentosDemo(): Equipamento[] {
       localizacao: 'Armário 02',
       requerTreinamento: false,
       prazoMaximoDias: 15,
+      valorUnitario: 159,
       quantidadeDisponivel: 4,
       quantidadeTotal: 5,
       criadoEm: '2026-08-12',
@@ -125,6 +131,7 @@ export function criarEquipamentosDemo(): Equipamento[] {
       localizacao: 'Armário 01',
       requerTreinamento: false,
       prazoMaximoDias: 7,
+      valorUnitario: 499,
       quantidadeDisponivel: 0,
       quantidadeTotal: 2,
       quantidadeEmManutencao: 2, // as duas estão na assistência (ver ManutencaoService)
@@ -140,6 +147,7 @@ export function criarEquipamentosDemo(): Equipamento[] {
       localizacao: 'Sala de prototipagem',
       requerTreinamento: true,
       prazoMaximoDias: 5,
+      valorUnitario: 1499,
       quantidadeDisponivel: 1,
       quantidadeTotal: 2,
       criadoEm: '2026-08-20',
@@ -154,6 +162,7 @@ export function criarEquipamentosDemo(): Equipamento[] {
       localizacao: 'Sala de corte',
       requerTreinamento: true,
       prazoMaximoDias: 3,
+      valorUnitario: 7900,
       quantidadeDisponivel: 1,
       quantidadeTotal: 1,
       criadoEm: '2026-08-22',
@@ -168,6 +177,7 @@ export function criarEquipamentosDemo(): Equipamento[] {
       localizacao: 'Bancada 01',
       requerTreinamento: true,
       prazoMaximoDias: 7,
+      valorUnitario: 3200,
       quantidadeDisponivel: 1,
       quantidadeTotal: 1,
       criadoEm: '2026-09-01',

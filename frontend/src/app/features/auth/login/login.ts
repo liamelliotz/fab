@@ -1,3 +1,4 @@
+import { Acessibilidade } from '../../../shared/components/acessibilidade/acessibilidade';
 import { Component, inject, signal } from '@angular/core';
 // HttpErrorResponse: tipo do erro que o HttpClient devolve (traz o status, ex.: 401)
 import { HttpErrorResponse } from '@angular/common/http';
@@ -15,7 +16,7 @@ import { AuthService } from '../../../core/services/auth.service';
   selector: 'app-login', // tag: <app-login>
   standalone: true,
   // Tudo que o template usa precisa estar listado aqui
-  imports: [ReactiveFormsModule, RouterLink, Button, Input],
+  imports: [ReactiveFormsModule, RouterLink, Button, Input, Acessibilidade],
   templateUrl: './login.html',
   styleUrl: './login.css',
 })
@@ -55,6 +56,14 @@ export class Login {
     if (control.hasError('email')) return 'E-mail inválido';
     if (control.hasError('minlength')) return 'A senha deve ter ao menos 6 caracteres';
     return '';
+  }
+
+  /** Modo demonstração: mostra os botões de acesso rápido. */
+  readonly modoDemo = this.auth.modoDemo;
+
+  /** Acesso rápido (só no modo demonstração): entra sem digitar a senha. */
+  entrarDemo(id: string): void {
+    if (this.auth.entrarComoDemo(id)) this.router.navigate([this.auth.rotaInicial()]);
   }
 
   // Chamado ao clicar em "Entrar" (evento ngSubmit do formulário)

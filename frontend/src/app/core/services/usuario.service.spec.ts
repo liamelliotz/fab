@@ -32,11 +32,11 @@ describe('UsuarioService com a API (cards A6 e A7)', () => {
   }
 
   it('com a API, nenhuma conta nem senha fica no navegador (e a sobra da demonstração é apagada)', () => {
-    localStorage.setItem('fab_demo_v6_usuarios', '[{"email":"professor@fab.com"}]');
-    localStorage.setItem('fab_demo_v6_senhas', '{"professor@fab.com":"prof123"}');
+    localStorage.setItem('fab_demo_v8_usuarios', '[{"email":"professor@fab.com"}]');
+    localStorage.setItem('fab_demo_v8_senhas', '{"professor@fab.com":"prof123"}');
     iniciar();
-    expect(localStorage.getItem('fab_demo_v6_usuarios')).toBeNull();
-    expect(localStorage.getItem('fab_demo_v6_senhas')).toBeNull();
+    expect(localStorage.getItem('fab_demo_v8_usuarios')).toBeNull();
+    expect(localStorage.getItem('fab_demo_v8_senhas')).toBeNull();
     expect(JSON.stringify(localStorage)).not.toContain('prof123');
   });
 

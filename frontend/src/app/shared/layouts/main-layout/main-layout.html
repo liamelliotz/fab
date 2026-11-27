@@ -1,4 +1,6 @@
 <a class="pular-conteudo" href="#conteudo" (click)="pularParaConteudo($event)">Pular para o conteúdo</a>
+<!-- Anuncia a troca de página para leitores de tela (NVDA) -->
+<p class="sr-only" aria-live="polite" aria-atomic="true">{{ anuncio() }}</p>
 <div class="layout">
   <app-navbar />
   <main id="conteudo" class="content" tabindex="-1">

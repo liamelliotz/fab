@@ -47,6 +47,24 @@
       }
     </fieldset>
 
+    <div class="td__local">
+      <label class="td__campo">
+        <span><i class="fa-solid fa-location-dot" aria-hidden="true"></i> Onde o material ficará</span>
+        <select (change)="localId.set($any($event.target).value)">
+          <option value="" [selected]="!localId()">Continua em {{ localAtual() }}</option>
+          @for (l of locais; track l.id) {
+            <option [value]="l.id" [selected]="l.id === localId()">{{ l.nome }}</option>
+          }
+        </select>
+      </label>
+      @if (localId()) {
+        <label class="td__campo">
+          <span>Turma ou atividade</span>
+          <input type="text" maxlength="80" placeholder="Ex.: 3º módulo" [value]="localDetalhe()" (input)="localDetalhe.set($any($event.target).value)" />
+        </label>
+      }
+    </div>
+
     <label class="td__campo">
       <span>Motivo da transferência</span>
       <textarea

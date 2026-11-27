@@ -1,3 +1,5 @@
+import { InventarioAbas } from '../../../shared/components/inventario-abas/inventario-abas';
+import { RouterLink } from '@angular/router';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FiltroEquipamentoDTO } from '../../../core/models/equipamento.model';
 import { EquipamentoService } from '../../../core/services/equipamento.service';
@@ -7,7 +9,7 @@ import { EquipamentoFiltros } from '../components/equipamento-filtros/equipament
 @Component({
   selector: 'app-equipamento-lista',
   standalone: true,
-  imports: [EquipamentoCard, EquipamentoFiltros],
+  imports: [EquipamentoCard, EquipamentoFiltros, RouterLink, InventarioAbas],
   templateUrl: './equipamento-lista.html',
   styleUrl: './equipamento-lista.css',
 })

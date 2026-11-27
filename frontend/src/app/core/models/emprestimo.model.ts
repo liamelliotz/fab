@@ -73,6 +73,14 @@ export interface EventoEmprestimo {
   detalhe?: string;
 }
 
+/** Onde o material será usado (um local da escola) e para quê. Alimenta o mapa de itens. */
+export interface LocalUsoEmprestimo {
+  /** Id do local (veja core/constants/escola-modelo.constants.ts). */
+  localId: string;
+  /** Turma, aula ou atividade (ex.: "2º módulo · aula de lógica"). */
+  detalhe?: string;
+}
+
 /**
  * Pedido de realocação: o responsável atual quer passar o equipamento a outro professor
  * sem devolvê-lo ao laboratório. Até o destinatário aceitar, o responsável continua sendo `de`.
@@ -82,6 +90,8 @@ export interface TransferenciaEmprestimo {
   para: UsuarioResumo;
   motivo: string;
   solicitadaEm: string;
+  /** Onde o material passará a ser usado, se mudar de lugar com a transferência. */
+  localUso?: LocalUsoEmprestimo;
 }
 
 /**
@@ -145,11 +155,20 @@ export interface Emprestimo {
   /** Parecer obrigatório preenchido pelo gestor em caso de reprovação */
   motivoRejeicao?: string;
 
+  /** Motivo obrigatório informado por quem cancelou o pedido antes da retirada */
+  motivoCancelamento?: string;
+
   /** Checklist ou registro de avarias/ressalvas anotadas na devolução */
   observacoesDevolucao?: string;
 
   /** Ocorrências (avarias e faltas) abertas na devolução deste pedido. Veja manutencao.model.ts. */
   ocorrenciaIds?: string[];
+
+  /** Onde o material está sendo (ou será) usado. Muda na retirada e na transferência, sempre com registro. */
+  localUso?: LocalUsoEmprestimo;
+
+  /** true quando o responsável aceitou o termo de responsabilidade na retirada. */
+  termoAceito?: boolean;
 }
 
 /**
@@ -171,6 +190,9 @@ export interface SolicitarEmprestimoDTO {
 
   /** Data programada para entrega (ISO 8601: `YYYY-MM-DDTHH:mm:ss.sssZ`) */
   dataPrevistaDevolucao: string;
+
+  /** Onde o material será usado (sala, laboratório...) e para qual turma ou atividade. */
+  localUso?: LocalUsoEmprestimo;
 }
 
 /**

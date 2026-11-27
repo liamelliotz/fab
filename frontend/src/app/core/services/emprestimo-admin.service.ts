@@ -3,7 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Observable, defer, of } from 'rxjs';
 import { ApiService } from './api.service';
 import { AuthService } from './auth.service';
-import { EmprestimoService } from './emprestimo.service';
+import { EmprestimoService, OpcoesRetirada } from './emprestimo.service';
 import { EquipamentoService } from './equipamento.service';
 import { ENDPOINTS } from '../constants/api.constants';
 import { AvaliarEmprestimoDTO, Emprestimo, FiltroEmprestimoDTO } from '../models/emprestimo.model';
@@ -75,11 +75,15 @@ export class EmprestimoAdminService {
     });
   }
 
-  retirar(texto: string): Observable<Emprestimo> {
+  /**
+   * `opcoes` (local de uso confirmado e termo aceito) vale no modo demonstração.
+   * A API do C5 recebe só o código; o local entra quando a rota de locais existir.
+   */
+  retirar(texto: string, opcoes?: OpcoesRetirada): Observable<Emprestimo> {
     const codigo = normalizarCodigo(texto);
     if (!this.modoDemo) return this.api.post(ENDPOINTS.emprestimos.balcao.retirada, { codigo });
     return defer(() => {
-      const resultado = this.demo.confirmarRetirada(codigo);
+      const resultado = this.demo.confirmarRetirada(codigo, opcoes);
       if (!resultado.ok) throw this.erro(409, resultado.erro);
       return of(this.prepararDemo(resultado.valor));
     });

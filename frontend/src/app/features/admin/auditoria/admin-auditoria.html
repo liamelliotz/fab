@@ -1,0 +1,132 @@
+<div class="pagina-auditoria">
+  <header class="cabecalho">
+    <div>
+      <h1>Auditoria</h1>
+      <p>Registro de tudo o que aconteceu com equipamentos e insumos. Os registros não podem ser alterados nem apagados.</p>
+    </div>
+    <button type="button" class="btn-principal" (click)="exportar()" [disabled]="filtrados().length === 0">
+      <i class="fa-solid fa-file-arrow-down" aria-hidden="true"></i>
+      Exportar CSV
+    </button>
+  </header>
+
+  <div class="resumo">
+    <div class="card"><p>Registros no período</p><strong>{{ filtrados().length }}</strong></div>
+    <div class="card"><p>Baixas patrimoniais</p><strong>{{ baixas().length }}</strong></div>
+    <div class="card"><p>Valor baixado</p><strong class="menor">{{ moeda(valorBaixado()) }}</strong></div>
+    <div class="card"><p>Ocorrências abertas</p><strong>{{ ocorrenciasAbertas() }}</strong></div>
+    <div class="card"><p>Perdas de insumo</p><strong>{{ perdasInsumo() }}</strong></div>
+  </div>
+
+  <section class="painel" aria-labelledby="titulo-registros">
+    <div class="titulo-painel">
+      <div>
+        <h2 id="titulo-registros">Registros</h2>
+        <p>Do mais recente para o mais antigo.</p>
+      </div>
+      <div class="filtros">
+        <input type="search" placeholder="Buscar por protocolo, item ou pessoa" aria-label="Buscar registro"
+          [value]="busca()" (input)="filtrar(() => busca.set(valor($event)))" />
+        <select aria-label="Período" (change)="filtrar(() => periodo.set(+valor($event)))">
+          <option value="7" [selected]="periodo() === 7">Últimos 7 dias</option>
+          <option value="30" [selected]="periodo() === 30">Últimos 30 dias</option>
+          <option value="90" [selected]="periodo() === 90">Últimos 90 dias</option>
+          <option value="0" [selected]="periodo() === 0">Todo o período</option>
+        </select>
+        <select aria-label="Módulo" (change)="filtrar(() => modulo.set($any(valor($event))))">
+          <option value="" [selected]="modulo() === ''">Todos os módulos</option>
+          @for (m of modulos; track m) { <option [value]="m" [selected]="modulo() === m">{{ nomeModulo[m] }}</option> }
+        </select>
+        <select aria-label="Pessoa" (change)="filtrar(() => pessoa.set(valor($event)))">
+          <option value="" [selected]="pessoa() === ''">Todas as pessoas</option>
+          @for (p of pessoas(); track p) { <option [value]="p" [selected]="p === pessoa()">{{ p }}</option> }
+        </select>
+        <button type="button" class="btn-sutil" (click)="limparFiltros()">Limpar</button>
+      </div>
+    </div>
+
+    <div class="tabela-container">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Data e hora</th>
+            <th scope="col">Módulo</th>
+            <th scope="col">O que aconteceu</th>
+            <th scope="col">Referência</th>
+            <th scope="col">Feito por</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of visiveis(); track r.id) {
+            <tr [class.linha-critica]="r.gravidade === 'critico'">
+              <td class="data">{{ dataHora(r.em) }}</td>
+              <td>{{ nomeModulo[r.modulo] }}</td>
+              <td>
+                <strong>{{ r.acao }}</strong>
+                @if (r.itens) { <span class="sub">{{ r.itens }}</span> }
+                @if (r.detalhe) { <span class="sub">{{ r.detalhe }}</span> }
+              </td>
+              <td>
+                @if (r.ocorrenciaId) {
+                  <button type="button" class="link" (click)="abrirTermo(r.ocorrenciaId)">{{ r.alvo }} · ver termo</button>
+                } @else {
+                  <a class="link" [routerLink]="r.link">{{ r.alvo }}</a>
+                }
+              </td>
+              <td>{{ r.por }}</td>
+            </tr>
+          } @empty {
+            <tr><td colspan="5" class="sem-resultados">Nenhum registro com estes filtros.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <nav class="paginacao" aria-label="Páginas de registros">
+      <button type="button" [disabled]="pagina() <= 1" (click)="mudarPagina(-1)">Anterior</button>
+      <span>Página {{ pagina() }} de {{ totalPaginas() }} · {{ filtrados().length }} registros</span>
+      <button type="button" [disabled]="pagina() >= totalPaginas()" (click)="mudarPagina(1)">Próxima</button>
+    </nav>
+  </section>
+
+  <section class="painel" aria-labelledby="titulo-termos">
+    <div class="titulo-painel">
+      <div>
+        <h2 id="titulo-termos">Termos de baixa</h2>
+        <p>Bens retirados do acervo, com o motivo e quem autorizou.</p>
+      </div>
+    </div>
+    <div class="tabela-container">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Termo</th>
+            <th scope="col">Equipamento</th>
+            <th scope="col">Motivo</th>
+            <th scope="col">Data</th>
+            <th scope="col">Autorizado por</th>
+            <th scope="col"><span class="sr-only">Ações</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (m of baixas(); track m.id) {
+            <tr>
+              <td><strong>{{ m.baixa!.protocolo }}</strong></td>
+              <td>{{ m.equipamento }} × {{ m.quantidade }}<span class="sub">{{ m.codigoPatrimonio }}</span></td>
+              <td>{{ nomeMotivoBaixa[m.baixa!.motivo] }}</td>
+              <td class="data">{{ dataHora(m.baixa!.em) }}</td>
+              <td>{{ m.baixa!.autorizadoPor.nome }}</td>
+              <td><button type="button" class="btn-sutil" (click)="termoAberto.set(m)">Ver termo</button></td>
+            </tr>
+          } @empty {
+            <tr><td colspan="6" class="sem-resultados">Nenhuma baixa registrada.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+@if (termoAberto(); as m) {
+  <app-termo-baixa [ocorrencia]="m" (fechar)="termoAberto.set(null)" />
+}

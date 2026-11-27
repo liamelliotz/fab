@@ -44,6 +44,7 @@
 
 .campo {
   display: flex;
+  min-width: 0;
   flex-direction: column;
   gap: 6px;
   color: #172b24;
@@ -58,6 +59,9 @@
 .campo input,
 .campo select,
 .campo textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
   padding: 10px 12px;
   border: 1px solid #d5ddd9;
   border-radius: 8px;
@@ -169,7 +173,7 @@
 
 @media (max-width: 640px) {
   .formulario {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .campo:empty {

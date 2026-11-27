@@ -1,0 +1,132 @@
+<div class="req">
+  <div class="req__topo">
+    <p>
+      O professor informa a quantidade prevista. <strong>Aprovar</strong> reserva o insumo; <strong>Entregar</strong> registra a
+      saída do estoque. Recusar exige motivo.
+    </p>
+    <select aria-label="Filtrar requisições" (change)="mudarFiltro($event)">
+      <option value="abertas" [selected]="filtro() === 'abertas'">Em aberto</option>
+      <option value="pendente" [selected]="filtro() === 'pendente'">Aguardando aprovação</option>
+      <option value="aprovada" [selected]="filtro() === 'aprovada'">Aprovadas, a entregar</option>
+      <option value="entregue" [selected]="filtro() === 'entregue'">Entregues</option>
+      <option value="recusada" [selected]="filtro() === 'recusada'">Recusadas</option>
+      <option value="cancelada" [selected]="filtro() === 'cancelada'">Canceladas</option>
+      <option value="todas" [selected]="filtro() === 'todas'">Todas</option>
+    </select>
+  </div>
+
+  <div class="req__tabela">
+    <table>
+      <thead>
+        <tr><th>Protocolo</th><th>Professor</th><th>Insumo e finalidade</th><th>Quantidade</th><th>Uso</th><th>Situação</th><th><span class="sr-only">Ações</span></th></tr>
+      </thead>
+      <tbody>
+        @for (r of lista(); track r.id) {
+          <tr>
+            <td><button type="button" class="req__protocolo" (click)="abrir('historico', r)" [attr.aria-label]="'Ver histórico de ' + r.protocolo">{{ r.protocolo }}</button></td>
+            <td>{{ r.solicitante.nome }}@if (r.turma) {<span class="sub">{{ r.turma }}</span>}</td>
+            <td><strong>{{ r.insumo.nome }}</strong><span class="sub">{{ r.finalidade }}</span></td>
+            <td class="num">
+              {{ qtd(r.quantidade) }} {{ nomeUnidade[r.insumo.unidadeMedida] }}
+              @if (r.status === 'pendente') {
+                <span class="sub">disponível: {{ qtd(service.disponivel(r.insumo.id)) }}</span>
+              }
+              @if (r.quantidadeEntregue !== undefined) {<span class="sub">entregue: {{ qtd(r.quantidadeEntregue) }}</span>}
+              @if (r.quantidadeDevolvida !== undefined) {<span class="sub">sobra: {{ qtd(r.quantidadeDevolvida) }}</span>}
+            </td>
+            <td class="num">{{ data(r.dataUso) }}<span class="sub">{{ local(r.localId) }}</span></td>
+            <td>
+              <span class="status status--{{ r.status }}">{{ nomeStatus[r.status] }}</span>
+              @if (r.motivo) {<span class="sub">{{ r.motivo }}</span>}
+            </td>
+            <td class="req__acoes">
+              @switch (r.status) {
+                @case ('pendente') {
+                  <button type="button" class="btn btn--ok" (click)="aprovar(r)">Aprovar</button>
+                  <button type="button" class="btn" (click)="abrir('recusar', r)">Recusar</button>
+                }
+                @case ('aprovada') {
+                  <button type="button" class="btn btn--ok" (click)="abrir('entregar', r)">Entregar</button>
+                  <button type="button" class="btn" (click)="abrir('recusar', r)">Recusar</button>
+                }
+                @case ('entregue') {
+                  @if (r.quantidadeDevolvida === undefined) {
+                    <button type="button" class="btn" (click)="abrir('sobra', r)">Registrar sobra</button>
+                  }
+                }
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="7" class="vazio">Nenhuma requisição nesta situação.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+@if (dialogo(); as d) {
+  <div class="fundo" (click)="dialogo.set(null)">
+    <div class="dialogo" role="dialog" aria-modal="true" aria-labelledby="req-dialogo-titulo" appDialogo
+      (fecharDialogo)="dialogo.set(null)" (click)="$event.stopPropagation()">
+      @switch (d.acao) {
+        @case ('recusar') {
+          <h2 id="req-dialogo-titulo">Recusar {{ d.req.protocolo }}</h2>
+          <p class="resumo">{{ d.req.solicitante.nome }} · {{ d.req.insumo.nome }} · {{ qtd(d.req.quantidade) }} {{ nomeUnidade[d.req.insumo.unidadeMedida] }}</p>
+          <label class="campo">
+            <span>Motivo da recusa <span class="obrig">*</span></span>
+            <textarea rows="3" maxlength="300" placeholder="Ex.: use o material que já está no laboratório" [value]="texto()" (input)="escrever($event)"></textarea>
+            <small>O professor verá este motivo. Mínimo de {{ minimo }} caracteres.</small>
+          </label>
+        }
+        @case ('entregar') {
+          <h2 id="req-dialogo-titulo">Entregar {{ d.req.protocolo }}</h2>
+          <p class="resumo">
+            Para <strong>{{ d.req.solicitante.nome }}</strong>, uso em {{ local(d.req.localId) }} no dia {{ data(d.req.dataUso) }}.
+            A saída entra no estoque com o protocolo.
+          </p>
+          <label class="campo">
+            <span>Quantidade entregue ({{ nomeUnidade[d.req.insumo.unidadeMedida] }}) <span class="obrig">*</span></span>
+            <input type="number" min="0" [max]="d.req.quantidade" [step]="passo(d.req)" [value]="texto()" (input)="escrever($event)" />
+            <small>Aprovado: {{ qtd(d.req.quantidade) }}. Pode entregar menos, nunca mais.</small>
+          </label>
+        }
+        @case ('sobra') {
+          <h2 id="req-dialogo-titulo">Sobra de {{ d.req.protocolo }}</h2>
+          <p class="resumo">Entregue: {{ qtd(d.req.quantidadeEntregue ?? 0) }} {{ nomeUnidade[d.req.insumo.unidadeMedida] }}. A sobra volta ao estoque e o consumo real é ajustado.</p>
+          <label class="campo">
+            <span>Quantidade que voltou ({{ nomeUnidade[d.req.insumo.unidadeMedida] }}) <span class="obrig">*</span></span>
+            <input type="number" min="0" [max]="d.req.quantidadeEntregue ?? 0" [step]="passo(d.req)" [value]="texto()" (input)="escrever($event)" />
+          </label>
+        }
+        @case ('historico') {
+          <h2 id="req-dialogo-titulo">Histórico de {{ d.req.protocolo }}</h2>
+          <p class="resumo">{{ d.req.insumo.nome }} · {{ d.req.finalidade }}</p>
+          <ol class="historico">
+            @for (ev of d.req.historico; track $index) {
+              <li>
+                <strong>{{ nomeAcao[ev.acao] }}</strong>
+                <span>{{ dataHora(ev.em) }} · {{ ev.por.nome }}</span>
+                @if (ev.detalhe) {<span>{{ ev.detalhe }}</span>}
+              </li>
+            }
+          </ol>
+        }
+      }
+
+      @if (erro()) {
+        <p class="erro" role="alert">{{ erro() }}</p>
+      }
+
+      <div class="acoes">
+        <button type="button" class="btn" (click)="dialogo.set(null)">{{ d.acao === 'historico' ? 'Fechar' : 'Voltar' }}</button>
+        @if (d.acao !== 'historico') {
+          <button type="button" class="btn" [class.btn--ok]="d.acao !== 'recusar'" [class.btn--perigo]="d.acao === 'recusar'"
+            [disabled]="d.acao === 'recusar' && texto().trim().length < minimo" (click)="confirmar()">
+            {{ d.acao === 'recusar' ? 'Confirmar recusa' : d.acao === 'entregar' ? 'Confirmar entrega' : 'Registrar sobra' }}
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,117 @@
+<section class="pagina">
+  <app-inventario-abas />
+  <p class="intro">
+    Material de consumo, como filamento, papel e componentes. Informe quanto prevê usar; a coordenação aprova e entrega
+    no balcão. O que você usar não volta ao estoque, só a sobra. Acompanhe em
+    <a routerLink="/meus-emprestimos" [queryParams]="{ aba: 'insumos' }">Meus pedidos › Insumos</a>.
+  </p>
+
+  <!-- Catálogo -->
+  <section class="painel" aria-labelledby="titulo-catalogo">
+    <div class="titulo-painel">
+      <div>
+        <h2 id="titulo-catalogo">Disponíveis para pedido</h2>
+        <p>"Disponível" já desconta o que outros professores reservaram.</p>
+      </div>
+      <div class="filtros">
+        <input type="search" aria-label="Buscar insumo" placeholder="Buscar insumo" [value]="busca()" (input)="busca.set(valor($event))" />
+        <select aria-label="Filtrar por categoria" (change)="categoria.set($any(valor($event)))">
+          <option value="">Todas as categorias</option>
+          @for (c of categorias; track c) {
+            <option [value]="c" [selected]="categoria() === c">{{ nomeCategoria[c] }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="tabela-container">
+      <table>
+        <thead>
+          <tr><th>Insumo</th><th>Categoria</th><th>Disponível</th><th>Situação</th><th><span class="sr-only">Ação</span></th></tr>
+        </thead>
+        <tbody>
+          @for (c of catalogo(); track c.insumo.id) {
+            @let s = situacao(c.disponivel, c.insumo);
+            <tr>
+              <td>
+                <strong>{{ c.insumo.nome }}</strong>
+                @if (c.insumo.descricao) {<span class="sub">{{ c.insumo.descricao }}</span>}
+              </td>
+              <td>{{ nomeCategoria[c.insumo.categoria] }}</td>
+              <td class="numero">{{ qtd(c.disponivel) }} {{ nomeUnidade[c.insumo.unidadeMedida] }}</td>
+              <td>
+                <span class="situacao situacao--{{ s }}">
+                  {{ s === 'ok' ? 'Disponível' : s === 'pouco' ? 'Poucas unidades' : 'Sem saldo' }}
+                </span>
+              </td>
+              <td class="acao">
+                <button type="button" class="btn" [disabled]="s === 'sem'" (click)="abrirPedido(c.insumo, c.disponivel)"
+                  [attr.aria-label]="'Pedir ' + c.insumo.nome">
+                  Pedir
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="5" class="vazio">Nenhum insumo encontrado.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</section>
+
+@if (pedindo(); as p) {
+  <div class="fundo" (click)="pedindo.set(null)">
+    <form class="dialogo" novalidate role="dialog" aria-modal="true" aria-labelledby="titulo-pedido" appDialogo
+      (fecharDialogo)="pedindo.set(null)" (click)="$event.stopPropagation()" (submit)="$event.preventDefault(); enviarPedido()">
+      <h2 id="titulo-pedido">Pedir {{ p.insumo.nome }}</h2>
+      <p class="dialogo__resumo">
+        Disponível agora: <strong>{{ qtd(p.disponivel) }} {{ nomeUnidade[p.insumo.unidadeMedida] }}</strong>
+      </p>
+
+      <div class="grade">
+        <label class="campo">
+          <span>Quantidade prevista ({{ nomeUnidade[p.insumo.unidadeMedida] }}) <span class="obrig">*</span></span>
+          <input type="number" inputmode="decimal" min="0" [step]="passo(p.insumo)" [max]="p.disponivel"
+            [value]="p.form.quantidade" (input)="campo('quantidade', $event)" required />
+        </label>
+        <label class="campo">
+          <span>Dia de uso <span class="obrig">*</span></span>
+          <input type="date" [min]="hoje" [max]="dataMaxima" [value]="p.form.dataUso" (input)="campo('dataUso', $event)" required />
+        </label>
+        <label class="campo">
+          <span>Onde será usado <span class="obrig">*</span></span>
+          <select (change)="campo('localId', $event)" required>
+            <option value="" [selected]="!p.form.localId">Selecione</option>
+            @for (l of locais; track l.id) {
+              <option [value]="l.id" [selected]="p.form.localId === l.id">{{ l.nome }}</option>
+            }
+          </select>
+        </label>
+        <label class="campo">
+          <span>Turma <span class="opc">opcional</span></span>
+          <input type="text" maxlength="60" placeholder="Ex.: 2º módulo" [value]="p.form.turma" (input)="campo('turma', $event)" />
+        </label>
+        <label class="campo campo--largo">
+          <span>Para que vai usar <span class="obrig">*</span></span>
+          <textarea rows="3" maxlength="300" placeholder="Ex.: impressão das peças do projeto integrador da turma"
+            [value]="p.form.finalidade" (input)="campo('finalidade', $event)" aria-describedby="dica-finalidade"></textarea>
+          <small id="dica-finalidade">
+            @if (faltamFinalidade() > 0) { Faltam {{ faltamFinalidade() }} caractere(s). } @else { Ok. }
+          </small>
+        </label>
+      </div>
+
+      @if (erroPedido()) {
+        <p class="erro" role="alert">{{ erroPedido() }}</p>
+      }
+
+      <div class="dialogo__acoes">
+        <button type="button" class="btn btn--secundario" (click)="pedindo.set(null)">Voltar</button>
+        <button type="submit" class="btn btn--principal">Enviar requisição</button>
+      </div>
+    </form>
+  </div>
+}
+
