@@ -25,7 +25,7 @@ export class DemoService {
   private readonly requisicoes = inject(RequisicaoInsumoService);
   private readonly assistencias = inject(AssistenciaService);
 
-  /** true enquanto a janela "Restaurar dados" está aberta (atalho ou barra da demonstração). */
+  /** true enquanto a janela "Restaurar dados" está aberta (atalho Ctrl + Alt + Shift + R). */
   readonly confirmandoRestauracao = signal(false);
 
   /** true quando o app está no modo demonstração (sem servidor). */

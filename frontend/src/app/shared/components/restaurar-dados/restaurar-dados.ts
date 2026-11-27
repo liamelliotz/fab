@@ -19,7 +19,7 @@ export class RestaurarDados {
   private readonly dados = inject(DemoService);
   private readonly avisos = inject(NotificationService);
 
-  /** Janela aberta: fica no DemoService para a barra da demonstração também poder abrir. */
+  /** Janela aberta: o estado fica no DemoService. */
   readonly confirmando = this.dados.confirmandoRestauracao;
 
   @HostListener('document:keydown', ['$event'])
