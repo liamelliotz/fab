@@ -68,6 +68,12 @@ export interface Equipamento {
    */
   prazoMaximoDias: number;
 
+  /**
+   * Valor patrimonial de UMA unidade, em reais (nota fiscal ou avaliação). Usado para calcular
+   * sozinho o valor da baixa e o valor do acervo. Opcional só para itens antigos sem valor.
+   */
+  valorUnitario?: number;
+
   /** Quantidade física pronta para ser cedida no presente momento */
   quantidadeDisponivel: number;
 
@@ -100,6 +106,8 @@ export interface CriarEquipamentoDTO {
   requerTreinamento: boolean;
   quantidadeTotal: number;
   prazoMaximoDias: number;
+  /** Valor de uma unidade em R$ (obrigatório no cadastro). */
+  valorUnitario: number;
 }
 
 /**
@@ -115,6 +123,7 @@ export interface AtualizarEquipamentoDTO {
   requerTreinamento?: boolean;
   quantidadeTotal?: number;
   prazoMaximoDias?: number;
+  valorUnitario?: number;
 }
 
 /**

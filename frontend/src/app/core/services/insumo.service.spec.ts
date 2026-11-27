@@ -61,15 +61,34 @@ describe('Insumos (demonstração)', () => {
   });
 
   it('cadastro com saldo inicial vira uma movimentação; nome repetido é recusado', () => {
-    expect(insumos.cadastrar({ nome: 'Pilhas AA', categoria: 'outros', unidadeMedida: 'un', estoqueMinimo: 1, localizacao: 'Coordenação' }).ok).toBe(false);
+    expect(insumos.cadastrar({ nome: 'Pilhas AA', categoria: 'outros', unidadeMedida: 'un', estoqueMinimo: 1, localizacao: 'Coordenação', valorUnitario: 4.5, perecivel: false }).ok).toBe(false);
     const r = insumos.cadastrar({
       nome: 'Cola quente', categoria: 'outros', unidadeMedida: 'un', estoqueMinimo: 5, quantidadeInicial: 12, localizacao: 'Lab. Maker',
+      valorUnitario: 2.5, perecivel: false,
     });
     expect(r.ok).toBe(true);
     if (!r.ok) return;
     expect(r.valor).toMatchObject({ quantidadeAtual: 12, estoqueBaixo: false });
     expect(insumos.doInsumo(r.valor.id)).toHaveLength(1);
     expect(insumos.localDeGuarda(r.valor)).toBe('lab-maker');
+  });
+
+  it('cadastro exige valor; perecível exige validade (no cadastro e em cada compra)', () => {
+    const base = { categoria: 'limpeza' as const, unidadeMedida: 'l' as const, estoqueMinimo: 1, localizacao: 'Lab. Maker' };
+    expect(insumos.validarCadastro({ ...base, nome: 'Cola branca', valorUnitario: NaN, perecivel: false })).toContain('Valor');
+    expect(insumos.validarCadastro({ ...base, nome: 'Cola branca', valorUnitario: 0, perecivel: false })).toContain('maior que zero');
+    expect(insumos.validarCadastro({ ...base, nome: 'Cola branca', valorUnitario: 9.9, perecivel: true })).toContain('validade');
+    expect(insumos.validarCadastro({ ...base, nome: 'Cola branca', valorUnitario: 9.9, perecivel: true, validade: '2020-01-01' })).toContain('passou');
+    const r = insumos.cadastrar({ ...base, nome: 'Cola branca', valorUnitario: 9.9, perecivel: true, validade: '2099-12-31' });
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.valor).toMatchObject({ valorUnitario: 9.9, perecivel: true, validade: '2099-12-31' });
+    // Compra de perecível sem validade do lote é recusada
+    const semLote = insumos.movimentar(r.valor.id, { tipo: 'entrada', motivo: 'compra', quantidade: 2, documento: 'NF 9' });
+    expect(semLote.ok).toBe(false);
+    const comLote = insumos.movimentar(r.valor.id, { tipo: 'entrada', motivo: 'compra', quantidade: 2, documento: 'NF 9', validadeLote: '2099-06-30' });
+    expect(comLote.ok).toBe(true);
+    expect(insumos.buscarPorId(r.valor.id)!.validade).toBe('2099-06-30');
   });
 
   it('previsão de término usa só o consumo em aula', () => {

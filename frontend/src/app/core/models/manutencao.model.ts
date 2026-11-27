@@ -50,7 +50,10 @@ export interface RegistroBaixa {
   laudo?: string;
   /** Número do processo administrativo ou do boletim de ocorrência. */
   processo?: string;
-  /** Valor estimado do bem baixado, em reais (para a prestação de contas). */
+  /**
+   * Valor do bem baixado, em reais (prestação de contas). Calculado pelo sistema:
+   * valor unitário do cadastro × unidades baixadas. Ninguém digita, ninguém altera.
+   */
   valorEstimado?: number;
   /** Quem estava com o item foi informado da baixa (obrigatório quando havia responsável). */
   responsavelCiente: boolean;
@@ -95,8 +98,10 @@ export interface Manutencao {
   registradoPor: UsuarioResumo;
   /** true quando a unidade saiu do estoque por causa desta ocorrência. */
   bloqueia: boolean;
-  /** Nome da assistência técnica, quando houver. */
+  /** Nome da assistência técnica, quando houver (guardado para o histórico). */
   assistencia?: string;
+  /** Assistência credenciada que recebeu o equipamento (AssistenciaService). */
+  assistenciaId?: string;
   status: StatusManutencao;
   /** ISO 8601 completo. */
   dataRegistro: string;

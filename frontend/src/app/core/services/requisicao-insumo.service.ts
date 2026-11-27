@@ -16,7 +16,7 @@ import { AuthService } from './auth.service';
 import { InsumoService, NOME_UNIDADE, formatarQuantidade } from './insumo.service';
 import { resumoDemo } from './usuario.service';
 
-const CHAVE = 'fab_demo_v7_requisicoes_insumo';
+const CHAVE = 'fab_demo_v8_requisicoes_insumo';
 
 /** Prazo máximo, em dias, entre o pedido e o dia de uso. */
 export const ANTECEDENCIA_MAXIMA_DIAS = 30;

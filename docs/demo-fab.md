@@ -61,6 +61,10 @@ Esta parte vale para a apresentação **sem backend**, com dados salvos no naveg
 | 20 | **Navegação organizada**: menu lateral com nomes e grupos (Operação, Acervo, Gestão), usuário e acessibilidade no rodapé; vira só ícones em telas médias e faixa no topo no celular | Todas |
 | 21 | **Painel "O que fazer agora"**: lista única, do mais urgente ao menos urgente (atrasos, pedidos, balcão de hoje, manutenção, insumos a repor), com o botão que leva direto à ação; resumo do acervo ao lado | Painel |
 | 22 | **Sem aparência de protótipo**: nenhum aviso de demonstração na tela. Restaurar os dados iniciais continua no atalho Ctrl + Alt + Shift + R | Todas |
+| 23 | **Valor do patrimônio**: equipamento e insumo têm valor unitário obrigatório; a **baixa calcula o valor sozinha** (valor × unidades), sem digitação | Inventário / Manutenção |
+| 24 | **Insumo perecível**: marcar como perecível obriga a validade no cadastro e em cada compra | Inventário › Insumos |
+| 25 | **Assistências credenciadas**: cadastro com CNPJ validado, especialidades e prazo; o conserto só vai para quem está em dia e conserta aquela categoria | Manutenção › Assistências credenciadas |
+| 26 | **VLibras e NVDA**: tradutor de Libras do Governo Federal (liga e desliga em Acessibilidade) e anúncio de troca de página para leitores de tela | Todas |
 
 ## 2. Regras da realocação (transferência)
 

@@ -40,8 +40,8 @@ export const NOME_STATUS_EMPRESTIMO: Record<StatusEmprestimo, string> = {
   cancelado: 'Cancelado',
 };
 
-const CHAVE_EMPRESTIMOS = 'fab_demo_v7_emprestimos';
-const CHAVE_AVISOS = 'fab_demo_v7_avisos';
+const CHAVE_EMPRESTIMOS = 'fab_demo_v8_emprestimos';
+const CHAVE_AVISOS = 'fab_demo_v8_avisos';
 
 /** Aviso mostrado à coordenação (substitui o e-mail/notificação do sistema real). */
 export interface AvisoAdmin {

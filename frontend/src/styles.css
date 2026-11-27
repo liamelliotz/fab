@@ -172,3 +172,10 @@ html select:not(:focus):not([aria-invalid='true']):not(.ng-invalid.ng-touched),
 html textarea:not(:focus):not([aria-invalid='true']):not(.ng-invalid.ng-touched) {
   border-color: #7d8984 !important;
 }
+
+/* VLibras não sai na impressão (termos de baixa, relatórios) */
+@media print {
+  div[vw] {
+    display: none !important;
+  }
+}

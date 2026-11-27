@@ -5,6 +5,7 @@ import { EquipamentoService } from './equipamento.service';
 import { InsumoService } from './insumo.service';
 import { ManutencaoService } from './manutencao.service';
 import { RequisicaoInsumoService } from './requisicao-insumo.service';
+import { AssistenciaService } from './assistencia.service';
 import { UsuarioService } from './usuario.service';
 
 /**
@@ -22,6 +23,7 @@ export class DemoService {
   private readonly manutencoes = inject(ManutencaoService);
   private readonly insumos = inject(InsumoService);
   private readonly requisicoes = inject(RequisicaoInsumoService);
+  private readonly assistencias = inject(AssistenciaService);
 
   /** true enquanto a janela "Restaurar dados" está aberta (atalho ou barra da demonstração). */
   readonly confirmandoRestauracao = signal(false);
@@ -37,5 +39,6 @@ export class DemoService {
     this.manutencoes.reiniciar();
     this.insumos.reiniciar();
     this.requisicoes.reiniciar();
+    this.assistencias.reiniciar();
   }
 }

@@ -1,3 +1,4 @@
+import { formatarMoeda, lerMoeda, moedaParaCampo } from '../../../core/utils/moeda.utils';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { RequisicaoInsumoService } from '../../../core/services/requisicao-insumo.service';
 import { InventarioAbas } from '../../../shared/components/inventario-abas/inventario-abas';
@@ -23,7 +24,7 @@ import {
 import { NotificationService } from '../../../core/services/notification.service';
 import { UsuarioService } from '../../../core/services/usuario.service';
 import { baixarArquivo } from '../../../core/utils/arquivo.utils';
-import { formatarData, formatarDataHora } from '../../../core/utils/date.utils';
+import { formatarData, formatarDataHora, hojeISO } from '../../../core/utils/date.utils';
 import { DialogoDirective } from '../../../shared/directives/dialogo.directive';
 
 type Aba = 'estoque' | 'movimentacoes' | 'consumo';
@@ -37,6 +38,9 @@ interface FormInsumo {
   estoqueMinimo: number;
   quantidadeInicial: number;
   fornecedor: string;
+  /** Texto digitado: "119,90" */
+  valorUnitario: string;
+  perecivel: boolean;
   validade: string;
   localizacao: string;
 }
@@ -54,7 +58,7 @@ interface FormMovimentacao {
 
 const FORM_VAZIO: FormInsumo = {
   nome: '', descricao: '', categoria: 'eletronica', unidadeMedida: 'un', estoqueMinimo: 1,
-  quantidadeInicial: 0, fornecedor: '', validade: '', localizacao: '',
+  quantidadeInicial: 0, fornecedor: '', valorUnitario: '', perecivel: false, validade: '', localizacao: '',
 };
 
 /**
@@ -79,6 +83,11 @@ export class AdminInsumos {
 
   readonly nomeCategoria = NOME_CATEGORIA_INSUMO;
   readonly nomeUnidade = NOME_UNIDADE;
+  readonly hoje = hojeISO();
+  /** "rolo(s)" → "rolo", "kg" → "kg" (rótulo do campo de valor). */
+  nomeUnidadeSingular(u: UnidadeMedida): string {
+    return NOME_UNIDADE[u].replace(/\(s\)$/, '');
+  }
   readonly nomeMotivo = NOME_MOTIVO_INSUMO;
   readonly categorias = Object.keys(NOME_CATEGORIA_INSUMO) as CategoriaInsumo[];
   readonly unidades = Object.keys(NOME_UNIDADE) as UnidadeMedida[];
@@ -131,6 +140,7 @@ export class AdminInsumos {
   readonly maiorConsumo = computed(() => Math.max(1, ...this.relatorio().map((c) => c.totalConsumido)));
 
   // ---------- Diálogos ----------
+  readonly moeda = formatarMoeda;
   readonly editando = signal<{ id: string | null; form: FormInsumo } | null>(null);
   readonly movimentando = signal<{ insumo: Insumo; form: FormMovimentacao } | null>(null);
   readonly erroDialogo = signal('');
@@ -221,6 +231,7 @@ export class AdminInsumos {
         nome: i.nome, descricao: i.descricao ?? '', categoria: i.categoria, unidadeMedida: i.unidadeMedida,
         estoqueMinimo: i.estoqueMinimo, quantidadeInicial: 0, fornecedor: i.fornecedor ?? '',
         validade: i.validade ?? '', localizacao: i.localizacao ?? '',
+        valorUnitario: moedaParaCampo(i.valorUnitario), perecivel: i.perecivel ?? false,
       },
     });
   }
@@ -236,7 +247,9 @@ export class AdminInsumos {
     const f = e.form;
     const dto = {
       nome: f.nome, descricao: f.descricao, categoria: f.categoria, unidadeMedida: f.unidadeMedida,
-      estoqueMinimo: f.estoqueMinimo, fornecedor: f.fornecedor, validade: f.validade || undefined,
+      estoqueMinimo: f.estoqueMinimo, fornecedor: f.fornecedor,
+      valorUnitario: lerMoeda(f.valorUnitario) ?? NaN, perecivel: f.perecivel,
+      validade: f.perecivel ? f.validade || undefined : undefined,
       localizacao: f.localizacao, quantidadeInicial: e.id ? undefined : f.quantidadeInicial || 0,
     };
     if (e.id) {

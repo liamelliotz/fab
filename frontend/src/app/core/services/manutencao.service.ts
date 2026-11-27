@@ -1,3 +1,5 @@
+import { AssistenciaTecnica } from '../models/assistencia.model';
+import { AssistenciaService, formatarCnpj } from './assistencia.service';
 import { Injectable, Injector, computed, effect, inject, signal } from '@angular/core';
 import {
   GravidadeAvaria,
@@ -18,9 +20,9 @@ import { EquipamentoService } from './equipamento.service';
 import { resumoDemo } from './usuario.service';
 import { EmprestimoService } from './emprestimo.service';
 
-const CHAVE_MANUTENCOES = 'fab_demo_v7_manutencoes';
+const CHAVE_MANUTENCOES = 'fab_demo_v8_manutencoes';
 /** Fotos ficam numa chave separada: se o navegador ficar sem espaço, só as fotos se perdem. */
-const CHAVE_FOTOS = 'fab_demo_v7_fotos';
+const CHAVE_FOTOS = 'fab_demo_v8_fotos';
 /** A demonstração guarda no máximo estas fotos (as mais novas). */
 const MAX_FOTOS = 12;
 
@@ -73,7 +75,6 @@ export interface DadosBaixa {
   parecer: string;
   laudo?: string;
   processo?: string;
-  valorEstimado?: number;
   responsavelCiente?: boolean;
   testemunha?: string;
   /** O número de patrimônio digitado de novo, como confirmação. */
@@ -109,11 +110,12 @@ function criarManutencoesDemo(): Manutencao[] {
       equipamento: 'Parafusadeira Bosch 12 V', codigoPatrimonio: 'PAT-0007', quantidade: 2,
       tipoAvaria: 'nao_liga', gravidade: 'grave',
       descricao: 'As duas baterias não seguram carga e a parafusadeira não liga.',
-      registradoPor: admin, bloqueia: true, assistencia: 'Tech Assistência', status: 'em_assistencia',
+      registradoPor: admin, bloqueia: true, assistencia: 'Oficina Norte Ferramentas', assistenciaId: 'ast-ferramentas',
+      status: 'em_assistencia',
       dataRegistro: horasDepoisISO(-10 * 24),
       historico: [
         passo(10, 'Encontrada com defeito na conferência do laboratório (2 unidades).'),
-        passo(8, 'Enviada para conserto: Tech Assistência.'),
+        passo(8, 'Enviada para conserto: Oficina Norte Ferramentas (assistência credenciada).'),
       ],
     },
     {
@@ -131,11 +133,11 @@ function criarManutencoesDemo(): Manutencao[] {
       equipamento: 'Notebook Lenovo IdeaPad 3', codigoPatrimonio: 'PAT-0003', quantidade: 1,
       tipoAvaria: 'nao_liga', gravidade: 'grave',
       descricao: 'Não liga depois de queda da bancada. Placa-mãe danificada.',
-      registradoPor: admin, bloqueia: true, assistencia: 'Tech Assistência', status: 'baixa',
+      registradoPor: admin, bloqueia: true, assistencia: 'Tech Assistência', assistenciaId: 'ast-tech', status: 'baixa',
       dataRegistro: horasDepoisISO(-48 * 24), dataConclusao: horasDepoisISO(-40 * 24),
       historico: [
         passo(48, 'Encontrado com defeito na conferência do laboratório (1 unidade). Unidade bloqueada para empréstimo.'),
-        passo(46, 'Enviada para conserto: Tech Assistência.'),
+        passo(46, 'Enviada para conserto: Tech Assistência (assistência credenciada).'),
         passo(40, 'Baixa de 1 unidade(s) no acervo (TB-2026-0001) · Conserto inviável (custo maior que o valor do bem) · Laudo da assistência: placa-mãe sem reparo, troca custa mais que um notebook novo. · laudo LT-2231 · processo/BO PROC-2026/014'),
       ],
       baixa: {
@@ -151,6 +153,7 @@ function criarManutencoesDemo(): Manutencao[] {
 @Injectable({ providedIn: 'root' })
 export class ManutencaoService {
   private readonly equipamentos = inject(EquipamentoService);
+  private readonly assistencias = inject(AssistenciaService);
   private readonly auth = inject(AuthService);
   /** EmprestimoService também usa este serviço: buscamos ele só na hora (evita dependência circular). */
   private readonly injector = inject(Injector);
@@ -258,12 +261,31 @@ export class ManutencaoService {
 
   // ---------- Andamento ----------
 
-  enviarParaAssistencia(id: string, assistencia: string): string | null {
+  /** Assistências que podem consertar o equipamento desta ocorrência (credenciadas, em dia, da categoria). */
+  assistenciasPara(m: Manutencao): AssistenciaTecnica[] {
+    return this.assistencias.paraCategoria(this.equipamentos.buscarPorId(m.equipamentoId)?.categoria);
+  }
+
+  /** Só vai para uma assistência CREDENCIADA, em dia e que conserta a categoria do equipamento. */
+  enviarParaAssistencia(id: string, assistenciaId: string): string | null {
     const m = this.buscarPorId(id);
     if (!m || m.status !== 'aberta' || m.tipo !== 'avaria') return 'Esta ocorrência não pode ir para conserto agora.';
-    const nome = assistencia.trim() || 'assistência técnica';
-    this.alterar(id, { status: 'em_assistencia', assistencia: nome }, `Enviada para conserto: ${nome}.`);
+    const a = this.assistencias.buscarPorId(assistenciaId);
+    const categoria = this.equipamentos.buscarPorId(m.equipamentoId)?.categoria;
+    const impedimento = this.assistencias.impedimento(a, categoria);
+    if (impedimento) return impedimento;
+    this.alterar(
+      id,
+      { status: 'em_assistencia', assistencia: a!.nomeFantasia, assistenciaId: a!.id },
+      `Enviada para conserto: ${a!.nomeFantasia} (assistência credenciada, CNPJ ${formatarCnpj(a!.cnpj)}).`,
+    );
     return null;
+  }
+
+  /** Valor da baixa: valor unitário do cadastro × unidades. undefined se o item não tem valor. */
+  valorDaBaixa(m: Manutencao): number | undefined {
+    const v = this.equipamentos.buscarPorId(m.equipamentoId)?.valorUnitario;
+    return v === undefined ? undefined : Math.round(v * m.quantidade * 100) / 100;
   }
 
   /** Consertada (avaria) ou encontrada (extravio): as unidades voltam ao estoque. */
@@ -287,9 +309,6 @@ export class ManutencaoService {
     }
     if (dados.motivo === 'furto_roubo' && !dados.processo?.trim()) {
       return 'Furto ou roubo exige o número do boletim de ocorrência.';
-    }
-    if (dados.valorEstimado !== undefined && (!Number.isFinite(dados.valorEstimado) || dados.valorEstimado < 0)) {
-      return 'Informe um valor estimado válido (ou deixe em branco).';
     }
     if (m.responsavel && !dados.responsavelCiente) {
       return `Confirme que ${m.responsavel.nome}, que estava com o item, foi informado(a) da baixa.`;
@@ -317,7 +336,7 @@ export class ManutencaoService {
       parecer: dados.parecer.trim(),
       laudo: dados.laudo?.trim() || undefined,
       processo: dados.processo?.trim() || undefined,
-      valorEstimado: dados.valorEstimado,
+      valorEstimado: this.valorDaBaixa(m),
       responsavelCiente: !!dados.responsavelCiente,
       testemunha: dados.testemunha?.trim() || undefined,
       autorizadoPor: this.ator(),

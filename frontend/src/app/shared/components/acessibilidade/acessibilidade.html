@@ -46,6 +46,15 @@
         }
       </ul>
 
+      <section class="leitor" aria-labelledby="a11y-leitor">
+        <h3 id="a11y-leitor"><i class="fa-solid fa-volume-high" aria-hidden="true"></i> Leitor de tela</h3>
+        <p>
+          O FAB funciona com o <strong>NVDA</strong> (Windows, gratuito) e outros leitores de tela. Use <kbd>Tab</kbd> para
+          avançar, <kbd>H</kbd> para pular entre títulos e o link "Pular para o conteúdo" no topo de cada página.
+          <a href="https://www.nvaccess.org/download/" target="_blank" rel="noopener noreferrer">Baixar o NVDA<span class="sr-only"> (abre em nova aba)</span></a>
+        </p>
+      </section>
+
       <div class="painel__rodape">
         <button type="button" class="btn-sec" (click)="service.restaurar()" [disabled]="service.ativas() === 0">Voltar ao padrão</button>
         <button type="button" class="btn" (click)="aberto.set(false)">Pronto</button>

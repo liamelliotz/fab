@@ -15,6 +15,10 @@ export interface Insumo {
   quantidadeAtual: number;
   estoqueMinimo: number;
   fornecedor?: string;
+  /** Valor de uma unidade de medida em R$ (ex.: um rolo, um litro). Base do custo do consumo. */
+  valorUnitario?: number;
+  /** Perecível (resina, álcool, pilhas...): exige data de validade no cadastro e em cada lote. */
+  perecivel?: boolean;
   validade?: string;
   localizacao?: string;
   ativo: boolean;
@@ -31,6 +35,10 @@ export interface CriarInsumoDTO {
   quantidadeInicial?: number;
   descricao?: string;
   fornecedor?: string;
+  /** Valor de uma unidade em R$ (obrigatório). */
+  valorUnitario: number;
+  /** true exige `validade`. */
+  perecivel: boolean;
   validade?: string;
   localizacao?: string;
 }
@@ -44,6 +52,9 @@ export interface AtualizarInsumoDTO {
   estoqueMinimo?: number;
   fornecedor?: string;
   localizacao?: string;
+  valorUnitario?: number;
+  perecivel?: boolean;
+  validade?: string;
 }
 export interface AlterarAtivoInsumoDTO { ativo: boolean; }
 export interface FiltroInsumoDTO {

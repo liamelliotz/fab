@@ -42,7 +42,14 @@
     <button type="button" role="tab" class="man__aba" [class.man__aba--ativa]="filtro() === 'todas'" (click)="filtro.set('todas')">
       Todas
     </button>
+    <button type="button" role="tab" class="man__aba" [class.man__aba--ativa]="filtro() === 'assistencias'" (click)="filtro.set('assistencias')">
+      <i class="fa-solid fa-handshake" aria-hidden="true"></i> Assistências credenciadas
+    </button>
   </div>
+
+  @if (filtro() === 'assistencias') {
+    <app-assistencias-credenciadas />
+  } @else {
 
   <div class="man__lista">
     @for (m of lista(); track m.id) {
@@ -95,7 +102,7 @@
               @if (m.assistencia) {
                 <div>
                   <dt>Assistência</dt>
-                  <dd>{{ m.assistencia }}</dd>
+                  <dd>{{ m.assistencia }}@if (contatoAssistencia(m); as c) {<span class="man__contato">{{ c }}</span>}</dd>
                 </div>
               }
               <div>
@@ -148,6 +155,8 @@
       </div>
     }
   </div>
+  }
+
 </section>
 
 <!-- Diálogo: conserto, conclusão ou baixa -->
@@ -158,10 +167,26 @@
         @case ('assistencia') {
           <h2 id="man-acao-titulo">Enviar para conserto</h2>
           <p>{{ a.alvo.equipamento }} · {{ a.alvo.quantidade }} unidade(s). A unidade continua bloqueada.</p>
-          <label class="man__campo">
-            <span>Assistência técnica</span>
-            <input type="text" placeholder="Ex.: Tech Assistência" [value]="textoAcao()" (input)="escreverAcao($event)" />
-          </label>
+          @if (opcoesAssistencia().length) {
+            <fieldset class="man__assistencias">
+              <legend>Assistência credenciada para este tipo de equipamento</legend>
+              @for (o of opcoesAssistencia(); track o.id) {
+                <label class="man__assist" [class.man__assist--sel]="assistenciaEscolhida() === o.id">
+                  <input type="radio" name="assistencia" [value]="o.id" [checked]="assistenciaEscolhida() === o.id" (change)="assistenciaEscolhida.set(o.id); erroAcao.set('')" />
+                  <span>
+                    <strong>{{ o.nomeFantasia }}</strong>
+                    <small>CNPJ {{ cnpj(o.cnpj) }} · {{ telefone(o.telefone) }} · {{ o.email }}</small>
+                    <small>Credenciada até {{ data(o.credenciadaAte) }}@if (o.contrato) { · {{ o.contrato }} }</small>
+                  </span>
+                </label>
+              }
+            </fieldset>
+          } @else {
+            <p class="man__aviso">
+              Nenhuma assistência credenciada e em dia conserta este tipo de equipamento. Cadastre ou renove uma em
+              <button type="button" class="man__link" (click)="fecharAcao(); filtro.set('assistencias')">Assistências credenciadas</button>.
+            </p>
+          }
         }
         @case ('concluir') {
           <h2 id="man-acao-titulo">{{ a.alvo.tipo === 'extravio' ? 'Item encontrado' : 'Marcar como consertado' }}</h2>
@@ -197,10 +222,19 @@
                 }
               </select>
             </label>
-            <label class="man__campo">
-              <span>Valor estimado (R$) <span class="man__opc">opcional</span></span>
-              <input type="text" inputmode="decimal" placeholder="2.899,00" (input)="mudarBaixa('valorEstimado', valorEstimado($event))" />
-            </label>
+            <div class="man__campo">
+              <span>Valor patrimonial baixado</span>
+              @if (valorBaixa(a.alvo) !== undefined) {
+                <p class="man__valor">
+                  <strong>{{ moeda(valorBaixa(a.alvo)) }}</strong>
+                  <small>{{ a.alvo.quantidade }} × {{ moeda(valorUnitario(a.alvo)) }}, do cadastro do equipamento</small>
+                </p>
+              } @else {
+                <p class="man__valor man__valor--falta">
+                  <small>Este equipamento não tem valor no cadastro. O termo sai como "não informado"; edite o equipamento para registrar.</small>
+                </p>
+              }
+            </div>
             <label class="man__campo man__campo--largo">
               <span>Parecer técnico <span class="man__obrig">*</span> <span class="man__opc">(mínimo 20 caracteres)</span></span>
               <textarea rows="3" placeholder="Ex.: a assistência informou que a placa-mãe não tem reparo e o conserto custa mais que um equipamento novo." [value]="b.parecer" (input)="mudarBaixa('parecer', valorDe($event))"></textarea>

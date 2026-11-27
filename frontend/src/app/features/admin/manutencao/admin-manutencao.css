@@ -44,7 +44,8 @@
 .man__metrica small { font-size: 0.76rem; color: var(--text-secondary); }
 
 /* Abas */
-.man__abas { display: flex; gap: 8px; }
+.man__abas { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; }
+.man__abas > .man__aba { flex: none; white-space: nowrap; }
 .man__aba {
   display: inline-flex;
   align-items: center;
@@ -223,3 +224,20 @@
 .man__confirma input { font-family: ui-monospace, Consolas, monospace; letter-spacing: 0.05em; }
 .oc__termo { font-size: 0.85rem; font-weight: 600; color: #991b1b; display: inline-flex; gap: 6px; align-items: center; margin-right: auto; }
 @media (max-width: 640px) { .man__secao { grid-template-columns: minmax(0, 1fr); } }
+
+/* Assistências credenciadas no envio para conserto */
+.man__assistencias { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; border: 0; min-width: 0; }
+.man__assistencias legend { margin-bottom: 6px; color: #172b24; font-size: 0.9rem; font-weight: 700; }
+.man__assist { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid #e5ebe8; border-radius: 10px; cursor: pointer; }
+.man__assist input { margin-top: 4px; flex: none; }
+.man__assist span { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.man__assist strong { color: #172b24; }
+.man__assist small { color: #4b5563; font-size: 0.8rem; overflow-wrap: anywhere; }
+.man__assist--sel { border: 2px solid #24845c; padding: 9px 11px; background: #f0fdf4; }
+.man__link { padding: 0; border: 0; background: none; color: #1f6f4c; font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; }
+.man__contato { display: block; color: #6b7280; font-size: 0.8rem; }
+.man__valor { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 9px 11px; border: 1px solid #e5ebe8; border-radius: 8px; background: #f9fafb; }
+.man__valor strong { color: #172b24; font-size: 1rem; }
+.man__valor small { color: #6b7280; font-size: 0.78rem; }
+.man__valor--falta { border-color: #fcd34d; background: #fffbeb; }
+.man__valor--falta small { color: #92400e; }

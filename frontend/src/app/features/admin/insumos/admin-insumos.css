@@ -141,3 +141,7 @@ tr:last-child td { border-bottom: none; }
 .ins__metrica--req:hover { background: #f7faf8; }
 .ins__aba-contador { display: inline-block; min-width: 20px; margin-left: 4px; padding: 1px 7px; border-radius: 999px; background: #b91c1c; color: #fff; font-size: 0.72rem; font-weight: 700; text-align: center; }
 .ins__busca { border-color: #7d8984 !important; }
+
+.ins__perecivel { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--border-color, #e5ebe8); border-radius: 10px; background: #f9fafb; font-size: 0.88rem; cursor: pointer; }
+.ins__perecivel input { margin-top: 3px; flex: none; }
+.ins__obrig { color: #b91c1c; }

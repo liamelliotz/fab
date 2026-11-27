@@ -32,6 +32,7 @@ export class Acessibilidade {
     { chave: 'sublinharLinks', titulo: 'Sublinhar links', dica: 'Mostra o que é clicável sem depender da cor.' },
     { chave: 'focoReforcado', titulo: 'Foco reforçado', dica: 'Contorno amarelo e grosso ao navegar pelo teclado (Tab).' },
     { chave: 'semAnimacao', titulo: 'Menos animação', dica: 'Desliga movimentos e transições.' },
+    { chave: 'libras', titulo: 'Tradutor de Libras (VLibras)', dica: 'Avatar do Governo Federal que traduz o texto para Libras.' },
   ];
 
   alternar(chave: Opcao): void {

@@ -3,6 +3,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { AuthService } from './auth.service';
 import { EmprestimoService } from './emprestimo.service';
 import { EquipamentoService } from './equipamento.service';
+import { AssistenciaService, cnpjValido } from './assistencia.service';
 import { ManutencaoService } from './manutencao.service';
 import { environment } from '../../../environments/environment';
 
@@ -99,6 +100,8 @@ describe('Avarias e faltas na devolução', () => {
     expect(estoque('3')).toEqual([7, 0, 7, 'disponivel']);
     const termo = manutencoes.buscarPorId(falta.id)!.baixa!;
     expect(termo).toMatchObject({ motivo: 'extravio_definitivo', responsavelCiente: true, autorizadoPor: { perfil: 'admin' } });
+    // Valor vem do cadastro (1 × R$ 2.899,00), sem digitação
+    expect(termo.valorEstimado).toBe(2899);
     expect(termo.protocolo).toMatch(/^TB-\d{4}-\d{4}$/);
     expect(manutencoes.darBaixa(falta.id, dados)).toContain('resolvida'); // não dá baixa duas vezes
   });
@@ -120,5 +123,45 @@ describe('Avarias e faltas na devolução', () => {
       'usr-professor',
     );
     expect(erro).toBe('Este material não está mais disponível.');
+  });
+
+  it('conserto só vai para assistência credenciada, em dia e da categoria do equipamento', () => {
+    const assist = TestBed.inject(AssistenciaService);
+    const oc = manutencoes.registrar({
+      tipo: 'avaria', equipamentoId: '5', quantidade: 1, tipoAvaria: 'nao_liga', gravidade: 'grave',
+      descricao: 'Multímetro não liga.', origem: 'estoque',
+    });
+    // Multímetro é "eletrônico": a oficina de ferramentas e a vencida não aparecem
+    const opcoes = manutencoes.assistenciasPara(oc).map((a) => a.id);
+    expect(opcoes).toEqual(['ast-tech']);
+    expect(manutencoes.enviarParaAssistencia(oc.id, 'ast-ferramentas')).toContain('não conserta');
+    expect(manutencoes.enviarParaAssistencia(oc.id, 'ast-antiga')).toContain('venceu');
+    expect(manutencoes.enviarParaAssistencia(oc.id, '')).toContain('Escolha');
+    assist.alternarAtiva('ast-tech');
+    expect(manutencoes.enviarParaAssistencia(oc.id, 'ast-tech')).toContain('descredenciada');
+    assist.alternarAtiva('ast-tech');
+    expect(manutencoes.enviarParaAssistencia(oc.id, 'ast-tech')).toBeNull();
+    const enviada = manutencoes.buscarPorId(oc.id)!;
+    expect(enviada).toMatchObject({ status: 'em_assistencia', assistenciaId: 'ast-tech', assistencia: 'Tech Assistência' });
+    expect(enviada.historico.at(-1)!.texto).toContain('CNPJ');
+  });
+
+  it('cadastro de assistência valida CNPJ, contato, especialidade e prazo', () => {
+    const assist = TestBed.inject(AssistenciaService);
+    const dados = {
+      nomeFantasia: 'Conserta Já', razaoSocial: 'Conserta Já Ltda', cnpj: '11.111.111/1111-11', telefone: '(96) 3222-1111',
+      email: 'contato@consertaja.com.br', especialidades: ['ferramenta' as const], credenciadaAte: '2099-12-31',
+    };
+    expect(assist.validar(dados)).toContain('CNPJ');
+    expect(assist.validar({ ...dados, cnpj: assist.todas()[0].cnpj })).toContain('Já existe');
+    const valido = '11444777000161'; // número de exemplo com dígitos verificadores corretos
+    expect(cnpjValido(valido)).toBe(true);
+    expect(assist.validar({ ...dados, cnpj: valido, telefone: '1234' })).toContain('telefone');
+    expect(assist.validar({ ...dados, cnpj: valido, email: 'sem-arroba' })).toContain('e-mail');
+    expect(assist.validar({ ...dados, cnpj: valido, especialidades: [] })).toContain('especialidade');
+    expect(assist.validar({ ...dados, cnpj: valido, credenciadaAte: '2020-01-01' })).toContain('venceu');
+    const r = assist.cadastrar({ ...dados, cnpj: '11.444.777/0001-61' });
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.valor).toMatchObject({ cnpj: valido, telefone: '9632221111', ativa: true });
   });
 });

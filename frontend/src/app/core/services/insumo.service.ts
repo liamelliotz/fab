@@ -1,3 +1,4 @@
+import { validarValorItem } from '../utils/moeda.utils';
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { buscarLocal, localPorTexto } from '../constants/escola-modelo.constants';
 import {
@@ -18,8 +19,8 @@ import { agoraISO, diferencaEmDias, hojeISO, horasDepoisISO, somarDias } from '.
 import { AuthService } from './auth.service';
 import { UsuarioService, resumoDemo } from './usuario.service';
 
-const CHAVE_INSUMOS = 'fab_demo_v7_insumos';
-const CHAVE_MOVIMENTACOES = 'fab_demo_v7_movimentacoes_insumos';
+const CHAVE_INSUMOS = 'fab_demo_v8_insumos';
+const CHAVE_MOVIMENTACOES = 'fab_demo_v8_movimentacoes_insumos';
 
 export const NOME_CATEGORIA_INSUMO: Record<CategoriaInsumo, string> = {
   impressao_3d: 'Impressão 3D',
@@ -106,6 +107,8 @@ interface ModeloInsumo {
   estoqueMinimo: number;
   fornecedor: string;
   localizacao: string;
+  valorUnitario: number;
+  perecivel?: boolean;
   validade?: string;
   compra: [diasAtras: number, quantidade: number, documento: string];
   saidas: Saida[];
@@ -115,7 +118,7 @@ interface ModeloInsumo {
 const MODELOS: ModeloInsumo[] = [
   {
     id: 'ins-pla', nome: 'Filamento PLA 1,75 mm', descricao: 'Rolo de 1 kg, cor branca.', categoria: 'impressao_3d',
-    unidadeMedida: 'rolo', estoqueMinimo: 4, fornecedor: 'Maker Norte', localizacao: 'Lab. Maker · Armário 3',
+    unidadeMedida: 'rolo', estoqueMinimo: 4, fornecedor: 'Maker Norte', localizacao: 'Lab. Maker · Armário 3', valorUnitario: 119.9,
     compra: [60, 8, 'NF 10.482'],
     saidas: [
       [50, 1, 'usr-professor', 'lab-maker', 'Peças do projeto integrador'],
@@ -128,7 +131,7 @@ const MODELOS: ModeloInsumo[] = [
   },
   {
     id: 'ins-resina', nome: 'Resina UV padrão', descricao: 'Frasco de 1 litro para impressora SLA.', categoria: 'impressao_3d',
-    unidadeMedida: 'l', estoqueMinimo: 1, fornecedor: 'Maker Norte', localizacao: 'Lab. Maker · Armário 3',
+    unidadeMedida: 'l', estoqueMinimo: 1, fornecedor: 'Maker Norte', localizacao: 'Lab. Maker · Armário 3', valorUnitario: 189, perecivel: true,
     validade: somarDias(hojeISO(), 120),
     compra: [55, 3, 'NF 10.511'],
     saidas: [
@@ -139,7 +142,7 @@ const MODELOS: ModeloInsumo[] = [
   },
   {
     id: 'ins-solda', nome: 'Fio de solda 0,8 mm', descricao: 'Estanho 60/40, carretel de 250 g.', categoria: 'eletronica',
-    unidadeMedida: 'rolo', estoqueMinimo: 2, fornecedor: 'EletroPeças AP', localizacao: 'Lab. de Eletrônica · Gaveteiro A',
+    unidadeMedida: 'rolo', estoqueMinimo: 2, fornecedor: 'EletroPeças AP', localizacao: 'Lab. de Eletrônica · Gaveteiro A', valorUnitario: 64.9,
     compra: [58, 6, 'NF 3.207'],
     saidas: [
       [30, 1, 'usr-carlos', 'lab-eletronica', 'Montagem de fontes reguladas'],
@@ -148,7 +151,7 @@ const MODELOS: ModeloInsumo[] = [
   },
   {
     id: 'ins-resistores', nome: 'Resistores sortidos', descricao: 'Pacote com 600 peças (30 valores).', categoria: 'eletronica',
-    unidadeMedida: 'pct', estoqueMinimo: 5, fornecedor: 'EletroPeças AP', localizacao: 'Lab. de Eletrônica · Gaveteiro B',
+    unidadeMedida: 'pct', estoqueMinimo: 5, fornecedor: 'EletroPeças AP', localizacao: 'Lab. de Eletrônica · Gaveteiro B', valorUnitario: 39.9,
     compra: [59, 15, 'NF 3.207'],
     saidas: [
       [45, 1, 'usr-carlos', 'lab-eletronica', 'Aula de lei de Ohm'],
@@ -158,7 +161,7 @@ const MODELOS: ModeloInsumo[] = [
   },
   {
     id: 'ins-jumpers', nome: 'Jumpers macho-macho', descricao: 'Pacote com 65 cabos para protoboard.', categoria: 'eletronica',
-    unidadeMedida: 'pct', estoqueMinimo: 4, fornecedor: 'EletroPeças AP', localizacao: 'Lab. de Eletrônica · Gaveteiro B',
+    unidadeMedida: 'pct', estoqueMinimo: 4, fornecedor: 'EletroPeças AP', localizacao: 'Lab. de Eletrônica · Gaveteiro B', valorUnitario: 24.9,
     compra: [57, 6, 'NF 3.198'],
     saidas: [
       [44, 1, 'usr-joao', 'lab-informatica', 'Robótica com Arduino'],
@@ -169,7 +172,7 @@ const MODELOS: ModeloInsumo[] = [
   },
   {
     id: 'ins-papel', nome: 'Papel A4 75 g', descricao: 'Resma com 500 folhas.', categoria: 'papelaria',
-    unidadeMedida: 'pct', estoqueMinimo: 10, fornecedor: 'Papelaria Central', localizacao: 'Almoxarifado de TI · Prateleira 4',
+    unidadeMedida: 'pct', estoqueMinimo: 10, fornecedor: 'Papelaria Central', localizacao: 'Almoxarifado de TI · Prateleira 4', valorUnitario: 32.9,
     compra: [60, 30, 'NF 88.130'],
     saidas: [
       [50, 3, 'usr-maria', 'sala-101', 'Provas bimestrais do 1º ano'],
@@ -181,7 +184,7 @@ const MODELOS: ModeloInsumo[] = [
   },
   {
     id: 'ins-toner', nome: 'Toner para impressora laser', descricao: 'Cartucho compatível com a impressora da coordenação.', categoria: 'papelaria',
-    unidadeMedida: 'un', estoqueMinimo: 2, fornecedor: 'Papelaria Central', localizacao: 'Coordenação · Armário',
+    unidadeMedida: 'un', estoqueMinimo: 2, fornecedor: 'Papelaria Central', localizacao: 'Coordenação · Armário', valorUnitario: 89.9,
     compra: [52, 3, 'NF 88.004'],
     saidas: [
       [38, 1, 'usr-maria', 'coordenacao', 'Impressora da coordenação'],
@@ -190,7 +193,7 @@ const MODELOS: ModeloInsumo[] = [
   },
   {
     id: 'ins-alcool', nome: 'Álcool isopropílico', descricao: 'Limpeza de placas e lentes. Frasco de 1 litro.', categoria: 'limpeza',
-    unidadeMedida: 'l', estoqueMinimo: 1, fornecedor: 'EletroPeças AP', localizacao: 'Lab. de Eletrônica · Armário',
+    unidadeMedida: 'l', estoqueMinimo: 1, fornecedor: 'EletroPeças AP', localizacao: 'Lab. de Eletrônica · Armário', valorUnitario: 39.9, perecivel: true,
     validade: somarDias(hojeISO(), 300),
     compra: [50, 4, 'NF 3.150'],
     saidas: [
@@ -201,7 +204,7 @@ const MODELOS: ModeloInsumo[] = [
   },
   {
     id: 'ins-parafusos', nome: 'Parafusos M3 com porca', descricao: 'Pacote com 100 conjuntos.', categoria: 'ferragens',
-    unidadeMedida: 'pct', estoqueMinimo: 3, fornecedor: 'Ferragens Macapá', localizacao: 'Lab. Maker · Gaveteiro',
+    unidadeMedida: 'pct', estoqueMinimo: 3, fornecedor: 'Ferragens Macapá', localizacao: 'Lab. Maker · Gaveteiro', valorUnitario: 18.9,
     compra: [56, 8, 'NF 1.874'],
     saidas: [
       [40, 1, 'usr-professor', 'lab-maker', 'Montagem dos robôs'],
@@ -210,7 +213,8 @@ const MODELOS: ModeloInsumo[] = [
   },
   {
     id: 'ins-pilhas', nome: 'Pilhas AA', descricao: 'Alcalinas, para controles e microfones.', categoria: 'outros',
-    unidadeMedida: 'un', estoqueMinimo: 12, fornecedor: 'Papelaria Central', localizacao: 'Almoxarifado de TI · Prateleira 2',
+    unidadeMedida: 'un', estoqueMinimo: 12, fornecedor: 'Papelaria Central', localizacao: 'Almoxarifado de TI · Prateleira 2', valorUnitario: 4.5, perecivel: true,
+    validade: somarDias(hojeISO(), 540),
     compra: [59, 48, 'NF 88.122'],
     saidas: [
       [42, 8, 'usr-ana', 'auditorio', 'Microfones da palestra de abertura'],
@@ -264,6 +268,8 @@ export function criarInsumosDemo(): { insumos: Insumo[]; movimentacoes: Moviment
       quantidadeAtual: saldo,
       estoqueMinimo: m.estoqueMinimo,
       fornecedor: m.fornecedor,
+      valorUnitario: m.valorUnitario,
+      perecivel: m.perecivel ?? false,
       validade: m.validade,
       localizacao: m.localizacao,
       ativo: true,
@@ -385,6 +391,12 @@ export class InsumoService {
       return 'A quantidade inicial não pode ser negativa.';
     }
     if (!dto.localizacao?.trim()) return 'Informe onde o insumo fica guardado.';
+    const erroValor = validarValorItem(Number.isFinite(dto.valorUnitario) ? dto.valorUnitario : null);
+    if (erroValor) return `Valor da unidade: ${erroValor}`;
+    if (dto.perecivel) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(dto.validade ?? '')) return 'Insumo perecível: informe a data de validade.';
+      if (!ignorarId && dto.validade! < hojeISO()) return 'A validade informada já passou.';
+    }
     return null;
   }
 
@@ -400,6 +412,8 @@ export class InsumoService {
       quantidadeAtual: 0,
       estoqueMinimo: dto.estoqueMinimo,
       fornecedor: dto.fornecedor?.trim() || undefined,
+      valorUnitario: Math.round(dto.valorUnitario * 100) / 100,
+      perecivel: dto.perecivel,
       validade: dto.validade || undefined,
       localizacao: dto.localizacao?.trim(),
       ativo: true,
@@ -438,7 +452,9 @@ export class InsumoService {
               unidadeMedida: dto.unidadeMedida,
               estoqueMinimo: dto.estoqueMinimo,
               fornecedor: dto.fornecedor?.trim() || undefined,
-              validade: dto.validade || undefined,
+              valorUnitario: Math.round(dto.valorUnitario * 100) / 100,
+              perecivel: dto.perecivel,
+              validade: dto.perecivel ? dto.validade || undefined : undefined,
               localizacao: dto.localizacao?.trim(),
               estoqueBaixo: i.quantidadeAtual <= dto.estoqueMinimo,
               atualizadoEm: agoraISO(),
@@ -478,6 +494,10 @@ export class InsumoService {
       }
     } else if (dados.motivo !== 'compra' && obs.length < 5) {
       return 'Explique a origem da entrada (mínimo 5 caracteres).';
+    }
+    // Insumo perecível: toda compra ou doação precisa da validade do lote
+    if (i.perecivel && dados.tipo === 'entrada' && dados.motivo !== 'ajuste_positivo' && !dados.validadeLote) {
+      return 'Insumo perecível: informe a validade deste lote.';
     }
     if (dados.validadeLote && dados.validadeLote < hojeISO()) return 'A validade do lote já passou.';
     return null;

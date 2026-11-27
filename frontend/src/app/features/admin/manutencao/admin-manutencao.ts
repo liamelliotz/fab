@@ -1,3 +1,6 @@
+import { AssistenciaService, formatarCnpj, formatarTelefone } from '../../../core/services/assistencia.service';
+import { formatarMoeda } from '../../../core/utils/moeda.utils';
+import { AssistenciasCredenciadas } from './assistencias/assistencias-credenciadas';
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Manutencao, MotivoBaixa, StatusManutencao } from '../../../core/models/manutencao.model';
@@ -17,7 +20,7 @@ import { AvariaCampos, DadosAvaria } from '../../../shared/components/avaria-cam
 import { TermoBaixa } from '../../../shared/components/termo-baixa/termo-baixa';
 import { DialogoDirective } from '../../../shared/directives/dialogo.directive';
 
-type Filtro = 'pendentes' | 'resolvidas' | 'todas';
+type Filtro = 'pendentes' | 'resolvidas' | 'todas' | 'assistencias';
 type Acao = 'assistencia' | 'concluir' | 'baixa';
 
 /**
@@ -28,13 +31,14 @@ type Acao = 'assistencia' | 'concluir' | 'baixa';
 @Component({
   selector: 'app-admin-manutencao',
   standalone: true,
-  imports: [RouterLink, AvariaCampos, DialogoDirective, TermoBaixa],
+  imports: [AssistenciasCredenciadas, RouterLink, AvariaCampos, DialogoDirective, TermoBaixa],
   templateUrl: './admin-manutencao.html',
   styleUrl: './admin-manutencao.css',
 })
 export class AdminManutencao {
   private readonly service = inject(ManutencaoService);
   private readonly equipamentos = inject(EquipamentoService);
+  private readonly assistencias = inject(AssistenciaService);
   private readonly avisos = inject(NotificationService);
 
   readonly nomeTipo = NOME_TIPO_AVARIA;
@@ -120,8 +124,37 @@ export class AdminManutencao {
 
   // ---------- Ações ----------
 
+  /** Assistências que podem receber o equipamento do diálogo aberto. */
+  readonly opcoesAssistencia = computed(() => {
+    const a = this.acao();
+    return a?.tipo === 'assistencia' ? this.service.assistenciasPara(a.alvo) : [];
+  });
+  readonly assistenciaEscolhida = signal('');
+  readonly cnpj = formatarCnpj;
+  readonly telefone = formatarTelefone;
+  readonly moeda = formatarMoeda;
+
+  /** Valor que vai para o termo de baixa (calculado do cadastro; ninguém digita). */
+  valorBaixa(m: Manutencao): number | undefined {
+    return this.service.valorDaBaixa(m);
+  }
+
+  valorUnitario(m: Manutencao): number | undefined {
+    return this.equipamentos.buscarPorId(m.equipamentoId)?.valorUnitario;
+  }
+
+  /** Telefone da assistência que está com o equipamento (mostrado na ocorrência). */
+  contatoAssistencia(m: Manutencao): string {
+    const a = m.assistenciaId ? this.assistencias.buscarPorId(m.assistenciaId) : undefined;
+    return a ? `${formatarTelefone(a.telefone)} · ${a.email}` : '';
+  }
+
   abrirAcao(tipo: Acao, alvo: Manutencao): void {
-    this.textoAcao.set(tipo === 'assistencia' ? (alvo.assistencia ?? '') : '');
+    this.textoAcao.set('');
+    if (tipo === 'assistencia') {
+      const opcoes = this.service.assistenciasPara(alvo);
+      this.assistenciaEscolhida.set(opcoes.length === 1 ? opcoes[0].id : '');
+    }
     this.baixa.set(this.baixaVazia(alvo));
     this.erroAcao.set('');
     this.acao.set({ tipo, alvo });
@@ -142,7 +175,7 @@ export class AdminManutencao {
     const { tipo, alvo } = a;
     const erro =
       tipo === 'assistencia'
-        ? this.service.enviarParaAssistencia(alvo.id, this.textoAcao())
+        ? this.service.enviarParaAssistencia(alvo.id, this.assistenciaEscolhida())
         : tipo === 'concluir'
           ? this.service.concluir(alvo.id, this.textoAcao())
           : this.service.darBaixa(alvo.id, this.baixa());
@@ -174,11 +207,6 @@ export class AdminManutencao {
     return (evento.target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement).value;
   }
 
-  valorEstimado(evento: Event): number | undefined {
-    const texto = this.valorDe(evento).replace(/\./g, '').replace(',', '.').trim();
-    return texto === '' ? undefined : Number(texto);
-  }
-
   private baixaVazia(alvo?: Manutencao): DadosBaixa {
     const motivos = alvo ? MOTIVOS_BAIXA[alvo.tipo] : [];
     return {
@@ -186,7 +214,6 @@ export class AdminManutencao {
       parecer: '',
       laudo: '',
       processo: '',
-      valorEstimado: undefined,
       responsavelCiente: false,
       testemunha: '',
       confirmacaoPatrimonio: '',

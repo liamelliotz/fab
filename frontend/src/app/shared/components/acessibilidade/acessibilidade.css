@@ -84,3 +84,11 @@
   .gatilho--navbar .gatilho__rotulo { display: none; }
   .gatilho--navbar .gatilho__num { position: absolute; top: 2px; right: 4px; }
 }
+
+
+/* Orientação para leitores de tela (NVDA) */
+.leitor { margin-top: 4px; padding: 12px 14px; border: 1px solid #e5ebe8; border-radius: 10px; background: #f9fafb; }
+.leitor h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 6px; color: #172b24; font-size: 14px; }
+.leitor p { margin: 0; color: #374151; font-size: 13px; line-height: 1.55; }
+.leitor kbd { padding: 1px 5px; border: 1px solid #d5ddd9; border-radius: 4px; background: #fff; font-family: inherit; font-size: 12px; }
+.leitor a { color: #1f6f4c; font-weight: 600; }

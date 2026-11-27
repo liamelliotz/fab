@@ -27,13 +27,8 @@ export const routes: Routes = [
 
   // O error.interceptor redireciona para /auth/login quando a sessão expira
   { path: 'auth/login', redirectTo: 'login' },
-  // Página inicial pública (apresenta o FAB; o botão leva ao login ou ao painel)
-  {
-    path: '',
-    pathMatch: 'full',
-    title: 'FAB | Gestão de equipamentos e insumos escolares',
-    loadComponent: () => import('./features/inicio/inicio').then((m) => m.Inicio),
-  },
+  // Endereço raiz: vai direto ao painel; sem login, o authGuard leva à tela de entrar
+  { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
 
   // Rotas internas (com navbar, exigem login)
   {

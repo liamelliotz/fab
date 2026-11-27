@@ -276,13 +276,23 @@
           </datalist>
         </label>
         <label class="ins__campo">
+          <span>Valor de cada {{ nomeUnidadeSingular(e.form.unidadeMedida) }} (R$)</span>
+          <input type="text" inputmode="decimal" placeholder="119,90" autocomplete="off" [value]="e.form.valorUnitario" (input)="mudarForm('valorUnitario', valor($event))" />
+        </label>
+        <label class="ins__campo">
           <span>Fornecedor (opcional)</span>
           <input type="text" [value]="e.form.fornecedor" (input)="mudarForm('fornecedor', valor($event))" />
         </label>
-        <label class="ins__campo">
-          <span>Validade (opcional)</span>
-          <input type="date" [value]="e.form.validade" (input)="mudarForm('validade', valor($event))" />
+        <label class="ins__perecivel ins__campo--largo">
+          <input type="checkbox" [checked]="e.form.perecivel" (change)="mudarForm('perecivel', !e.form.perecivel)" />
+          <span><strong>Perecível</strong> · tem prazo de validade (resina, álcool, pilhas...). A validade passa a ser obrigatória, também em cada compra.</span>
         </label>
+        @if (e.form.perecivel) {
+          <label class="ins__campo">
+            <span>Validade <span class="ins__obrig">*</span></span>
+            <input type="date" [min]="e.id ? null : hoje" [value]="e.form.validade" (input)="mudarForm('validade', valor($event))" />
+          </label>
+        }
         <label class="ins__campo ins__campo--largo">
           <span>Descrição (opcional)</span>
           <textarea rows="2" [value]="e.form.descricao" (input)="mudarForm('descricao', valor($event))"></textarea>
@@ -342,8 +352,10 @@
             <input type="text" placeholder="Ex.: NF 10.482" [value]="m.form.documento" (input)="mudarMov('documento', valor($event))" />
           </label>
           <label class="ins__campo">
-            <span>Validade do lote (opcional)</span>
-            <input type="date" [value]="m.form.validadeLote" (input)="mudarMov('validadeLote', valor($event))" />
+            <span>Validade do lote
+              @if (m.insumo.perecivel && m.form.motivo !== 'ajuste_positivo') { <span class="ins__obrig">*</span> } @else { (opcional) }
+            </span>
+            <input type="date" [min]="hoje" [value]="m.form.validadeLote" (input)="mudarMov('validadeLote', valor($event))" />
           </label>
         }
 
