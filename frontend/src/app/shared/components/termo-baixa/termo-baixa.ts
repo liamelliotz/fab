@@ -62,7 +62,7 @@ td{padding:6px 8px;border-bottom:1px solid #e5e7eb}ol{padding-left:18px}li{margi
 <div class="topo"><div><h1>Termo de baixa patrimonial</h1><small>${escaparHtml(this.escola)} · Sistema FAB</small></div>
 <div class="prot">${escaparHtml(b.protocolo)}<br><small>${escaparHtml(formatarDataHora(b.em))}</small></div></div>
 <h2>Bem baixado</h2><table>
-${linha('Equipamento', m.equipamento)}${linha('Patrimônio', m.codigoPatrimonio)}${linha('Quantidade', `${m.quantidade} unidade(s)`)}
+${linha('Equipamento', m.equipamento)}${linha('Patrimônio', m.codigoPatrimonio)}${linha('Quantidade', `${m.quantidade} unidade(s)${m.identificacao ? ' · ' + m.identificacao : ''}`)}
 ${linha('Ocorrência de origem', `${m.protocolo} · ${this.origem()}`)}${linha('Descrição registrada', m.descricao)}
 ${linha('Estava com', m.responsavel ? `${m.responsavel.nome}${m.protocoloEmprestimo ? ` (pedido ${m.protocoloEmprestimo})` : ''}` : 'Encontrado no laboratório (sem empréstimo)')}
 </table>

@@ -79,6 +79,16 @@ export interface DadosBaixa {
   testemunha?: string;
   /** O número de patrimônio digitado de novo, como confirmação. */
   confirmacaoPatrimonio: string;
+  /** Quantas unidades recebem baixa (padrão: todas da ocorrência). */
+  quantidade?: number;
+  /** Quais unidades (obrigatório quando não são todas). */
+  identificacao?: string;
+}
+
+/** Quantas e quais unidades estão sendo resolvidas (consertadas, encontradas ou baixadas). */
+export interface UnidadesResolvidas {
+  quantidade?: number;
+  identificacao?: string;
 }
 
 /** Dados para abrir uma ocorrência. */
@@ -283,25 +293,50 @@ export class ManutencaoService {
   }
 
   /** Valor da baixa: valor unitário do cadastro × unidades. undefined se o item não tem valor. */
-  valorDaBaixa(m: Manutencao): number | undefined {
+  valorDaBaixa(m: Manutencao, quantidade = m.quantidade): number | undefined {
     const v = this.equipamentos.buscarPorId(m.equipamentoId)?.valorUnitario;
-    return v === undefined ? undefined : Math.round(v * m.quantidade * 100) / 100;
+    return v === undefined ? undefined : Math.round(v * quantidade * 100) / 100;
   }
 
-  /** Consertada (avaria) ou encontrada (extravio): as unidades voltam ao estoque. */
-  concluir(id: string, observacao: string): string | null {
+  /**
+   * Confere quantas e quais unidades serão resolvidas. Todas: a identificação é opcional.
+   * Só parte delas: é preciso dizer quais (etiqueta, nº de série...), para saber qual continua.
+   */
+  validarUnidades(m: Manutencao, u: UnidadesResolvidas): string | null {
+    const q = u.quantidade ?? m.quantidade;
+    if (!Number.isInteger(q) || q < 1 || q > m.quantidade) {
+      return `Escolha de 1 a ${m.quantidade} unidade(s).`;
+    }
+    if (q < m.quantidade && (u.identificacao ?? '').trim().length < 2) {
+      return `Diga ${q === 1 ? 'qual unidade' : `quais são as ${q} unidades`} (etiqueta ou nº de série), para saber qual continua em manutenção.`;
+    }
+    if ((u.identificacao ?? '').trim().length > 120) return 'A identificação das unidades pode ter até 120 caracteres.';
+    return null;
+  }
+
+  /** Consertada (avaria) ou encontrada (extravio): as unidades voltam ao estoque. Pode ser só parte delas. */
+  concluir(id: string, observacao: string, unidades: UnidadesResolvidas = {}): string | null {
     const m = this.buscarPorId(id);
     if (!m || (m.status !== 'aberta' && m.status !== 'em_assistencia')) return 'Esta ocorrência já foi resolvida.';
-    this.equipamentos.voltarDaManutencao(m.equipamentoId, m.quantidade);
-    const feito = m.tipo === 'extravio' ? 'Unidade encontrada' : 'Unidade consertada';
-    const texto = `${feito}: ${m.quantidade} de volta ao estoque.${observacao.trim() ? ' ' + observacao.trim() : ''}`;
-    this.alterar(id, { status: 'concluida', dataConclusao: agoraISO() }, texto);
-    this.anotarNoPedido(m, 'manutencao_concluida', `${m.protocolo} · ${m.equipamento}: ${texto}`);
+    const erro = this.validarUnidades(m, unidades);
+    if (erro) return erro;
+    const q = unidades.quantidade ?? m.quantidade;
+    const quais = this.quais(unidades.identificacao);
+
+    this.equipamentos.voltarDaManutencao(m.equipamentoId, q);
+    const feito = m.tipo === 'extravio' ? 'Encontrada(s)' : 'Consertada(s)';
+    const obs = observacao.trim() ? ' ' + observacao.trim() : '';
+    const texto = `${feito}: ${q} unidade(s)${quais} de volta ao estoque.${obs}`;
+    const alvo = this.separar(m, q, unidades.identificacao, `${feito.toLowerCase()} e de volta ao estoque`);
+    this.alterar(alvo.id, { status: 'concluida', dataConclusao: agoraISO() }, texto);
+    this.anotarNoPedido(m, 'manutencao_concluida', `${alvo.protocolo} · ${m.equipamento}: ${texto}`);
     return null;
   }
 
   /** Confere os dados da baixa. Devolve a mensagem do 1º problema, ou null. */
   validarBaixa(m: Manutencao, dados: DadosBaixa): string | null {
+    const unidades = this.validarUnidades(m, dados);
+    if (unidades) return unidades;
     if (!dados.motivo) return 'Escolha o motivo da baixa.';
     if (!MOTIVOS_BAIXA[m.tipo].includes(dados.motivo)) return 'Este motivo não vale para este tipo de ocorrência.';
     if (dados.parecer.trim().length < 20) {
@@ -330,28 +365,30 @@ export class ManutencaoService {
     const erro = this.validarBaixa(m, dados);
     if (erro) return erro;
 
+    const q = dados.quantidade ?? m.quantidade;
     const baixa: RegistroBaixa = {
       protocolo: this.proximoTermo(),
       motivo: dados.motivo!,
       parecer: dados.parecer.trim(),
       laudo: dados.laudo?.trim() || undefined,
       processo: dados.processo?.trim() || undefined,
-      valorEstimado: this.valorDaBaixa(m),
+      valorEstimado: this.valorDaBaixa(m, q),
       responsavelCiente: !!dados.responsavelCiente,
       testemunha: dados.testemunha?.trim() || undefined,
       autorizadoPor: this.ator(),
       em: agoraISO(),
     };
-    this.equipamentos.baixar(m.equipamentoId, m.quantidade);
+    this.equipamentos.baixar(m.equipamentoId, q);
     const texto = [
-      `Baixa de ${m.quantidade} unidade(s) no acervo (${baixa.protocolo})`,
+      `Baixa de ${q} unidade(s)${this.quais(dados.identificacao)} no acervo (${baixa.protocolo})`,
       NOME_MOTIVO_BAIXA[baixa.motivo],
       baixa.parecer,
       baixa.laudo ? `laudo ${baixa.laudo}` : '',
       baixa.processo ? `processo/BO ${baixa.processo}` : '',
     ].filter(Boolean).join(' · ');
-    this.alterar(id, { status: 'baixa', dataConclusao: baixa.em, baixa }, texto);
-    this.anotarNoPedido(m, 'manutencao_baixa', `${m.protocolo} · ${m.equipamento}: ${texto}`);
+    const alvo = this.separar(m, q, dados.identificacao, `baixa no termo ${baixa.protocolo}`);
+    this.alterar(alvo.id, { status: 'baixa', dataConclusao: baixa.em, baixa }, texto);
+    this.anotarNoPedido(m, 'manutencao_baixa', `${alvo.protocolo} · ${m.equipamento}: ${texto}`);
     return null;
   }
 
@@ -369,6 +406,50 @@ export class ManutencaoService {
   }
 
   // ---------- Internos ----------
+
+  private quais(identificacao?: string): string {
+    const t = identificacao?.trim();
+    return t ? ` (${t})` : '';
+  }
+
+  /**
+   * Resolução parcial: tira `q` unidades da ocorrência `m` e cria uma ocorrência nova só com elas
+   * (protocolo próprio, mesmo histórico, apontando para a origem). A original segue aberta com o resto.
+   * Se `q` cobre todas as unidades, devolve a própria ocorrência (só grava a identificação).
+   */
+  private separar(m: Manutencao, q: number, identificacao: string | undefined, destino: string): Manutencao {
+    const quais = identificacao?.trim() || undefined;
+    if (q >= m.quantidade) {
+      if (quais) this.todas.update((l) => l.map((x) => (x.id === m.id ? { ...x, identificacao: quais } : x)));
+      return m;
+    }
+    const eu = this.ator();
+    const nova: Manutencao = {
+      ...m,
+      id: crypto.randomUUID(),
+      protocolo: this.proximoProtocolo(),
+      quantidade: q,
+      identificacao: quais,
+      origemProtocolo: m.protocolo,
+      historico: [
+        ...m.historico,
+        { em: agoraISO(), por: eu, texto: `Separada de ${m.protocolo}: ${q} de ${m.quantidade} unidade(s)${this.quais(quais)}.` },
+      ],
+    };
+    const foto = m.temFoto ? this.foto(m.id) : undefined;
+    const resto = m.quantidade - q;
+    const passo: PassoManutencao = {
+      em: agoraISO(),
+      por: eu,
+      texto: `${q} unidade(s)${this.quais(quais)} ${destino} (${nova.protocolo}). ${resto} continua(m) nesta ocorrência.`,
+    };
+    this.todas.update((lista) => [
+      nova,
+      ...lista.map((x) => (x.id === m.id ? { ...x, quantidade: resto, historico: [...x.historico, passo] } : x)),
+    ]);
+    if (foto) this.guardarFoto(nova.id, foto);
+    return nova;
+  }
 
   private alterar(id: string, mudanca: Partial<Manutencao>, texto: string): void {
     const passo: PassoManutencao = { em: agoraISO(), por: this.ator(), texto };

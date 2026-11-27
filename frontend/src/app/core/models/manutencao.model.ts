@@ -82,6 +82,16 @@ export interface Manutencao {
   codigoPatrimonio: string;
   /** Quantas unidades esta ocorrência envolve. */
   quantidade: number;
+  /**
+   * Quais unidades (etiqueta, nº de série...). Preenchido quando só parte das unidades
+   * de uma ocorrência foi consertada, encontrada ou baixada.
+   */
+  identificacao?: string;
+  /**
+   * Resolução parcial: as unidades resolvidas viram uma ocorrência própria (com protocolo novo)
+   * que aponta para a de origem; a de origem continua aberta com as restantes.
+   */
+  origemProtocolo?: string;
   /** Só para avaria. */
   tipoAvaria?: TipoAvaria;
   gravidade?: GravidadeAvaria;

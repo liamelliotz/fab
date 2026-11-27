@@ -72,3 +72,15 @@ assistência mudar de nome depois).
   servidor tiver CSP, liberar `script-src`, `connect-src`, `img-src` e `media-src` para `vlibras.gov.br`.
 - **NVDA**: não exige instalação no servidor. O front anuncia cada troca de página e tem o link
   "Pular para o conteúdo"; o painel de Acessibilidade orienta o uso.
+
+## Resolução parcial (conserto ou baixa de parte das unidades)
+
+Uma ocorrência pode envolver várias unidades. Ao marcar como consertada/encontrada ou dar baixa,
+a coordenação escolhe **quantas** e **quais** (etiqueta ou nº de série).
+
+- `PATCH /manutencoes/:id/concluir` e `POST /manutencoes/:id/baixa` aceitam `quantidade` (1 a `quantidade` da ocorrência;
+  padrão: todas) e `identificacao` (texto até 120 caracteres; **obrigatório** quando `quantidade` for menor que o total).
+- Resolução parcial: o servidor cria uma ocorrência nova (protocolo próprio, `origemProtocolo` = protocolo da original,
+  histórico copiado) só com as unidades resolvidas, e diminui a `quantidade` da original, que continua aberta.
+- O valor da baixa usa a quantidade baixada: `valorUnitario × quantidade` (calculado no servidor).
+- O estoque do equipamento muda só pelas unidades resolvidas.

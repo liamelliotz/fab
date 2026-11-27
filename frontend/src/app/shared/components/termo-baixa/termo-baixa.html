@@ -15,8 +15,8 @@
       </header>
 
       <dl class="tb__dados">
-        <div><dt>Patrimônio</dt><dd>{{ m.codigoPatrimonio }} · {{ m.quantidade }} unidade(s)</dd></div>
-        <div><dt>Ocorrência de origem</dt><dd>{{ m.protocolo }} · {{ origem() }}</dd></div>
+        <div><dt>Patrimônio</dt><dd>{{ m.codigoPatrimonio }} · {{ m.quantidade }} unidade(s)@if (m.identificacao) { · {{ m.identificacao }}}</dd></div>
+        <div><dt>Ocorrência de origem</dt><dd>{{ m.protocolo }}@if (m.origemProtocolo) { (separada de {{ m.origemProtocolo }})} · {{ origem() }}</dd></div>
         <div><dt>Estava com</dt><dd>{{ m.responsavel ? m.responsavel.nome + (m.protocoloEmprestimo ? ' · pedido ' + m.protocoloEmprestimo : '') : 'Encontrado no laboratório' }}</dd></div>
         <div><dt>Motivo</dt><dd><strong>{{ nomeMotivo[b.motivo] }}</strong></dd></div>
         <div class="tb__largo"><dt>Parecer técnico ou relato</dt><dd>{{ b.parecer }}</dd></div>

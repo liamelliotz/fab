@@ -71,6 +71,14 @@ export class AdminManutencao {
   readonly acao = signal<{ tipo: Acao; alvo: Manutencao } | null>(null);
   readonly textoAcao = signal('');
   readonly erroAcao = signal('');
+  /** Quantas e quais unidades estão sendo consertadas/encontradas ou baixadas (pode ser só parte). */
+  readonly qtdAcao = signal(1);
+  readonly identAcao = signal('');
+  /** true quando nem todas as unidades da ocorrência estão sendo resolvidas. */
+  readonly parcial = computed(() => {
+    const a = this.acao();
+    return !!a && this.qtdAcao() < a.alvo.quantidade;
+  });
 
   /** Formulário da baixa (auditoria): tudo vai para o termo. */
   readonly baixa = signal<DadosBaixa>(this.baixaVazia());
@@ -136,7 +144,7 @@ export class AdminManutencao {
 
   /** Valor que vai para o termo de baixa (calculado do cadastro; ninguém digita). */
   valorBaixa(m: Manutencao): number | undefined {
-    return this.service.valorDaBaixa(m);
+    return this.service.valorDaBaixa(m, this.qtdAcao());
   }
 
   valorUnitario(m: Manutencao): number | undefined {
@@ -151,6 +159,8 @@ export class AdminManutencao {
 
   abrirAcao(tipo: Acao, alvo: Manutencao): void {
     this.textoAcao.set('');
+    this.qtdAcao.set(alvo.quantidade);
+    this.identAcao.set('');
     if (tipo === 'assistencia') {
       const opcoes = this.service.assistenciasPara(alvo);
       this.assistenciaEscolhida.set(opcoes.length === 1 ? opcoes[0].id : '');
@@ -164,6 +174,28 @@ export class AdminManutencao {
     this.acao.set(null);
   }
 
+  /** "1 unidade" / "2 unidades". */
+  un(n: number): string {
+    return n === 1 ? '1 unidade' : `${n} unidades`;
+  }
+
+  rotuloQtd(): string {
+    const a = this.acao();
+    if (a?.tipo === 'baixa') return 'Quantas recebem baixa';
+    return a?.alvo.tipo === 'extravio' ? 'Quantas foram encontradas' : 'Quantas foram consertadas';
+  }
+
+  mudarQtdAcao(delta: number): void {
+    const max = this.acao()?.alvo.quantidade ?? 1;
+    this.qtdAcao.update((q) => Math.max(1, Math.min(max, q + delta)));
+    this.erroAcao.set('');
+  }
+
+  escreverIdent(evento: Event): void {
+    this.identAcao.set((evento.target as HTMLInputElement).value);
+    this.erroAcao.set('');
+  }
+
   escreverAcao(evento: Event): void {
     this.textoAcao.set((evento.target as HTMLInputElement | HTMLTextAreaElement).value);
     this.erroAcao.set('');
@@ -173,12 +205,16 @@ export class AdminManutencao {
     const a = this.acao();
     if (!a) return;
     const { tipo, alvo } = a;
+    const unidades = { quantidade: this.qtdAcao(), identificacao: this.identAcao() };
+    const q = unidades.quantidade;
+    const resto = alvo.quantidade - q;
+    const ficam = resto > 0 ? ` ${this.un(resto)} ${resto === 1 ? 'continua' : 'continuam'} em manutenção.` : '';
     const erro =
       tipo === 'assistencia'
         ? this.service.enviarParaAssistencia(alvo.id, this.assistenciaEscolhida())
         : tipo === 'concluir'
-          ? this.service.concluir(alvo.id, this.textoAcao())
-          : this.service.darBaixa(alvo.id, this.baixa());
+          ? this.service.concluir(alvo.id, this.textoAcao(), unidades)
+          : this.service.darBaixa(alvo.id, { ...this.baixa(), ...unidades });
     if (erro) {
       this.erroAcao.set(erro);
       return;
@@ -187,14 +223,15 @@ export class AdminManutencao {
     if (tipo === 'assistencia') {
       this.avisos.info(`${alvo.protocolo}: ${alvo.equipamento} enviado para conserto.`);
     } else if (tipo === 'concluir') {
-      this.avisos.sucesso(`${alvo.equipamento}: ${alvo.quantidade} unidade(s) de volta ao estoque.`);
+      this.avisos.sucesso(`${alvo.equipamento}: ${this.un(q)} de volta ao estoque.${ficam}`);
     } else {
-      const atualizada = this.service.buscarPorId(alvo.id);
+      // Com baixa parcial o termo fica na ocorrência nova (a mais recente com baixa).
+      const termo = this.service.baixas()[0];
       this.avisos.aviso(
-        `${alvo.equipamento}: baixa de ${alvo.quantidade} unidade(s). Termo ${atualizada?.baixa?.protocolo ?? ''} gerado.`,
+        `${alvo.equipamento}: baixa de ${this.un(q)}. Termo ${termo?.baixa?.protocolo ?? ''} gerado.${ficam}`,
         8000,
       );
-      if (atualizada?.baixa) this.termoAberto.set(atualizada);
+      if (termo) this.termoAberto.set(termo);
     }
   }
 

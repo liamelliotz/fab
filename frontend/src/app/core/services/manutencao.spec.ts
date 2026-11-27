@@ -164,4 +164,37 @@ describe('Avarias e faltas na devolução', () => {
     expect(r.ok).toBe(true);
     if (r.ok) expect(r.valor).toMatchObject({ cnpj: valido, telefone: '9632221111', ativa: true });
   });
+
+  it('com várias unidades em manutenção, diz quantas e quais foram consertadas ou baixadas', () => {
+    // oc1: 2 parafusadeiras (id 7) na assistência
+    const oc1 = manutencoes.buscarPorId('oc1')!;
+    const antes = estoque('7');
+    expect(oc1.quantidade).toBe(2);
+
+    // Parcial sem dizer qual: recusa
+    expect(manutencoes.concluir('oc1', '', { quantidade: 1 })).toContain('qual unidade');
+    expect(manutencoes.concluir('oc1', '', { quantidade: 3, identificacao: 'x' })).toContain('1 a 2');
+
+    // 1 consertada: volta ao estoque, ganha protocolo próprio e a original fica com 1
+    expect(manutencoes.concluir('oc1', 'Bateria trocada.', { quantidade: 1, identificacao: 'etiqueta 03' })).toBeNull();
+    expect(estoque('7')[0]).toBe((antes[0] as number) + 1);
+    const resto = manutencoes.buscarPorId('oc1')!;
+    expect(resto).toMatchObject({ quantidade: 1, status: 'em_assistencia' });
+    const consertada = manutencoes.todas().find((m) => m.origemProtocolo === 'OC-2026-0001')!;
+    expect(consertada).toMatchObject({ quantidade: 1, status: 'concluida', identificacao: 'etiqueta 03' });
+    expect(consertada.protocolo).not.toBe('OC-2026-0001');
+
+    // A outra recebe baixa: valor = 1 × R$ 499, termo na própria ocorrência
+    const dados = {
+      motivo: 'irreparavel' as const,
+      parecer: 'Motor queimado, sem peça de reposição no mercado.',
+      confirmacaoPatrimonio: 'PAT-0007',
+    };
+    expect(manutencoes.darBaixa('oc1', dados)).toBeNull();
+    const baixada = manutencoes.buscarPorId('oc1')!;
+    expect(baixada.status).toBe('baixa');
+    expect(baixada.baixa!.valorEstimado).toBe(499);
+    expect(estoque('7')[2]).toBe((antes[2] as number) - 1);
+    expect(manutencoes.pendentes().some((m) => m.equipamentoId === '7')).toBe(false);
+  });
 });

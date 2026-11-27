@@ -70,11 +70,11 @@
             <div class="oc__topo">
               <span class="oc__selo oc__selo--{{ selo(m) }}">{{ rotuloSelo(m) }}</span>
               <span class="oc__status oc__status--{{ corStatus(m.status) }}">{{ nomeStatus[m.status] }}</span>
-              <span class="oc__protocolo">{{ m.protocolo }}</span>
+              <span class="oc__protocolo">{{ m.protocolo }}@if (m.origemProtocolo) { · separada de {{ m.origemProtocolo }}}</span>
             </div>
             <h2>
               <a [routerLink]="['/admin/equipamentos', m.equipamentoId, 'historico']">{{ m.equipamento }}</a>
-              <small>{{ m.codigoPatrimonio }} · {{ m.quantidade }} unidade(s)</small>
+              <small>{{ m.codigoPatrimonio }} · {{ m.quantidade }} unidade(s)@if (m.identificacao) { · {{ m.identificacao }}}</small>
             </h2>
             @if (m.tipoAvaria) {
               <p class="oc__tipo">{{ nomeTipo[m.tipoAvaria] }}</p>
@@ -191,9 +191,38 @@
         @case ('concluir') {
           <h2 id="man-acao-titulo">{{ a.alvo.tipo === 'extravio' ? 'Item encontrado' : 'Marcar como consertado' }}</h2>
           <p>
-            <strong>{{ a.alvo.quantidade }} unidade(s)</strong> de {{ a.alvo.equipamento }} voltam ao estoque e podem
-            ser emprestadas de novo.
+            <strong>{{ un(qtdAcao()) }}</strong> de {{ a.alvo.equipamento }} {{ qtdAcao() === 1 ? 'volta' : 'voltam' }} ao estoque e
+            {{ qtdAcao() === 1 ? 'pode ser emprestada' : 'podem ser emprestadas' }} de novo.
           </p>
+          @if (a.alvo.quantidade > 1) {
+            <fieldset class="man__unidades">
+              <legend>Quais unidades?</legend>
+              <div class="man__campo">
+                <span id="man-qtd-rotulo">{{ rotuloQtd() }}</span>
+                <div class="man__passo" role="group" aria-labelledby="man-qtd-rotulo">
+                  <button type="button" aria-label="Menos uma" (click)="mudarQtdAcao(-1)" [disabled]="qtdAcao() <= 1">−</button>
+                  <output aria-live="polite">{{ qtdAcao() }}</output>
+                  <button type="button" aria-label="Mais uma" (click)="mudarQtdAcao(1)" [disabled]="qtdAcao() >= a.alvo.quantidade">+</button>
+                </div>
+                <small class="man__opc">de {{ a.alvo.quantidade }} nesta ocorrência</small>
+              </div>
+              <label class="man__campo">
+                <span>
+                  Identificação
+                  @if (parcial()) { <span class="man__obrig">*</span> } @else { <span class="man__opc">opcional</span> }
+                </span>
+                <input type="text" maxlength="120" placeholder="Ex.: etiqueta 03 ou nº de série" [value]="identAcao()" (input)="escreverIdent($event)" />
+              </label>
+              @if (parcial()) {
+                <p class="man__resto">
+                  <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                  @let resto = a.alvo.quantidade - qtdAcao();
+                  {{ resto === 1 ? 'A outra unidade continua' : 'As outras ' + resto + ' unidades continuam' }} em manutenção
+                  nesta ocorrência ({{ a.alvo.protocolo }}). {{ qtdAcao() === 1 ? 'A escolhida ganha' : 'As escolhidas ganham' }} um protocolo próprio.
+                </p>
+              }
+            </fieldset>
+          }
           <label class="man__campo">
             <span>Observação (opcional)</span>
             <textarea rows="2" placeholder="Ex.: tela trocada" [value]="textoAcao()" (input)="escreverAcao($event)"></textarea>
@@ -204,8 +233,37 @@
           <h2 id="man-acao-titulo">Baixa patrimonial</h2>
           <p>
             {{ a.alvo.equipamento }} · patrimônio <strong>{{ a.alvo.codigoPatrimonio }}</strong> ·
-            {{ a.alvo.quantidade }} unidade(s)
+            {{ un(a.alvo.quantidade) }} em manutenção
           </p>
+          @if (a.alvo.quantidade > 1) {
+            <fieldset class="man__unidades">
+              <legend>Quais unidades?</legend>
+              <div class="man__campo">
+                <span id="man-qtd-rotulo">{{ rotuloQtd() }}</span>
+                <div class="man__passo" role="group" aria-labelledby="man-qtd-rotulo">
+                  <button type="button" aria-label="Menos uma" (click)="mudarQtdAcao(-1)" [disabled]="qtdAcao() <= 1">−</button>
+                  <output aria-live="polite">{{ qtdAcao() }}</output>
+                  <button type="button" aria-label="Mais uma" (click)="mudarQtdAcao(1)" [disabled]="qtdAcao() >= a.alvo.quantidade">+</button>
+                </div>
+                <small class="man__opc">de {{ a.alvo.quantidade }} nesta ocorrência</small>
+              </div>
+              <label class="man__campo">
+                <span>
+                  Identificação
+                  @if (parcial()) { <span class="man__obrig">*</span> } @else { <span class="man__opc">opcional</span> }
+                </span>
+                <input type="text" maxlength="120" placeholder="Ex.: etiqueta 03 ou nº de série" [value]="identAcao()" (input)="escreverIdent($event)" />
+              </label>
+              @if (parcial()) {
+                <p class="man__resto">
+                  <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                  @let resto = a.alvo.quantidade - qtdAcao();
+                  {{ resto === 1 ? 'A outra unidade continua' : 'As outras ' + resto + ' unidades continuam' }} em manutenção
+                  nesta ocorrência ({{ a.alvo.protocolo }}). {{ qtdAcao() === 1 ? 'A escolhida ganha' : 'As escolhidas ganham' }} um protocolo próprio.
+                </p>
+              }
+            </fieldset>
+          }
           <p class="man__aviso">
             O bem sai do acervo de forma definitiva. A ação não pode ser desfeita e gera um termo de baixa numerado
             para arquivo.
@@ -227,7 +285,7 @@
               @if (valorBaixa(a.alvo) !== undefined) {
                 <p class="man__valor">
                   <strong>{{ moeda(valorBaixa(a.alvo)) }}</strong>
-                  <small>{{ a.alvo.quantidade }} × {{ moeda(valorUnitario(a.alvo)) }}, do cadastro do equipamento</small>
+                  <small>{{ qtdAcao() }} × {{ moeda(valorUnitario(a.alvo)) }}, do cadastro do equipamento</small>
                 </p>
               } @else {
                 <p class="man__valor man__valor--falta">
