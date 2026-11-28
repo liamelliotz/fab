@@ -98,13 +98,15 @@ export class Dashboard {
     }
     const retiradas = this.emprestimos.todas().filter((s) => s.status === 'aprovado' && s.dataPrevistaRetirada <= this.hoje);
     const entregas = this.requisicoes.aguardandoEntrega().filter((r) => r.dataUso <= this.hoje);
-    if (retiradas.length || entregas.length) {
+    const sobrasAbertas = this.requisicoes.aguardandoSobra();
+    if (retiradas.length || entregas.length || sobrasAbertas.length) {
       t.push({
         icone: 'fa-solid fa-qrcode', tom: 'acao',
-        titulo: `${n(retiradas.length + entregas.length, 'atendimento', 'atendimentos')} no balcão hoje`,
+        titulo: `${n(retiradas.length + entregas.length + sobrasAbertas.length, 'atendimento', 'atendimentos')} no balcão`,
         detalhe: [
-          retiradas.length ? `${n(retiradas.length, 'retirada', 'retiradas')} de equipamento` : '',
-          entregas.length ? `${n(entregas.length, 'entrega', 'entregas')} de insumo` : '',
+          retiradas.length ? `${n(retiradas.length, 'retirada', 'retiradas')} de equipamento hoje` : '',
+          entregas.length ? `${n(entregas.length, 'entrega', 'entregas')} de insumo hoje` : '',
+          sobrasAbertas.length ? `${n(sobrasAbertas.length, 'sobra', 'sobras')} de insumo a receber` : '',
         ].filter(Boolean).join(' · '),
         rota: '/admin/balcao', botao: 'Abrir balcão',
       });
@@ -199,13 +201,22 @@ export class Dashboard {
         rota: `/pedidos/${s.id}`, botao: 'Ver código',
       });
     }
-    const insumos = this.requisicoes.requisicoes().filter((r) => r.solicitante.id === eu && r.status === 'aprovada');
-    if (insumos.length) {
+    for (const r of this.requisicoes.requisicoes().filter((x) => x.solicitante.id === eu && x.status === 'aprovada')) {
+      const prazo = this.requisicoes.prazoRetirada(r);
       t.push({
-        icone: 'fa-solid fa-box-open', tom: 'acao',
-        titulo: `${n(insumos.length, 'insumo aprovado', 'insumos aprovados')} para retirar`,
-        detalhe: insumos.map((r) => `${r.insumo.nome} (${r.protocolo})`).join(' · '),
-        rota: '/meus-emprestimos', query: { aba: 'insumos' }, botao: 'Ver',
+        icone: 'fa-solid fa-box-open', tom: prazo <= this.hoje ? 'alerta' : 'acao',
+        titulo: `Retire no balcão: ${r.insumo.nome}`,
+        detalhe: `Mostre o código ${r.codigoRetirada ? formatarCodigo(r.codigoRetirada) : ''} · retire até ${prazo === this.hoje ? 'hoje' : this.data(prazo)}, senão a requisição expira`,
+        rota: '/meus-emprestimos', query: { aba: 'insumos' }, botao: 'Ver QR',
+      });
+    }
+    const sobras = this.requisicoes.requisicoes().filter((x) => x.solicitante.id === eu && !!x.codigoDevolucao);
+    if (sobras.length) {
+      t.push({
+        icone: 'fa-solid fa-rotate-left', tom: 'info',
+        titulo: `Sobrou insumo? ${n(sobras.length, 'devolução', 'devoluções')} no balcão`,
+        detalhe: sobras.map((r) => `${r.insumo.nome} até ${this.data(r.prazoSobra)}`).join(' · ') + '. Se usou tudo, avise com o código.',
+        rota: '/meus-emprestimos', query: { aba: 'insumos' }, botao: 'Ver código',
       });
     }
     const aguardando =

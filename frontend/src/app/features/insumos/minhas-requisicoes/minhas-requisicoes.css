@@ -80,3 +80,43 @@ td strong { color: var(--t-172b24); }
   .grade { grid-template-columns: minmax(0, 1fr); }
   .filtros input { min-width: 0; flex: 1; }
 }
+
+.codigo {
+  display: block;
+  width: fit-content;
+  margin-top: 6px;
+  padding: 3px 9px;
+  border: 1px dashed var(--b-9ca3af);
+  border-radius: 6px;
+  color: var(--t-172b24);
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+.sub--forte {
+  color: var(--t-92400e);
+  font-weight: 600;
+}
+.acao {
+  white-space: nowrap;
+}
+.acao .btn + .btn {
+  margin-left: 6px;
+}
+.qr {
+  display: flex;
+  justify-content: center;
+  margin: 8px 0;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgb(255 255 255); /* QR sempre preto no branco, inclusive no tema escuro (fora dos tokens) */
+}
+.qr__codigo {
+  margin: 4px 0 8px;
+  text-align: center;
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}

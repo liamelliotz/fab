@@ -1,15 +1,8 @@
 <section class="bal">
   <header class="bal__cabecalho">
     <h1>Balcão</h1>
-    <p>Entregue e receba materiais conferindo o código (ou o QR) que o professor mostra.</p>
+    <p>Entregue e receba equipamentos e insumos conferindo o código (ou o QR) que o professor mostra.</p>
   </header>
-
-  @if (insumosParaEntregar() > 0) {
-    <a class="bal__insumos" routerLink="/admin/solicitacoes" [queryParams]="{ aba: 'insumos' }">
-      <i class="fa-solid fa-box-open" aria-hidden="true"></i>
-      <span><strong>{{ insumosParaEntregar() }} requisição(ões) de insumo aprovada(s)</strong> esperando entrega. Abrir requisições</span>
-    </a>
-  }
 
   <div class="bal__abas" role="tablist">
     <button
@@ -22,8 +15,8 @@
     >
       <i class="fa-solid fa-hand-holding" aria-hidden="true"></i>
       Retirada
-      @if (aguardandoRetirada().length > 0) {
-        <span class="bal__contador">{{ aguardandoRetirada().length }}</span>
+      @if (aguardandoRetirada().length + insumosParaEntregar().length > 0) {
+        <span class="bal__contador">{{ aguardandoRetirada().length + insumosParaEntregar().length }}</span>
       }
     </button>
     <button
@@ -36,14 +29,77 @@
     >
       <i class="fa-solid fa-box-archive" aria-hidden="true"></i>
       Devolução
-      @if (emUso().length > 0) {
-        <span class="bal__contador">{{ emUso().length }}</span>
+      @if (emUso().length + sobrasParaReceber().length > 0) {
+        <span class="bal__contador">{{ emUso().length + sobrasParaReceber().length }}</span>
       }
     </button>
   </div>
 
   <div class="bal__painel">
-    @if (!alvo()) {
+    @if (alvoInsumo(); as a) {
+      @let r = a.req;
+      <div class="bal__confere">
+        <div class="bal__confere-topo">
+          <div>
+            <span class="bal__eyebrow">{{ a.tipo === 'retirada' ? 'ENTREGAR INSUMO A' : 'RECEBER SOBRA DE' }}</span>
+            <h2>{{ r.solicitante.nome }}</h2>
+            <p>{{ r.solicitante.departamento }}</p>
+          </div>
+          <strong>{{ r.protocolo }}</strong>
+        </div>
+        <p class="bal__itens"><i class="fa-solid fa-box-open" aria-hidden="true"></i> {{ r.insumo.nome }}</p>
+        <p class="bal__info">
+          {{ r.finalidade }} · uso em {{ nomeLocal(r.localId) }} no dia {{ data(r.dataUso) }}@if (r.turma) { · {{ r.turma }}}
+        </p>
+
+        @if (a.tipo === 'retirada') {
+          <p class="bal__info">
+            Aprovado: <strong>{{ qtd(r.quantidade) }} {{ nomeUnidade[r.insumo.unidadeMedida] }}</strong>
+            @if (maximoEntrega() < r.quantidade) {
+              · <span class="bal__atraso">só há {{ qtd(maximoEntrega()) }} em estoque</span>
+            }
+          </p>
+          <label class="bal__campo bal__campo--qtd">
+            <span>Quantidade entregue ({{ nomeUnidade[r.insumo.unidadeMedida] }})</span>
+            <input type="number" min="0" [max]="maximoEntrega()" [step]="passoInsumo()" [value]="qtdInsumo()" (input)="atualizarQtdInsumo($event)" />
+            <small>Pode entregar menos que o aprovado, nunca mais. A saída entra no estoque com o protocolo.</small>
+          </label>
+        } @else {
+          <p class="bal__info">
+            Entregue: <strong>{{ qtd(r.quantidadeEntregue ?? 0) }} {{ nomeUnidade[r.insumo.unidadeMedida] }}</strong>
+            · a sobra pode voltar até {{ data(r.prazoSobra ?? '') }}
+          </p>
+          <div class="dev__opcoes" role="group" aria-label="Sobrou insumo?">
+            <button type="button" class="dev__opcao" [class.dev__opcao--ativa]="!usouTudo()" (click)="definirUsouTudo(false)">
+              <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Sobrou, volta ao estoque
+            </button>
+            <button type="button" class="dev__opcao" [class.dev__opcao--ativa]="usouTudo()" (click)="definirUsouTudo(true)">
+              <i class="fa-solid fa-check-double" aria-hidden="true"></i> Usou tudo
+            </button>
+          </div>
+          @if (!usouTudo()) {
+            <label class="bal__campo bal__campo--qtd">
+              <span>Quanto sobrou ({{ nomeUnidade[r.insumo.unidadeMedida] }})</span>
+              <input type="number" min="0" [max]="r.quantidadeEntregue ?? 0" [step]="passoInsumo()" [value]="qtdInsumo()" (input)="atualizarQtdInsumo($event)" />
+              <small>Volta ao estoque e o consumo real da aula é ajustado.</small>
+            </label>
+          } @else {
+            <p class="bal__info">O consumo real fica igual ao entregue e a requisição é encerrada.</p>
+          }
+        }
+
+        @if (erro()) {
+          <p class="bal__erro" role="alert">{{ erro() }}</p>
+        }
+        <div class="bal__acoes">
+          <button type="button" class="bal__btn" (click)="limpar()">Cancelar</button>
+          <button type="button" class="bal__btn bal__btn--ok" (click)="confirmarInsumo()">
+            <i class="fa-solid fa-check" aria-hidden="true"></i>
+            {{ a.tipo === 'retirada' ? 'Confirmar entrega' : usouTudo() ? 'Encerrar requisição' : 'Receber sobra' }}
+          </button>
+        </div>
+      </div>
+    } @else if (!alvo()) {
       <label class="bal__campo">
         <span>Código de {{ aba() === 'retirada' ? 'retirada' : 'devolução' }}</span>
         <div class="bal__linha">
@@ -236,6 +292,18 @@
       } @empty {
         <p class="bal__vazio">Nenhum pedido aprovado aguardando retirada.</p>
       }
+      @if (insumosParaEntregar().length) {
+        <h2 class="bal__subtitulo">Insumos aprovados ({{ insumosParaEntregar().length }})</h2>
+        @for (r of insumosParaEntregar(); track r.id) {
+          <article class="bal__item">
+            <div>
+              <strong>{{ r.protocolo }}</strong> · {{ r.solicitante.nome }}
+              <p>{{ r.insumo.nome }} × {{ qtd(r.quantidade) }} {{ nomeUnidade[r.insumo.unidadeMedida] }} · retirar até {{ data(requisicoes.prazoRetirada(r)) }}</p>
+            </div>
+            <span class="bal__tag">exige o código</span>
+          </article>
+        }
+      }
     </div>
   } @else {
     <div class="bal__lista">
@@ -252,6 +320,18 @@
         </article>
       } @empty {
         <p class="bal__vazio">Nenhum material em uso.</p>
+      }
+      @if (sobrasParaReceber().length) {
+        <h2 class="bal__subtitulo">Sobras de insumo a receber ({{ sobrasParaReceber().length }})</h2>
+        @for (r of sobrasParaReceber(); track r.id) {
+          <article class="bal__item">
+            <div>
+              <strong>{{ r.protocolo }}</strong> · {{ r.solicitante.nome }}
+              <p>{{ r.insumo.nome }} · entregue {{ qtd(r.quantidadeEntregue ?? 0) }} {{ nomeUnidade[r.insumo.unidadeMedida] }} · sobra até {{ data(r.prazoSobra ?? '') }}</p>
+            </div>
+            <span class="bal__tag">exige o código</span>
+          </article>
+        }
       }
     </div>
   }

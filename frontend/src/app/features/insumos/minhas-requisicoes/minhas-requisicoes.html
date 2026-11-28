@@ -2,7 +2,7 @@
     <div class="titulo-painel">
       <div>
         <h2 id="titulo-minhas">Minhas requisições</h2>
-        <p>{{ abertas() }} em aberto. Retire no balcão as que estiverem aprovadas.</p>
+        <p>{{ abertas() }} em aberto. Mostre o código ou o QR no balcão para retirar e para devolver a sobra.</p>
       </div>
     </div>
     <div class="tabela-container">
@@ -31,8 +31,24 @@
               <td>
                 <span class="status status--{{ r.status }}">{{ nomeStatus[r.status] }}</span>
                 @if (r.motivo) {<span class="sub">{{ r.motivo }}</span>}
+                @if (r.status === 'aprovada' && r.codigoRetirada) {
+                  <span class="codigo" [attr.aria-label]="'Código de retirada ' + r.codigoRetirada.split('').join(' ')">{{ codigo(r.codigoRetirada) }}</span>
+                  <span class="sub">retire até {{ data(prazoRetirada(r)) }}</span>
+                }
+                @if (r.codigoDevolucao) {
+                  <span class="sub sub--forte">Sobrou? Devolva no balcão até {{ data(r.prazoSobra ?? '') }}</span>
+                  <span class="codigo" [attr.aria-label]="'Código de devolução ' + r.codigoDevolucao.split('').join(' ')">{{ codigo(r.codigoDevolucao) }}</span>
+                }
               </td>
               <td class="acao">
+                @if (r.status === 'aprovada' && r.codigoRetirada) {
+                  <button type="button" class="btn" (click)="qrAberto.set({ req: r, tipo: 'R' })"
+                    [attr.aria-label]="'Mostrar QR de retirada de ' + r.protocolo"><i class="fa-solid fa-qrcode" aria-hidden="true"></i> QR</button>
+                }
+                @if (r.codigoDevolucao) {
+                  <button type="button" class="btn" (click)="qrAberto.set({ req: r, tipo: 'D' })"
+                    [attr.aria-label]="'Mostrar QR de devolução de ' + r.protocolo"><i class="fa-solid fa-qrcode" aria-hidden="true"></i> QR</button>
+                }
                 @if (r.status === 'pendente' || r.status === 'aprovada') {
                   <button type="button" class="btn btn--secundario" (click)="abrirCancelamento(r)"
                     [attr.aria-label]="'Cancelar requisição ' + r.protocolo">Cancelar</button>
@@ -68,6 +84,30 @@
         <button type="button" class="btn btn--secundario" (click)="cancelando.set(null)">Voltar</button>
         <button type="button" class="btn btn--perigo" [disabled]="motivoCancelamento().trim().length < minimo"
           (click)="confirmarCancelamento()">Confirmar cancelamento</button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (qrAberto(); as q) {
+  <div class="fundo" (click)="qrAberto.set(null)">
+    <div class="dialogo dialogo--estreito dialogo--qr" role="dialog" aria-modal="true" aria-labelledby="titulo-qr" appDialogo
+      (fecharDialogo)="qrAberto.set(null)" (click)="$event.stopPropagation()">
+      <h2 id="titulo-qr">{{ q.tipo === 'R' ? 'Retirar no balcão' : 'Devolver a sobra' }}</h2>
+      <p class="dialogo__resumo">{{ q.req.protocolo }} · {{ q.req.insumo.nome }}</p>
+      <div class="qr">
+        <app-qr-code [valor]="qrValor()" [tamanho]="200" [rotulo]="q.tipo === 'R' ? 'QR Code de retirada' : 'QR Code de devolução'" />
+      </div>
+      <p class="qr__codigo">{{ codigo(q.tipo === 'R' ? q.req.codigoRetirada ?? '' : q.req.codigoDevolucao ?? '') }}</p>
+      <p class="dialogo__resumo">
+        @if (q.tipo === 'R') {
+          Mostre este QR ou diga o código na coordenação. Vale até {{ data(prazoRetirada(q.req)) }}.
+        } @else {
+          Leve o que sobrou ao balcão até {{ data(q.req.prazoSobra ?? '') }}. Se usou tudo, avise na coordenação com este código.
+        }
+      </p>
+      <div class="dialogo__acoes">
+        <button type="button" class="btn" (click)="qrAberto.set(null)">Fechar</button>
       </div>
     </div>
   </div>

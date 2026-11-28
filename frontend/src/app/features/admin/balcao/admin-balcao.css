@@ -362,24 +362,36 @@ button:disabled, input:disabled { opacity: .55; cursor: wait; }
 .ret__termo input { margin-top: 4px; width: 18px; height: 18px; flex: none; }
 @media (max-width: 700px) { .ret__local { grid-template-columns: 1fr; } }
 
-.bal__insumos {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 16px;
-  border: 1px solid var(--b-e5ebe8);
-  border-left: 4px solid var(--b-24845c);
+
+
+
+.bal__subtitulo {
+  margin: 20px 0 10px;
+  font-size: 15px;
+}
+.bal__campo--qtd {
+  max-width: 280px;
+  margin-top: 12px;
+}
+.bal__campo--qtd input {
+  width: 100%;
+}
+.bal__itens i {
+  margin-right: 6px;
+  color: var(--t-1f6f4c);
+}
+
+.bal__campo input[type='number'] {
+  padding: 12px 14px;
+  border: 2px solid var(--b-d5ddd9);
   border-radius: 10px;
   background: var(--s-ffffff);
   color: var(--t-172b24);
-  font-size: 14px;
-  text-decoration: none;
+  font-size: 18px;
+  font-weight: 600;
 }
-
-.bal__insumos:hover {
-  background: var(--s-f7faf8);
-}
-
-.bal__insumos i {
-  color: var(--t-1f6f4c);
+.bal__campo input[type='number']:focus {
+  border-color: var(--b-24845c);
+  outline: 2px solid var(--b-1b6b47);
+  outline-offset: 1px;
 }

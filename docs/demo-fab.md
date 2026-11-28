@@ -69,6 +69,8 @@ Esta parte vale para a apresentação **sem backend**, com dados salvos no naveg
 | 28 | **Limite por categoria**: o Pedro já está com a impressora 3D e o limite é 1; ao pedir outra, o formulário avisa e não envia | Nova solicitação |
 | 29 | **Política de atraso**: a Maria está com a caixa de som atrasada e não consegue fazer pedidos. Ao devolver o EMP-2026-0037 no balcão (código `M2N9QD`), ela fica **suspensa por 6 dias** (3 de atraso × 2) automaticamente | Balcão / Usuários |
 | 30 | **Regras configuráveis**: prazo para retirar, limites e política de atraso mudam em Configurações (só a coordenação); cada mudança vai para a Auditoria | Configurações |
+| 32 | **Insumo pelo balcão, com código e QR**: requisição aprovada gera o código de retirada (ex.: Jumpers do Pedro, `J5P-7RQ`). No Balcão › Retirada a coordenação confere o código, entrega e o professor recebe o **código de devolução da sobra**. No Balcão › Devolução: "Sobrou" (volta ao estoque) ou "Usou tudo" | Meus pedidos › Insumos / Balcão |
+| 33 | **Prazos do insumo**: aprovada não retirada até o dia de uso (+ tolerância das regras) expira e libera a reserva; a sobra pode voltar por 7 dias, depois o consumo é considerado integral | Solicitações › Insumos |
 | 31 | **Modo escuro e fonte de leitura fácil**: Acessibilidade › Tema (Claro, Escuro ou Automático) e fonte Atkinson Hyperlegible. Tudo embutido: funciona sem internet | Todas |
 
 ## 2. Regras da realocação (transferência)

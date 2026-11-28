@@ -13,7 +13,7 @@ import { RegistroAvariaDTO } from '../models/manutencao.model';
 import { Resultado, falha, sucesso } from '../models/resultado.model';
 import { UsuarioResumo } from '../models/usuario.model';
 import { gravarJson, lerJson, ouvirOutrasAbas } from '../utils/armazenamento.utils';
-import { gerarCodigo, normalizarCodigo } from '../utils/codigo.utils';
+import { normalizarCodigo } from '../utils/codigo.utils';
 import {
   agoraISO,
   diferencaEmDias,
@@ -26,6 +26,7 @@ import { AuthService } from './auth.service';
 import { EquipamentoService } from './equipamento.service';
 import { ManutencaoService, NOME_GRAVIDADE, NOME_TIPO_AVARIA } from './manutencao.service';
 import { RegrasEmprestimoService, nomeCategoria } from './regras-emprestimo.service';
+import { CodigosService } from './codigos.service';
 import { resumoDemo, UsuarioService } from './usuario.service';
 
 /** Tamanho mínimo do motivo de cancelamento (evita "ok", "x" e afins). */
@@ -291,6 +292,7 @@ export class EmprestimoService {
   private readonly auth = inject(AuthService);
   private readonly manutencoes = inject(ManutencaoService);
   private readonly regras = inject(RegrasEmprestimoService);
+  private readonly codigos = inject(CodigosService);
 
   readonly todas = signal<Emprestimo[]>(
     lerJson<Emprestimo[]>(CHAVE_EMPRESTIMOS) ?? criarEmprestimosDemo(),
@@ -316,6 +318,7 @@ export class EmprestimoService {
     // Duas abas abertas (professor e coordenação): uma vê na hora o que a outra fez.
     ouvirOutrasAbas<Emprestimo[]>(CHAVE_EMPRESTIMOS, (v) => v && this.todas.set(v));
     ouvirOutrasAbas<AvisoAdmin[]>(CHAVE_AVISOS, (v) => v && this.avisos.set(v));
+    this.codigos.registrar(() => this.todas().flatMap((s) => [s.codigoRetirada, s.codigoDevolucao]));
 
     // Pedido aprovado e não retirado no prazo expira: ao abrir e a cada minuto (só no navegador).
     if (typeof window !== 'undefined') {
@@ -1073,13 +1076,9 @@ export class EmprestimoService {
     this.atualizarPedido(novo.id, () => novo);
   }
 
+  /** Código novo, diferente de todos os do balcão (empréstimos e requisições de insumo). */
   private novoCodigo(): string {
-    const emUso = new Set<string>();
-    for (const s of this.todas()) {
-      if (s.codigoRetirada) emUso.add(s.codigoRetirada);
-      if (s.codigoDevolucao) emUso.add(s.codigoDevolucao);
-    }
-    return gerarCodigo(6, emUso);
+    return this.codigos.novo();
   }
 
   private proximoProtocolo(): string {

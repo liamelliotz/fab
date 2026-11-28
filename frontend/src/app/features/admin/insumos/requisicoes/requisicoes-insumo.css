@@ -15,7 +15,8 @@ td strong { color: var(--t-172b24); }
 .vazio { padding: 24px; color: var(--t-6b7280); text-align: center; }
 .req__protocolo { padding: 0; border: none; background: none; color: var(--t-1f6f4c); font: inherit; font-weight: 700; white-space: nowrap; cursor: pointer; }
 .req__protocolo:hover { text-decoration: underline; }
-.req__acoes { display: flex; justify-content: flex-end; gap: 6px; white-space: nowrap; }
+.req__acoes { text-align: right; white-space: nowrap; }
+.req__acoes > * + * { margin-left: 6px; }
 
 .status { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; }
 .status--pendente { background: var(--s-fef3c7); color: var(--t-92400e); }
@@ -46,3 +47,19 @@ td strong { color: var(--t-172b24); }
 .acoes { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
 .historico { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 10px; font-size: 14px; }
 .historico li span { display: block; color: var(--t-6b7280); font-size: 13px; }
+
+.req__codigo {
+  display: block;
+  width: fit-content;
+  margin-top: 6px;
+  padding: 3px 8px;
+  border: 1px dashed var(--b-9ca3af);
+  border-radius: 6px;
+  color: var(--t-172b24);
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+a.btn { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
