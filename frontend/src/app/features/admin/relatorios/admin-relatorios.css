@@ -13,19 +13,19 @@
 
 .cabecalho h1 {
   margin: 0 0 6px;
-  color: #172b24;
+  color: var(--t-172b24);
   font-size: 30px;
   font-weight: 700;
 }
 
 .cabecalho p {
   margin: 0;
-  color: #6b7280;
+  color: var(--t-6b7280);
   font-size: 14px;
 }
 
 .filtros {
-  background: white;
+  background: var(--s-ffffff);
   padding: 24px;
   border-radius: 10px;
   margin-bottom: 25px;
@@ -37,7 +37,7 @@
 }
 
 .titulo-filtro p {
-  color: #6b7280;
+  color: var(--t-6b7280);
   margin: 6px 0 20px;
 }
 
@@ -56,20 +56,20 @@
 
 .campo label {
   font-weight: 600;
-  color: #374151;
+  color: var(--t-374151);
 }
 
 .campo input {
   padding: 10px 12px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--b-d1d5db);
   border-radius: 7px;
 }
 
 .botao-gerar,
 .botao-exportar {
   border: none;
-  background: #24845c;
-  color: white;
+  background: var(--s-24845c);
+  color: var(--t-ffffff);
   padding: 11px 18px;
   border-radius: 7px;
   cursor: pointer;
@@ -77,9 +77,9 @@
 }
 
 .botao-limpar {
-  border: 1px solid #d1d5db;
-  background: white;
-  color: #374151;
+  border: 1px solid var(--b-d1d5db);
+  background: var(--s-ffffff);
+  color: var(--t-374151);
   padding: 10px 18px;
   border-radius: 7px;
   cursor: pointer;
@@ -98,33 +98,33 @@
 }
 
 .card {
-  background: white;
+  background: var(--s-ffffff);
   padding: 22px;
   border-radius: 10px;
-  border-left: 5px solid #24845c;
+  border-left: 5px solid var(--b-24845c);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .card-material {
-  border-left-color: #7c3aed;
+  border-left-color: var(--b-7c3aed);
 }
 
 .card-quantidade {
-  border-left-color: #16a34a;
+  border-left-color: var(--b-16a34a);
 }
 
 .card p {
   margin: 0 0 12px;
-  color: #6b7280;
+  color: var(--t-6b7280);
 }
 
 .card strong {
   font-size: 30px;
-  color: #111827;
+  color: var(--t-111827);
 }
 
 .painel {
-  background: white;
+  background: var(--s-ffffff);
   padding: 24px;
   border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
@@ -143,7 +143,7 @@
 }
 
 .topo-painel p {
-  color: #6b7280;
+  color: var(--t-6b7280);
   margin: 6px 0 0;
 }
 
@@ -158,23 +158,23 @@ table {
 
 th {
   text-align: left;
-  background: #f9fafb;
+  background: var(--s-f9fafb);
   padding: 13px;
-  color: #374151;
+  color: var(--t-374151);
 }
 
 td {
   padding: 14px 13px;
-  border-bottom: 1px solid #e5e7eb;
-  color: #4b5563;
+  border-bottom: 1px solid var(--b-e5e7eb);
+  color: var(--t-4b5563);
 }
 
 .tipo {
   display: inline-block;
   padding: 6px 10px;
   border-radius: 20px;
-  background: #dbeafe;
-  color: #1d4ed8;
+  background: var(--s-dbeafe);
+  color: var(--t-1d4ed8);
   font-size: 12px;
   font-weight: 600;
 }
@@ -182,11 +182,11 @@ td {
 .sem-resultados {
   text-align: center;
   padding: 50px 20px;
-  color: #6b7280;
+  color: var(--t-6b7280);
 }
 
 .sem-resultados h3 {
-  color: #374151;
+  color: var(--t-374151);
 }
 
 @media (max-width: 800px) {
@@ -206,7 +206,7 @@ td {
 
 .erro {
   margin: 12px 0 0;
-  color: #b91c1c;
+  color: var(--t-b91c1c);
   font-size: 14px;
   font-weight: 600;
 }

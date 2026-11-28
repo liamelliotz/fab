@@ -7,6 +7,16 @@
     <a class="btn-secundario" routerLink="/meus-emprestimos">Voltar</a>
   </header>
 
+  @if (impedimento(); as motivo) {
+    <div class="bloqueio" role="alert">
+      <i class="fa-solid fa-user-clock" aria-hidden="true"></i>
+      <div>
+        <strong>Você não pode fazer pedidos novos agora</strong>
+        <p>{{ motivo }}</p>
+      </div>
+    </div>
+  }
+
   <form class="formulario" [formGroup]="form" (ngSubmit)="enviar()" novalidate>
     <label class="campo campo--largo">
       <span>Material</span>
@@ -30,6 +40,19 @@
           <i class="fa-regular fa-clock" aria-hidden="true"></i>
           Prazo máximo de empréstimo: <strong>{{ item.prazoMaximoDias }} dia(s)</strong>
         </span>
+        @if (limiteCategoria(); as l) {
+          <span class="limite" [class.limite--cheio]="l.resta === 0">
+            <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
+            Limite de {{ l.nome }}: <strong>{{ un(l.limite) }} por pessoa</strong> ao mesmo tempo ·
+            @if (l.resta === 0) {
+              você já atingiu o limite com pedidos abertos
+            } @else if (l.ja > 0) {
+              você ainda pode pedir {{ un(l.resta) }}
+            } @else {
+              você não tem nenhum pedido aberto desta categoria
+            }
+          </span>
+        }
         @if (item.requerTreinamento) {
           @if (semHabilitacao()) {
             <span class="aviso">
@@ -61,6 +84,9 @@
     <label class="campo">
       <span>Data de retirada</span>
       <input type="date" [min]="hoje" formControlName="dataPrevistaRetirada" />
+      <small class="dica">
+        Depois de aprovado, retire até {{ prazoRetiradaTexto() }}{{ diasParaRetirar() === 0 ? ' (no mesmo dia)' : '' }}. Passou disso, o pedido expira e a reserva é liberada.
+      </small>
     </label>
 
     <label class="campo">
@@ -116,7 +142,7 @@
 
     <div class="rodape campo--largo">
       <a class="btn-secundario" routerLink="/meus-emprestimos">Cancelar</a>
-      <button type="submit" class="btn-principal">Enviar solicitação</button>
+      <button type="submit" class="btn-principal" [disabled]="!!impedimento()">Enviar solicitação</button>
     </div>
   </form>
 </section>

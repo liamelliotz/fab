@@ -20,9 +20,9 @@ import { EquipamentoService } from './equipamento.service';
 import { resumoDemo } from './usuario.service';
 import { EmprestimoService } from './emprestimo.service';
 
-const CHAVE_MANUTENCOES = 'fab_demo_v8_manutencoes';
+const CHAVE_MANUTENCOES = 'fab_demo_v9_manutencoes';
 /** Fotos ficam numa chave separada: se o navegador ficar sem espaço, só as fotos se perdem. */
-const CHAVE_FOTOS = 'fab_demo_v8_fotos';
+const CHAVE_FOTOS = 'fab_demo_v9_fotos';
 /** A demonstração guarda no máximo estas fotos (as mais novas). */
 const MAX_FOTOS = 12;
 

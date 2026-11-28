@@ -326,6 +326,9 @@ export class AdminBalcao {
     } else {
       this.notificacoes.sucesso(`Devolução registrada: ${s.protocolo}. Tudo de volta ao estoque.`);
     }
+    // Política de atraso: a devolução atrasada pode ter suspendido o responsável.
+    const suspensao = devolucao ? s.historico.find((e) => e.tipo === 'suspensao_aplicada') : undefined;
+    if (suspensao?.detalhe) this.notificacoes.aviso(suspensao.detalhe, 9000);
   }
 
   /** Com a API, busca os pedidos aprovados e em uso. No modo demonstração não precisa. */

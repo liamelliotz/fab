@@ -60,6 +60,15 @@ export interface Usuario {
   /** Condição atual do cadastro para validação de acesso */
   status: StatusUsuario;
 
+  /**
+   * Suspensão automática por atraso (política "suspensão" das regras de empréstimo):
+   * até este dia (YYYY-MM-DD, inclusive) a pessoa não faz pedidos novos. Termina sozinha.
+   */
+  suspensaoAte?: string;
+
+  /** Por que a pessoa foi suspensa (ex.: "3 dias de atraso na devolução do EMP-2026-0037"). */
+  motivoSuspensao?: string;
+
   /** Data e hora de criação do registro (formato ISO 8601) */
   criadoEm: string;
 

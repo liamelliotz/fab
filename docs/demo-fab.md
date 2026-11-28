@@ -65,6 +65,11 @@ Esta parte vale para a apresentação **sem backend**, com dados salvos no naveg
 | 24 | **Insumo perecível**: marcar como perecível obriga a validade no cadastro e em cada compra | Inventário › Insumos |
 | 25 | **Assistências credenciadas**: cadastro com CNPJ validado, especialidades e prazo; o conserto só vai para quem está em dia e conserta aquela categoria | Manutenção › Assistências credenciadas |
 | 26 | **VLibras e NVDA**: tradutor de Libras do Governo Federal (liga e desliga em Acessibilidade) e anúncio de troca de página para leitores de tela | Todas |
+| 27 | **Pedido aprovado expira**: se não for retirado até o prazo (padrão: 1 dia depois da data de retirada), o sistema cancela e devolve a reserva ao estoque. Exemplo: EMP-2026-0033 | Solicitações / Pedido |
+| 28 | **Limite por categoria**: o Pedro já está com a impressora 3D e o limite é 1; ao pedir outra, o formulário avisa e não envia | Nova solicitação |
+| 29 | **Política de atraso**: a Maria está com a caixa de som atrasada e não consegue fazer pedidos. Ao devolver o EMP-2026-0037 no balcão (código `M2N9QD`), ela fica **suspensa por 6 dias** (3 de atraso × 2) automaticamente | Balcão / Usuários |
+| 30 | **Regras configuráveis**: prazo para retirar, limites e política de atraso mudam em Configurações (só a coordenação); cada mudança vai para a Auditoria | Configurações |
+| 31 | **Modo escuro e fonte de leitura fácil**: Acessibilidade › Tema (Claro, Escuro ou Automático) e fonte Atkinson Hyperlegible. Tudo embutido: funciona sem internet | Todas |
 
 ## 2. Regras da realocação (transferência)
 

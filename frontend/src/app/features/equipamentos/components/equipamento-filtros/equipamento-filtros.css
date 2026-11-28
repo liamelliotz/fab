@@ -7,9 +7,9 @@
 .filtros__campo {
   flex: 1 1 200px;
   padding: 10px 12px;
-  border: 1px solid #d5ddd9;
+  border: 1px solid var(--b-d5ddd9);
   border-radius: 8px;
-  background: #fff;
-  color: #172b24;
+  background: var(--s-ffffff);
+  color: var(--t-172b24);
   font-size: 14px;
 }

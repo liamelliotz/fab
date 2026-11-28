@@ -12,6 +12,8 @@ import { AuthService } from '../../../core/services/auth.service';
 import { EquipamentoService } from '../../../core/services/equipamento.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { UsuarioService } from '../../../core/services/usuario.service';
+import { RegrasEmprestimoService } from '../../../core/services/regras-emprestimo.service';
+import { formatarData, hojeISO } from '../../../core/utils/date.utils';
 import { gerarCodigo } from '../../../core/utils/codigo.utils';
 import {
   cpfValido,
@@ -49,6 +51,7 @@ export class AdminUsuarios {
   private readonly auth = inject(AuthService);
   private readonly notificacoes = inject(NotificationService);
   private readonly destroy = inject(DestroyRef);
+  private readonly regras = inject(RegrasEmprestimoService);
   private esperaBusca?: ReturnType<typeof setTimeout>;
 
   readonly busca = signal('');
@@ -176,6 +179,26 @@ export class AdminUsuarios {
       .map((id) => this.treinaveis().find((e) => e.id === id)?.nome)
       .filter((n): n is string => !!n);
     return nomes.length > 0 ? nomes.join(', ') : '—';
+  }
+
+  // ---- Suspensão por atraso (regras de empréstimo) ----
+
+  readonly data = formatarData;
+  /** Encerrar a suspensão antes do prazo: na demonstração já funciona; com a API, depende da rota do contrato. */
+  readonly podeEncerrarSuspensao = this.service.modoDemo;
+
+  /** Dia em que termina a suspensão em vigor, ou null. */
+  suspensaoAte(u: Usuario): string | null {
+    return u.suspensaoAte && u.suspensaoAte >= hojeISO() ? u.suspensaoAte : null;
+  }
+
+  encerrarSuspensao(u: Usuario): void {
+    const ate = this.suspensaoAte(u);
+    if (!ate) return;
+    this.service.encerrarSuspensao(u.id);
+    this.regras.registrar(`Suspensão de ${u.nome} (até ${formatarData(ate)}) encerrada antes do prazo pela coordenação`);
+    this.notificacoes.sucesso(`${u.nome} pode fazer pedidos de novo.`);
+    this.recarregar();
   }
 
   // ---- Status e perfil (PATCH) ----

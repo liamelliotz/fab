@@ -22,14 +22,14 @@ app-card,
   height: 140px;
   object-fit: cover;
   border-radius: 8px;
-  background: #eef3f0;
+  background: var(--s-eef3f0);
 }
 
 .equip__foto--vazia {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #6b7280;
+  color: var(--t-6b7280);
   font-size: 42px;
 }
 
@@ -43,7 +43,7 @@ app-card,
 
 .equip__nome {
   margin: 0;
-  color: #172b24;
+  color: var(--t-172b24);
   font-size: 15px;
   font-weight: 700;
   line-height: 1.35;
@@ -64,14 +64,14 @@ app-card,
   grid-template-columns: 16px minmax(0, 1fr);
   align-items: start;
   gap: 8px;
-  color: #6b7280;
+  color: var(--t-6b7280);
   font-size: 13px;
   line-height: 1.4;
 }
 
 .equip__dados i {
   margin-top: 3px;
-  color: #1f6f4c;
+  color: var(--t-1f6f4c);
   font-size: 12px;
   text-align: center;
 }
@@ -95,7 +95,7 @@ app-card,
   align-items: center;
   gap: 6px;
   margin: 0;
-  color: #b45309;
+  color: var(--t-b45309);
   font-size: 12px;
   font-weight: 600;
 }
@@ -107,8 +107,8 @@ app-card,
   gap: 8px;
   padding: 10px 12px;
   border-radius: 8px;
-  background: #24845c;
-  color: #fff;
+  background: var(--s-24845c);
+  color: var(--t-ffffff);
   font-size: 13px;
   font-weight: 600;
   text-align: center;
@@ -117,20 +117,20 @@ app-card,
 }
 
 .equip__btn:hover {
-  background: #1d6e4d;
+  background: var(--s-1d6e4d);
 }
 
 .equip__btn:focus-visible {
-  outline: 2px solid #1d6e4d;
+  outline: 2px solid var(--b-1d6e4d);
   outline-offset: 2px;
 }
 
 .equip__btn--off,
 .equip__btn--off:hover {
-  background: #eef1ef;
-  color: #8a948e;
+  background: var(--s-eef1ef);
+  color: var(--t-8a948e);
   cursor: not-allowed;
 }
 
 /* Unidades fora do estoque por avaria ou extravio */
-.equip__manutencao, .equip__manutencao i { color: #b45309 !important; font-weight: 600; }
+.equip__manutencao, .equip__manutencao i { color: var(--t-b45309) !important; font-weight: 600; }

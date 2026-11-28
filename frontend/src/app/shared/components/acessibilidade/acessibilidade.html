@@ -20,6 +20,19 @@
       <p class="painel__intro">As escolhas valem para todas as telas e ficam salvas neste navegador.</p>
 
       <fieldset class="tamanho">
+        <legend>Tema</legend>
+        <div class="tamanho__opcoes">
+          @for (t of temas; track t.valor) {
+            <button type="button" class="tamanho__btn" [attr.aria-pressed]="service.preferencias().tema === t.valor"
+              (click)="service.mudar('tema', t.valor)">
+              <i class="fa-solid {{ t.icone }} tamanho__a" aria-hidden="true"></i>
+              {{ t.rotulo }}
+            </button>
+          }
+        </div>
+      </fieldset>
+
+      <fieldset class="tamanho">
         <legend>Tamanho do texto</legend>
         <div class="tamanho__opcoes">
           @for (t of tamanhos; track t.valor) {

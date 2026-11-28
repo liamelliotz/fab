@@ -25,6 +25,7 @@ import {
 import { AuthService } from './auth.service';
 import { EquipamentoService } from './equipamento.service';
 import { ManutencaoService, NOME_GRAVIDADE, NOME_TIPO_AVARIA } from './manutencao.service';
+import { RegrasEmprestimoService, nomeCategoria } from './regras-emprestimo.service';
 import { resumoDemo, UsuarioService } from './usuario.service';
 
 /** Tamanho mínimo do motivo de cancelamento (evita "ok", "x" e afins). */
@@ -40,8 +41,14 @@ export const NOME_STATUS_EMPRESTIMO: Record<StatusEmprestimo, string> = {
   cancelado: 'Cancelado',
 };
 
-const CHAVE_EMPRESTIMOS = 'fab_demo_v8_emprestimos';
-const CHAVE_AVISOS = 'fab_demo_v8_avisos';
+const CHAVE_EMPRESTIMOS = 'fab_demo_v9_emprestimos';
+const CHAVE_AVISOS = 'fab_demo_v9_avisos';
+
+/** Quem assina o que o próprio sistema faz (pedido expirado, suspensão automática). */
+export const SISTEMA: UsuarioResumo = { id: 'sistema', nome: 'Sistema FAB', email: '', perfil: 'admin' };
+
+/** Status que ainda prendem material ou reserva (contam no limite por categoria). */
+const STATUS_ABERTOS: StatusEmprestimo[] = ['pendente', 'aprovado', 'em_andamento'];
 
 /** Aviso mostrado à coordenação (substitui o e-mail/notificação do sistema real). */
 export interface AvisoAdmin {
@@ -235,6 +242,19 @@ export function criarEmprestimosDemo(): Emprestimo[] {
         ev('devolvido', admin, 21, 'Devolvido COM AVARIA · Risco leve na lateral. · código conferido'),
       ],
     },
+    // EXPIRADO: João não retirou no prazo; o sistema cancelou e devolveu a reserva ao estoque
+    {
+      id: 'p33', localUso: { localId: 'lab-eletronica', detalhe: 'Aula de instrumentação' }, protocolo: 'EMP-2026-0033', solicitante: joao, responsavel: joao,
+      itens: [{ equipamentoId: '10', quantidade: 1 }],
+      status: 'cancelado', justificativa: 'Aula de instrumentação com o osciloscópio.',
+      dataSolicitacao: d(-12), dataPrevistaRetirada: d(-10), dataPrevistaDevolucao: d(-7),
+      responsavelAprovacao: admin,
+      motivoCancelamento: `Expirou: não foi retirado até ${formatarData(d(-9))}. A reserva voltou ao estoque.`,
+      historico: [
+        ev('solicitado', joao, 12), ev('aprovado', admin, 11),
+        ev('expirado', SISTEMA, 8, `Não foi retirado até ${formatarData(d(-9))}. A reserva voltou ao estoque.`),
+      ],
+    },
     // Reprovado do professor
     {
       id: 'p34', localUso: { localId: 'lab-maker', detalhe: 'Montagem de bancadas' }, protocolo: 'EMP-2026-0034', solicitante: prof, responsavel: prof,
@@ -270,6 +290,7 @@ export class EmprestimoService {
   private readonly usuarios = inject(UsuarioService);
   private readonly auth = inject(AuthService);
   private readonly manutencoes = inject(ManutencaoService);
+  private readonly regras = inject(RegrasEmprestimoService);
 
   readonly todas = signal<Emprestimo[]>(
     lerJson<Emprestimo[]>(CHAVE_EMPRESTIMOS) ?? criarEmprestimosDemo(),
@@ -295,6 +316,12 @@ export class EmprestimoService {
     // Duas abas abertas (professor e coordenação): uma vê na hora o que a outra fez.
     ouvirOutrasAbas<Emprestimo[]>(CHAVE_EMPRESTIMOS, (v) => v && this.todas.set(v));
     ouvirOutrasAbas<AvisoAdmin[]>(CHAVE_AVISOS, (v) => v && this.avisos.set(v));
+
+    // Pedido aprovado e não retirado no prazo expira: ao abrir e a cada minuto (só no navegador).
+    if (typeof window !== 'undefined') {
+      this.expirarNaoRetirados();
+      setInterval(() => this.expirarNaoRetirados(), 60_000);
+    }
   }
 
   // ===========================================================================================
@@ -370,11 +397,100 @@ export class EmprestimoService {
   }
 
   // ===========================================================================================
+  // Regras de empréstimo (prazo para retirar, limite por categoria e política de atraso)
+  // ===========================================================================================
+
+  /** Último dia para retirar um pedido aprovado (depois disso ele expira). */
+  prazoRetirada(s: Emprestimo): string {
+    return this.regras.prazoRetirada(s.dataPrevistaRetirada);
+  }
+
+  /**
+   * Por que esta pessoa não pode fazer pedidos novos agora (suspensão ou material atrasado,
+   * conforme a política de atraso), ou null se pode.
+   */
+  impedimentoParaPedir(usuarioId: string): string | null {
+    const suspensao = this.usuarios.suspensao(usuarioId);
+    if (suspensao) {
+      return `Você está suspenso(a) até ${formatarData(suspensao.ate)} (${suspensao.motivo}). Pedidos novos ficam bloqueados até lá; se houver engano, fale com a coordenação.`;
+    }
+    if (this.regras.atrasoBloqueia()) {
+      const atrasado = this.todas().find((s) => s.responsavel.id === usuarioId && this.estaAtrasado(s));
+      if (atrasado) {
+        return `Devolva o ${atrasado.protocolo} (${this.resumoItens(atrasado)}), que está atrasado, antes de fazer um pedido novo.`;
+      }
+    }
+    return null;
+  }
+
+  /** Unidades em pedidos abertos (pendente, aprovado ou em andamento) por categoria, de quem responde por elas. */
+  unidadesAbertasPorCategoria(usuarioId: string, ignorarPedidoId?: string): Map<string, number> {
+    const mapa = new Map<string, number>();
+    for (const s of this.todas()) {
+      if (s.id === ignorarPedidoId || s.responsavel.id !== usuarioId || !STATUS_ABERTOS.includes(s.status)) continue;
+      for (const i of s.itens) {
+        const cat = this.equipamentos.buscarPorId(i.equipamentoId)?.categoria;
+        if (cat) mapa.set(cat, (mapa.get(cat) ?? 0) + i.quantidade);
+      }
+    }
+    return mapa;
+  }
+
+  /** Confere o limite por categoria somando os pedidos abertos da pessoa com os itens novos. */
+  excessoDeLimite(usuarioId: string, itens: { equipamentoId: string; quantidade: number }[], ignorarPedidoId?: string): string | null {
+    const abertos = this.unidadesAbertasPorCategoria(usuarioId, ignorarPedidoId);
+    const novos = new Map<string, number>();
+    for (const i of itens) {
+      const cat = this.equipamentos.buscarPorId(i.equipamentoId)?.categoria;
+      if (cat) novos.set(cat, (novos.get(cat) ?? 0) + i.quantidade);
+    }
+    for (const [cat, qtd] of novos) {
+      const limite = this.regras.limite(cat as never);
+      if (limite === null) continue;
+      const ja = abertos.get(cat) ?? 0;
+      if (ja + qtd > limite) {
+        const unid = (n: number) => (n === 1 ? '1 unidade' : `${n} unidades`);
+        return ja > 0
+          ? `O limite de ${nomeCategoria(cat as never)} é de ${unid(limite)} por pessoa ao mesmo tempo, e você já tem ${unid(ja)} em pedidos abertos. Escolha no máximo ${unid(Math.max(0, limite - ja))}.`
+          : `O limite de ${nomeCategoria(cat as never)} é de ${unid(limite)} por pessoa ao mesmo tempo.`;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Expira os pedidos aprovados que passaram do prazo para retirar: a reserva volta ao estoque
+   * e o pedido fica cancelado, com o motivo e o evento na linha do tempo. Devolve quantos expiraram.
+   */
+  expirarNaoRetirados(): number {
+    const hoje = hojeISO();
+    const vencidos = this.todas().filter((s) => s.status === 'aprovado' && this.prazoRetirada(s) < hoje);
+    for (const s of vencidos) this.expirar(s);
+    return vencidos.length;
+  }
+
+  private expirar(s: Emprestimo): void {
+    const prazo = formatarData(this.prazoRetirada(s));
+    const texto = `Não foi retirado até ${prazo}. A reserva voltou ao estoque.`;
+    s.itens.forEach((i) => this.equipamentos.liberar(i.equipamentoId, i.quantidade));
+    this.atualizarPedido(s.id, (p) => ({
+      ...p,
+      status: 'cancelado',
+      codigoRetirada: undefined,
+      motivoCancelamento: `Expirou: ${texto.charAt(0).toLowerCase()}${texto.slice(1)}`,
+      historico: [...p.historico, this.evento('expirado', SISTEMA, texto)],
+    }));
+    this.avisar(`${s.protocolo} de ${s.responsavel.nome} expirou: não foi retirado até ${prazo}.`, s.id);
+  }
+
+  // ===========================================================================================
   // Solicitar, avaliar e cancelar
   // ===========================================================================================
 
   /** Confere as regras de um pedido novo. Devolve a mensagem do 1º problema, ou null se está tudo certo. */
   validarSolicitacao(dto: SolicitarEmprestimoDTO, usuarioId: string): string | null {
+    const impedimento = this.impedimentoParaPedir(usuarioId);
+    if (impedimento) return impedimento;
     if (dto.itens.length === 0) return 'Escolha ao menos um material.';
 
     for (const item of dto.itens) {
@@ -401,7 +517,7 @@ export class EmprestimoService {
       const limite = formatarData(somarDias(dto.dataPrevistaRetirada, prazo));
       return `O prazo máximo deste material é de ${prazo} dia(s). Escolha a devolução até ${limite}.`;
     }
-    return null;
+    return this.excessoDeLimite(usuarioId, dto.itens);
   }
 
   /** Cria uma nova solicitação pendente. */
@@ -448,6 +564,10 @@ export class EmprestimoService {
     const observacao = texto.trim() || undefined;
 
     if (aprovado) {
+      const suspensao = this.usuarios.suspensao(alvo.responsavel.id);
+      if (suspensao) {
+        return `${alvo.responsavel.nome} está suspenso(a) até ${formatarData(suspensao.ate)} (${suspensao.motivo}). Reprove o pedido ou encerre a suspensão em Usuários.`;
+      }
       for (const item of alvo.itens) {
         const eq = this.equipamentos.buscarPorId(item.equipamentoId);
         if (!eq || eq.status !== 'disponivel' || eq.quantidadeDisponivel < item.quantidade) {
@@ -554,6 +674,10 @@ export class EmprestimoService {
   private registrarRetirada(id: string, opcoes?: OpcoesRetirada): Resultado<Emprestimo> {
     const alvo = this.buscarPorId(id);
     if (!alvo || alvo.status !== 'aprovado') return falha('Este pedido não está aguardando retirada.');
+    if (this.prazoRetirada(alvo) < hojeISO()) {
+      this.expirar(alvo);
+      return falha(`Este pedido expirou: o prazo para retirar era ${formatarData(this.prazoRetirada(alvo))}. A reserva voltou ao estoque; peça de novo.`);
+    }
     if (alvo.dataPrevistaDevolucao < hojeISO()) {
       return falha('O prazo de devolução deste pedido já passou. Cancele o pedido e peça um novo.');
     }
@@ -702,6 +826,17 @@ export class EmprestimoService {
     ].filter(Boolean);
     historico.push(this.evento('devolvido', admin, partes.join(' · ')));
 
+    // 2b) Política de atraso: suspensão automática de quem estava com o material.
+    const diasSuspensao = this.regras.diasDeSuspensao(diasAtraso);
+    let suspensoAte: string | undefined;
+    if (diasSuspensao > 0) {
+      suspensoAte = somarDias(hojeISO(), diasSuspensao - 1);
+      const motivo = `${diasAtraso} dia(s) de atraso na devolução do ${alvo.protocolo}`;
+      this.usuarios.suspender(alvo.responsavel.id, suspensoAte, motivo);
+      historico.push(this.evento('suspensao_aplicada', SISTEMA,
+        `${alvo.responsavel.nome} suspenso(a) até ${formatarData(suspensoAte)}: ${diasAtraso} dia(s) de atraso × ${this.regras.regras().fatorSuspensao} = ${diasSuspensao} dia(s) sem pedidos novos.`));
+    }
+
     // 3) Estoque: só volta o que voltou em condições de uso.
     alvo.itens.forEach((i) =>
       this.equipamentos.liberar(i.equipamentoId, i.quantidade - (foraDoEstoque.get(i.equipamentoId) ?? 0)),
@@ -719,6 +854,9 @@ export class EmprestimoService {
     this.substituir(atualizado);
     if (ocorrenciaIds.length) {
       this.avisar(`${alvo.protocolo} devolvido com avaria ou falta: veja Manutenção.`, alvo.id);
+    }
+    if (suspensoAte) {
+      this.avisar(`${alvo.responsavel.nome} suspenso(a) até ${formatarData(suspensoAte)} pelo atraso no ${alvo.protocolo}.`, alvo.id);
     }
     return sucesso(atualizado);
   }
@@ -763,7 +901,7 @@ export class EmprestimoService {
       .filter((u) => u.perfil === 'usuario' && u.id !== s.responsavel.id)
       .map((u) => ({
         usuario: this.usuarios.resumo(u.id) as UsuarioResumo,
-        bloqueio: this.bloqueioHabilitacao(s, u.id),
+        bloqueio: this.bloqueioRecebedor(s, u.id),
       }));
   }
 
@@ -784,7 +922,7 @@ export class EmprestimoService {
     if (destino.perfil !== 'usuario') return 'A transferência só pode ser feita para professores.';
     if (destino.id === alvo.responsavel.id) return 'Escolha outra pessoa para receber o material.';
 
-    const bloqueio = this.bloqueioHabilitacao(alvo, destino.id);
+    const bloqueio = this.bloqueioRecebedor(alvo, destino.id);
     if (bloqueio) return bloqueio;
     if (localUso && !buscarLocal(localUso.localId)) return 'Escolha um local de uso válido.';
 
@@ -904,6 +1042,16 @@ export class EmprestimoService {
   private avisar(texto: string, pedidoId: string): void {
     const aviso: AvisoAdmin = { id: crypto.randomUUID(), em: agoraISO(), texto, pedidoId, lido: false };
     this.avisos.update((lista) => [aviso, ...lista].slice(0, 50));
+  }
+
+  /** Quem não pode receber o pedido numa transferência: sem habilitação, suspenso ou acima do limite. */
+  private bloqueioRecebedor(s: Emprestimo, usuarioId: string): string | null {
+    const habilitacao = this.bloqueioHabilitacao(s, usuarioId);
+    if (habilitacao) return habilitacao;
+    const suspensao = this.usuarios.suspensao(usuarioId);
+    if (suspensao) return `Suspenso(a) até ${formatarData(suspensao.ate)}.`;
+    const limite = this.excessoDeLimite(usuarioId, s.itens);
+    return limite ? limite.replace('você já tem', 'a pessoa já tem').replace(/ Escolha no máximo.*$/, '') : null;
   }
 
   /** Impede equipamento que exige treinamento de ir para quem não tem habilitação. */

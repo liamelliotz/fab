@@ -75,6 +75,7 @@
             <p>
               Pedido aprovado! Vá à coordenação, mostre este QR ou diga o código ao administrador e retire o
               material. Retirada prevista: {{ data(p.dataPrevistaRetirada) }}.
+              <strong>Retire até {{ data(prazoRetirada()) }}</strong>: depois disso o pedido expira e a reserva é liberada.
             </p>
           </div>
         </div>

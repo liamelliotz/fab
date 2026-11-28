@@ -28,8 +28,8 @@
   z-index: 1000;
   padding: 10px 16px;
   border-radius: 8px;
-  background: #0b3d2e;
-  color: #fff;
+  background: var(--s-0b3d2e);
+  color: var(--t-ffffff);
   font-weight: 600;
   text-decoration: none;
   transform: translateY(-200%);

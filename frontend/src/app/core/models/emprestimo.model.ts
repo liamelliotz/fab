@@ -59,7 +59,11 @@ export type TipoEventoEmprestimo =
   | 'avaria_registrada'
   | 'falta_registrada'
   | 'manutencao_concluida'
-  | 'manutencao_baixa';
+  | 'manutencao_baixa'
+  /** O pedido aprovado não foi retirado no prazo: a reserva volta ao estoque (feito pelo sistema). */
+  | 'expirado'
+  /** A devolução atrasou e a política de atraso suspendeu o responsável (feito pelo sistema). */
+  | 'suspensao_aplicada';
 
 /** Um registro da linha do tempo. Nunca é apagado nem alterado depois de criado. */
 export interface EventoEmprestimo {

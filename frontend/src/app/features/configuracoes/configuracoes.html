@@ -1,7 +1,7 @@
 <section class="pagina">
   <header class="cabecalho">
     <h1>Configurações</h1>
-    <p>Informações da sua conta e do sistema.</p>
+    <p>{{ ehAdmin() ? 'Sua conta e as regras de empréstimo da escola.' : 'Informações da sua conta e do sistema.' }}</p>
   </header>
 
   <app-card>
@@ -34,6 +34,12 @@
     </dl>
     <button type="button" class="btn-sair" (click)="sair()">Sair da conta</button>
   </app-card>
+
+  @if (ehAdmin()) {
+    <app-card>
+      <app-regras-emprestimo />
+    </app-card>
+  }
 
   <app-card>
     <h2 class="titulo">Sobre o FAB</h2>

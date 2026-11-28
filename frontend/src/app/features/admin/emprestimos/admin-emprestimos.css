@@ -20,14 +20,14 @@
 
 .cabecalho h1 {
   margin: 0 0 6px;
-  color: #172b24;
+  color: var(--t-172b24);
   font-size: 30px;
   font-weight: 700;
 }
 
 .cabecalho p {
   margin: 0;
-  color: #6b7280;
+  color: var(--t-6b7280);
   font-size: 14px;
 }
 
@@ -37,8 +37,8 @@
   gap: 8px;
   padding: 11px 18px;
   border-radius: 10px;
-  background: #24845c;
-  color: #fff;
+  background: var(--s-24845c);
+  color: var(--t-ffffff);
   font-size: 14px;
   font-weight: 600;
 }
@@ -51,32 +51,32 @@
 
 .card {
   padding: 16px 18px;
-  border: 1px solid #e5ebe8;
+  border: 1px solid var(--b-e5ebe8);
   border-radius: 12px;
-  background: #fff;
+  background: var(--s-ffffff);
 }
 
 .card p {
   margin: 0 0 6px;
-  color: #6b7280;
+  color: var(--t-6b7280);
   font-size: 13px;
 }
 
 .card strong {
-  color: #172b24;
+  color: var(--t-172b24);
   font-size: 30px;
 }
 
-.card-atrasado strong { color: #b91c1c; }
-.card-devolvido strong { color: #075985; }
-.card-espera strong { color: #92400e; }
-.card-transf strong { color: #1d4ed8; }
+.card-atrasado strong { color: var(--t-b91c1c); }
+.card-devolvido strong { color: var(--t-075985); }
+.card-espera strong { color: var(--t-92400e); }
+.card-transf strong { color: var(--t-1d4ed8); }
 
 .painel {
   padding: 18px;
-  border: 1px solid #e5ebe8;
+  border: 1px solid var(--b-e5ebe8);
   border-radius: 12px;
-  background: #fff;
+  background: var(--s-ffffff);
 }
 
 .titulo-painel {
@@ -93,31 +93,31 @@
   align-items: center;
   gap: 10px;
   margin: 0 0 4px;
-  color: #172b24;
+  color: var(--t-172b24);
   font-size: 18px;
 }
 
 .titulo-painel p {
   margin: 0;
-  color: #6b7280;
+  color: var(--t-6b7280);
   font-size: 13px;
 }
 
 .novos {
   padding: 2px 9px;
   border-radius: 999px;
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--s-fee2e2);
+  color: var(--t-991b1b);
   font-size: 11px;
   font-weight: 700;
 }
 
 .btn-sutil {
   padding: 7px 12px;
-  border: 1px solid #d5ddd9;
+  border: 1px solid var(--b-d5ddd9);
   border-radius: 8px;
-  background: #fff;
-  color: #4b5563;
+  background: var(--s-ffffff);
+  color: var(--t-4b5563);
   font-size: 13px;
   font-weight: 600;
 }
@@ -139,8 +139,8 @@
   gap: 6px 14px;
   padding: 9px 12px;
   border-radius: 8px;
-  background: #f9fafb;
-  color: #374151;
+  background: var(--s-f9fafb);
+  color: var(--t-374151);
   font-size: 14px;
 }
 
@@ -149,13 +149,13 @@
 }
 
 .aviso small {
-  color: #6b7280;
+  color: var(--t-6b7280);
   font-size: 12px;
 }
 
 .aviso--novo {
-  border-left: 3px solid #24845c;
-  background: #f0fdf4;
+  border-left: 3px solid var(--b-24845c);
+  background: var(--s-f0fdf4);
   font-weight: 600;
 }
 
@@ -168,10 +168,10 @@
 .filtros input,
 .filtros select {
   padding: 9px 12px;
-  border: 1px solid #d5ddd9;
+  border: 1px solid var(--b-d5ddd9);
   border-radius: 8px;
-  background: #fff;
-  color: #172b24;
+  background: var(--s-ffffff);
+  color: var(--t-172b24);
   font-size: 14px;
 }
 
@@ -185,7 +185,7 @@
   align-items: center;
   gap: 8px;
   padding: 0 4px;
-  color: #374151;
+  color: var(--t-374151);
   font-size: 14px;
   white-space: nowrap;
   cursor: pointer;
@@ -197,7 +197,7 @@
   min-width: 0;
   margin: 0;
   padding: 0;
-  accent-color: #24845c;
+  accent-color: var(--t-24845c);
 }
 
 .tabela-container {
@@ -212,8 +212,8 @@ table {
 
 th {
   padding: 10px 12px;
-  border-bottom: 1px solid #e5ebe8;
-  color: #6b7280;
+  border-bottom: 1px solid var(--b-e5ebe8);
+  color: var(--t-6b7280);
   font-size: 12px;
   font-weight: 600;
   text-align: left;
@@ -222,13 +222,13 @@ th {
 
 td {
   padding: 12px;
-  border-bottom: 1px solid #f1f5f3;
-  color: #374151;
+  border-bottom: 1px solid var(--b-f1f5f3);
+  color: var(--t-374151);
   vertical-align: top;
 }
 
 .protocolo {
-  color: #1f6f4c;
+  color: var(--t-1f6f4c);
   font-weight: 700;
   white-space: nowrap;
 }
@@ -236,21 +236,21 @@ td {
 .repasse {
   display: block;
   margin-top: 2px;
-  color: #1d4ed8;
+  color: var(--t-1d4ed8);
   font-size: 12px;
 }
 
 .repasse--pendente {
-  color: #92400e;
+  color: var(--t-92400e);
 }
 
 .sem-resultados {
   padding: 28px 0;
-  color: #6b7280;
+  color: var(--t-6b7280);
   text-align: center;
 }
 
 .paginacao-admin { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; margin-top: 20px; }
-.paginacao-admin button { padding: 8px 14px; border: 1px solid #cbd5e1; border-radius: 8px; background: white; cursor: pointer; }
+.paginacao-admin button { padding: 8px 14px; border: 1px solid var(--b-cbd5e1); border-radius: 8px; background: var(--s-ffffff); cursor: pointer; }
 button:disabled { opacity: .55; cursor: wait; }
-.erro-admin { color: #b91c1c; }
+.erro-admin { color: var(--t-b91c1c); }

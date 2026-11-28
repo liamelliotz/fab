@@ -19,8 +19,8 @@ import { agoraISO, diferencaEmDias, hojeISO, horasDepoisISO, somarDias } from '.
 import { AuthService } from './auth.service';
 import { UsuarioService, resumoDemo } from './usuario.service';
 
-const CHAVE_INSUMOS = 'fab_demo_v8_insumos';
-const CHAVE_MOVIMENTACOES = 'fab_demo_v8_movimentacoes_insumos';
+const CHAVE_INSUMOS = 'fab_demo_v9_insumos';
+const CHAVE_MOVIMENTACOES = 'fab_demo_v9_movimentacoes_insumos';
 
 export const NOME_CATEGORIA_INSUMO: Record<CategoriaInsumo, string> = {
   impressao_3d: 'Impressão 3D',

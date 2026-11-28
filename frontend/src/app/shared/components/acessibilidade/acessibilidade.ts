@@ -1,8 +1,8 @@
 import { Component, inject, input, signal } from '@angular/core';
-import { AcessibilidadeService, PreferenciasAcessibilidade } from '../../../core/services/acessibilidade.service';
+import { AcessibilidadeService, PreferenciasAcessibilidade, TemaVisual } from '../../../core/services/acessibilidade.service';
 import { DialogoDirective } from '../../directives/dialogo.directive';
 
-type Opcao = Exclude<keyof PreferenciasAcessibilidade, 'tamanho'>;
+type Opcao = Exclude<keyof PreferenciasAcessibilidade, 'tamanho' | 'tema'>;
 
 /**
  * Botão "Acessibilidade" + janela com as preferências de leitura.
@@ -26,7 +26,14 @@ export class Acessibilidade {
     { valor: 130, rotulo: 'Bem maior' },
   ];
 
+  readonly temas: { valor: TemaVisual; rotulo: string; icone: string }[] = [
+    { valor: 'claro', rotulo: 'Claro', icone: 'fa-sun' },
+    { valor: 'escuro', rotulo: 'Escuro', icone: 'fa-moon' },
+    { valor: 'sistema', rotulo: 'Automático', icone: 'fa-circle-half-stroke' },
+  ];
+
   readonly opcoes: { chave: Opcao; titulo: string; dica: string }[] = [
+    { chave: 'fonteLegivel', titulo: 'Fonte de leitura fácil', dica: 'Letras que não se confundem (I, l e 1; O e 0). Funciona sem internet.' },
     { chave: 'contraste', titulo: 'Alto contraste', dica: 'Textos, bordas e ícones mais fortes.' },
     { chave: 'espacamento', titulo: 'Mais espaço no texto', dica: 'Entre linhas, letras e palavras.' },
     { chave: 'sublinharLinks', titulo: 'Sublinhar links', dica: 'Mostra o que é clicável sem depender da cor.' },

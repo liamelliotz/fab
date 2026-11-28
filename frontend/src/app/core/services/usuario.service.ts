@@ -13,6 +13,7 @@ import {
 } from '../models/usuario.model';
 import { gravarJson, lerJson, ouvirOutrasAbas, removerChave } from '../utils/armazenamento.utils';
 import { somenteNumeros } from '../utils/validation.utils';
+import { agoraISO, hojeISO } from '../utils/date.utils';
 import { ApiService } from './api.service';
 import { environment } from '../../../environments/environment';
 
@@ -44,9 +45,9 @@ export interface ColegaResumo {
   habilitacoes: string[];
 }
 
-const CHAVE_USUARIOS = 'fab_demo_v8_usuarios';
+const CHAVE_USUARIOS = 'fab_demo_v9_usuarios';
 /** Senhas da demonstração. Ficam separadas das contas e só existem no `npm run demo`. */
-const CHAVE_SENHAS = 'fab_demo_v8_senhas';
+const CHAVE_SENHAS = 'fab_demo_v9_senhas';
 
 /** Senhas das contas de exemplo (só para a demonstração, por e-mail). */
 const SENHAS_DEMO: Record<string, string> = {
@@ -294,6 +295,29 @@ export class UsuarioService {
     if (!this.modoDemo || !usuario || this.senhas()[usuario.email] !== senha) return { erro: 'credenciais' };
     if (usuario.status !== 'ativo') return { erro: 'inativo' };
     return { usuario };
+  }
+
+  // ============================== Suspensão por atraso ==============================
+
+  /** Suspensão em vigor (termina sozinha no dia seguinte a `suspensaoAte`), ou null. */
+  suspensao(id: string): { ate: string; motivo: string } | null {
+    const u = this.buscarPorId(id);
+    if (!u?.suspensaoAte || u.suspensaoAte < hojeISO()) return null;
+    return { ate: u.suspensaoAte, motivo: u.motivoSuspensao ?? 'Atraso na devolução' };
+  }
+
+  /** Aplica (ou estende) a suspensão. Nunca encurta uma suspensão que já termina depois. */
+  suspender(id: string, ate: string, motivo: string): void {
+    if (!this.buscarPorId(id)) return;
+    this.alterar(id, (u) =>
+      u.suspensaoAte && u.suspensaoAte >= ate ? u : { ...u, suspensaoAte: ate, motivoSuspensao: motivo, atualizadoEm: agoraISO() },
+    );
+  }
+
+  /** A coordenação encerra a suspensão antes do prazo. */
+  encerrarSuspensao(id: string): void {
+    if (!this.buscarPorId(id)) return;
+    this.alterar(id, (u) => ({ ...u, suspensaoAte: undefined, motivoSuspensao: undefined, atualizadoEm: agoraISO() }));
   }
 
   /** Volta as contas ao estado inicial da demonstração. */

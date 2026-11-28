@@ -10,6 +10,17 @@
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icone-192.png">
+  <script>
+    /* Aplica o tema e a fonte escolhidos ANTES do app carregar: a tela não pisca em branco no modo escuro. */
+    (function () {
+      try {
+        var p = JSON.parse(localStorage.getItem('fab_acessibilidade') || '{}');
+        var escuro = p.tema === 'escuro' || (p.tema === 'sistema' && matchMedia('(prefers-color-scheme: dark)').matches);
+        if (escuro) document.documentElement.classList.add('tema-escuro');
+        if (p.fonteLegivel) document.documentElement.classList.add('a11y-fonte-legivel');
+      } catch (e) {}
+    })();
+  </script>
 </head>
 <body>
   <app-root></app-root>

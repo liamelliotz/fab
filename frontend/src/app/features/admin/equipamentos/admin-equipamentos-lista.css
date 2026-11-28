@@ -17,7 +17,7 @@
 
 .cabecalho h1 {
   margin: 0 0 6px;
-  color: #172b24;
+  color: var(--t-172b24);
   font-size: 30px;
   font-weight: 700;
 }
@@ -25,7 +25,7 @@
 .subtitulo {
   margin: 0;
   font-size: 14px;
-  color: #6b7280;
+  color: var(--t-6b7280);
 }
 
 /* Botões */
@@ -45,18 +45,18 @@
 
 .botao-primario,
 .botao-aprovar {
-  background: #1e7e46;
-  color: #fff;
+  background: var(--s-1e7e46);
+  color: var(--t-ffffff);
 }
 
 .botao-secundario {
-  background: #e8ecef;
-  color: #222;
+  background: var(--s-e8ecef);
+  color: var(--t-222222);
 }
 
 .botao-perigo {
-  background: #b3261e;
-  color: #fff;
+  background: var(--s-b3261e);
+  color: var(--t-ffffff);
 }
 
 /* Filtros */
@@ -70,7 +70,7 @@
 .filtros input,
 .filtros select {
   padding: 0.5rem 0.75rem;
-  border: 1px solid #ccc;
+  border: 1px solid var(--b-cccccc);
   border-radius: 6px;
   font-size: 0.9rem;
 }
@@ -86,13 +86,13 @@
 .vazio {
   padding: 2rem;
   text-align: center;
-  color: #666;
+  color: var(--t-666666);
 }
 
 /* Tabela */
 .tabela-wrapper {
   overflow-x: auto;
-  border: 1px solid #ddd;
+  border: 1px solid var(--b-dddddd);
   border-radius: 8px;
 }
 
@@ -107,7 +107,7 @@
   padding: 0.65rem 0.85rem;
   text-align: left;
   vertical-align: middle;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--b-eeeeee);
 }
 
 .tabela th:last-child,
@@ -117,13 +117,13 @@
 }
 
 .tabela th {
-  background: #f5f7f6;
+  background: var(--s-f5f7f6);
   font-weight: 600;
 }
 
 .linha-inativa td {
-  background: #f9fafb;
-  color: #4b5563;
+  background: var(--s-f9fafb);
+  color: var(--t-4b5563);
 }
 
 .col-codigo {
@@ -135,8 +135,8 @@
   margin-left: 0.5rem;
   padding: 0.1rem 0.45rem;
   border-radius: 999px;
-  background: #fff3cd;
-  color: #7a5b00;
+  background: var(--s-fff3cd);
+  color: var(--t-7a5b00);
   font-size: 0.7rem;
   font-weight: 600;
 }
@@ -156,27 +156,27 @@
 }
 
 .status-disponivel {
-  background: #d9f2e3;
-  color: #14683a;
+  background: var(--s-d9f2e3);
+  color: var(--t-14683a);
 }
 
 .status-emprestado {
-  background: #dbe9fb;
-  color: #1a4f9c;
+  background: var(--s-dbe9fb);
+  color: var(--t-1a4f9c);
 }
 
 .status-em_manutencao {
-  background: #fff3cd;
-  color: #7a5b00;
+  background: var(--s-fff3cd);
+  color: var(--t-7a5b00);
 }
 
 .status-inativo {
-  background: #e5e7eb;
-  color: #374151;
+  background: var(--s-e5e7eb);
+  color: var(--t-374151);
 }
 
 .status-descartado {
-  background: #f8d7da;
-  color: #8a1c1c;
+  background: var(--s-f8d7da);
+  color: var(--t-8a1c1c);
 }
-.selo-manutencao { background: #fef3c7; color: #92400e; margin-left: 6px; }
+.selo-manutencao { background: var(--s-fef3c7); color: var(--t-92400e); margin-left: 6px; }

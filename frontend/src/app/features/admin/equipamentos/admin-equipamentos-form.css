@@ -17,7 +17,7 @@
 
 .cabecalho h1 {
   margin: 0 0 6px;
-  color: #172b24;
+  color: var(--t-172b24);
   font-size: 30px;
   font-weight: 700;
 }
@@ -38,13 +38,13 @@
 }
 
 .botao-primario {
-  background: #1e7e46;
-  color: #fff;
+  background: var(--s-1e7e46);
+  color: var(--t-ffffff);
 }
 
 .botao-secundario {
-  background: #e8ecef;
-  color: #222;
+  background: var(--s-e8ecef);
+  color: var(--t-222222);
 }
 
 /* Formulário */
@@ -54,9 +54,9 @@
   gap: 1rem;
   max-width: 800px;
   padding: 1.25rem;
-  border: 1px solid #ddd;
+  border: 1px solid var(--b-dddddd);
   border-radius: 8px;
-  background: #fff;
+  background: var(--s-ffffff);
 }
 
 .campo {
@@ -71,7 +71,7 @@
 .campo select,
 .campo textarea {
   padding: 0.5rem 0.75rem;
-  border: 1px solid #ccc;
+  border: 1px solid var(--b-cccccc);
   border-radius: 6px;
   font-family: inherit;
   font-size: 0.9rem;
@@ -94,7 +94,7 @@
 }
 
 .erro {
-  color: #b3261e;
+  color: var(--t-b3261e);
   font-size: 0.75rem;
   font-weight: 400;
 }
@@ -111,7 +111,7 @@
   }
 }
 .dica {
-  color: #6b7280;
+  color: var(--t-6b7280);
   font-size: 12px;
   font-weight: 400;
 }
