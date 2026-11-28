@@ -63,6 +63,13 @@ export interface Equipamento {
   requerTreinamento: boolean;
 
   /**
+   * Equipamento que não sai da sala onde é guardado (impressora 3D, cortadora a laser...):
+   * não vai para a separação nem para "a guardar"; entrega e devolução são feitas na própria
+   * sala, lendo o QR pelo celular.
+   */
+  retiradaNoLocal?: boolean;
+
+  /**
    * Prazo máximo de empréstimo deste material, em dias (da retirada até a devolução).
    * Impede que alguém fique com o item o ano todo. Definido pela coordenação.
    */
@@ -104,6 +111,7 @@ export interface CriarEquipamentoDTO {
   localizacao: string;
   fotoUrl?: string;
   requerTreinamento: boolean;
+  retiradaNoLocal?: boolean;
   quantidadeTotal: number;
   prazoMaximoDias: number;
   /** Valor de uma unidade em R$ (obrigatório no cadastro). */
@@ -121,6 +129,7 @@ export interface AtualizarEquipamentoDTO {
   localizacao?: string;
   fotoUrl?: string;
   requerTreinamento?: boolean;
+  retiradaNoLocal?: boolean;
   quantidadeTotal?: number;
   prazoMaximoDias?: number;
   valorUnitario?: number;

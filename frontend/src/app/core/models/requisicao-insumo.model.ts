@@ -26,7 +26,11 @@ export type AcaoRequisicaoInsumo =
   /** Não foi retirada no prazo: o sistema cancelou e liberou a reserva. */
   | 'expirada'
   /** Fechada sem sobra: o professor usou tudo, ou o prazo para devolver a sobra terminou. */
-  | 'encerrada';
+  | 'encerrada'
+  /** Quantidade buscada no local de guarda e deixada pronta no balcão. */
+  | 'separada'
+  /** Sobra (ou separação desfeita) levada de volta ao local de guarda. */
+  | 'guardada';
 
 /** Linha do histórico da requisição. Só cresce: nada é editado nem apagado. */
 export interface EventoRequisicaoInsumo {
@@ -54,6 +58,13 @@ export interface RequisicaoInsumo {
   codigoDevolucao?: string;
   /** Último dia para devolver a sobra (AAAA-MM-DD). */
   prazoSobra?: string;
+  /** SEPARAÇÃO: a quantidade aprovada já foi buscada no local de guarda e está pronta no balcão. */
+  separadaEm?: string;
+  separadaPor?: UsuarioResumo;
+  /** A GUARDAR: quantidade no balcão esperando voltar ao local de guarda (sobra, ou separação desfeita). */
+  aGuardar?: number;
+  guardadaEm?: string;
+  guardadaPor?: UsuarioResumo;
   /** Dia em que o insumo será usado (AAAA-MM-DD). */
   dataUso: string;
   /** Sala ou laboratório onde será usado (alimenta o mapa e a auditoria). */

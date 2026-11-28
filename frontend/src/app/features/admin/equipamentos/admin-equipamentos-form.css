@@ -115,3 +115,11 @@
   font-size: 12px;
   font-weight: 400;
 }
+
+.dica-check {
+  display: block;
+  margin-top: 2px;
+  color: var(--t-6b7280);
+  font-size: 12px;
+  font-weight: 400;
+}

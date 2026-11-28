@@ -49,6 +49,8 @@ export const NOME_ACAO_REQUISICAO: Record<AcaoRequisicaoInsumo, string> = {
   sobra_devolvida: 'Sobra devolvida no balcão',
   expirada: 'Requisição expirada',
   encerrada: 'Requisição encerrada sem sobra',
+  separada: 'Insumo separado no balcão',
+  guardada: 'Insumo guardado no local',
 };
 
 /** Resultado da leitura de um código no balcão. */
@@ -84,6 +86,8 @@ export class RequisicaoInsumoService {
 
   readonly pendentes = computed(() => this.requisicoes().filter((r) => r.status === 'pendente'));
   readonly aguardandoEntrega = computed(() => this.requisicoes().filter((r) => r.status === 'aprovada'));
+  /** Sobras (ou separações desfeitas) no balcão esperando voltar ao local de guarda. */
+  readonly paraGuardar = computed(() => this.requisicoes().filter((r) => (r.aGuardar ?? 0) > 0));
   /** Entregues cuja sobra ainda pode voltar pelo balcão. */
   readonly aguardandoSobra = computed(() => this.requisicoes().filter((r) => r.status === 'entregue' && !!r.codigoDevolucao));
   /** Itens que pedem ação da coordenação (badge da navbar). */
@@ -131,7 +135,7 @@ export class RequisicaoInsumoService {
     for (const r of this.requisicoes()) {
       if (r.status === 'aprovada' && this.prazoRetirada(r) < hoje) {
         const texto = `Não foi retirada até ${formatarData(this.prazoRetirada(r))}. A reserva voltou ao estoque.`;
-        this.mudarComo(SISTEMA, r.id, { status: 'cancelada', motivo: `Expirou: ${texto}`, codigoRetirada: undefined }, 'expirada', texto);
+        this.mudarComo(SISTEMA, r.id, { status: 'cancelada', motivo: `Expirou: ${texto}`, codigoRetirada: undefined, ...this.desfazerSeparacao(r) }, 'expirada', texto);
         mudou++;
       } else if (r.status === 'entregue' && r.codigoDevolucao && r.prazoSobra && r.prazoSobra < hoje) {
         const texto = `Prazo para devolver a sobra terminou em ${formatarData(r.prazoSobra)}: consumo integral de ${this.qtd(r.quantidadeEntregue ?? 0, r.insumo.unidadeMedida)}.`;
@@ -229,7 +233,7 @@ export class RequisicaoInsumoService {
     if (r.status !== 'pendente' && r.status !== 'aprovada') return 'Esta requisição não pode mais ser cancelada.';
     const texto = (motivo ?? '').trim();
     if (texto.length < MINIMO_TEXTO) return `Explique o motivo do cancelamento (mínimo de ${MINIMO_TEXTO} caracteres).`;
-    this.mudar(id, { status: 'cancelada', motivo: texto, codigoRetirada: undefined }, 'cancelada', `Motivo: ${texto}`);
+    this.mudar(id, { status: 'cancelada', motivo: texto, codigoRetirada: undefined, ...this.desfazerSeparacao(r) }, 'cancelada', `Motivo: ${texto}`);
     return null;
   }
 
@@ -260,7 +264,7 @@ export class RequisicaoInsumoService {
     if (!r || (r.status !== 'pendente' && r.status !== 'aprovada')) return 'Esta requisição não pode mais ser recusada.';
     const texto = (motivo ?? '').trim();
     if (texto.length < MINIMO_TEXTO) return `Explique o motivo da recusa (mínimo de ${MINIMO_TEXTO} caracteres).`;
-    this.mudar(id, { status: 'recusada', motivo: texto, codigoRetirada: undefined }, 'recusada', `Motivo: ${texto}`);
+    this.mudar(id, { status: 'recusada', motivo: texto, codigoRetirada: undefined, ...this.desfazerSeparacao(r) }, 'recusada', `Motivo: ${texto}`);
     return null;
   }
 
@@ -303,6 +307,8 @@ export class RequisicaoInsumoService {
         codigoRetirada: undefined,
         codigoDevolucao: this.codigos.novo(),
         prazoSobra,
+        // Separou mais do que entregou: a diferença volta a ser guardada.
+        ...(r.separadaEm && quantidade < r.quantidade ? { aGuardar: arredondar(r.quantidade - quantidade) } : {}),
       },
       'entregue',
       `${this.qtd(quantidade, r.insumo.unidadeMedida)} para ${r.solicitante.nome}${parcial} · código conferido · sobra até ${formatarData(prazoSobra)}`,
@@ -345,11 +351,53 @@ export class RequisicaoInsumoService {
     const consumo = arredondar(r.quantidadeEntregue - quantidade);
     this.mudar(
       id,
-      { quantidadeDevolvida: arredondar(quantidade), codigoDevolucao: undefined },
+      { quantidadeDevolvida: arredondar(quantidade), codigoDevolucao: undefined, aGuardar: arredondar(quantidade) },
       'sobra_devolvida',
       `${this.qtd(quantidade, unidade)} de volta · consumo real ${this.qtd(consumo, unidade)} · código conferido`,
     );
     return null;
+  }
+
+  // ---------- Logística do balcão ----------
+
+  /** Marca (ou desfaz) a separação: a quantidade aprovada já está pronta no balcão. */
+  marcarSeparada(id: string, separada: boolean): string | null {
+    const erro = this.exigirCoordenacao();
+    if (erro) return erro;
+    const r = this.buscarPorId(id);
+    if (!r || r.status !== 'aprovada') return 'Só requisições aprovadas, ainda não entregues, são separadas.';
+    if (separada === !!r.separadaEm) return null;
+    const eu = this.eu();
+    this.mudar(
+      id,
+      { separadaEm: separada ? agoraISO() : undefined, separadaPor: separada ? eu : undefined },
+      'separada',
+      separada
+        ? `${this.qtd(r.quantidade, r.insumo.unidadeMedida)} pronto(s) no balcão para a retirada`
+        : 'Separação desfeita: o insumo voltou ao local de guarda',
+    );
+    return null;
+  }
+
+  /** A sobra (ou a separação desfeita) foi levada de volta ao local de guarda. */
+  marcarGuardada(id: string): string | null {
+    const erro = this.exigirCoordenacao();
+    if (erro) return erro;
+    const r = this.buscarPorId(id);
+    if (!r || !(r.aGuardar && r.aGuardar > 0)) return 'Não há insumo desta requisição esperando para ser guardado.';
+    const i = this.insumos.buscarPorId(r.insumo.id);
+    this.mudar(
+      id,
+      { aGuardar: undefined, guardadaEm: agoraISO(), guardadaPor: this.eu() },
+      'guardada',
+      `${this.qtd(r.aGuardar, r.insumo.unidadeMedida)} → ${i?.localizacao ?? 'local de guarda'}`,
+    );
+    return null;
+  }
+
+  /** Requisição separada que não vai mais ser entregue: a quantidade volta a ser guardada. */
+  private desfazerSeparacao(r: RequisicaoInsumo): Partial<RequisicaoInsumo> {
+    return r.separadaEm ? { separadaEm: undefined, separadaPor: undefined, aGuardar: r.quantidade } : {};
   }
 
   reiniciar(): void {

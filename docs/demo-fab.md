@@ -71,6 +71,9 @@ Esta parte vale para a apresentação **sem backend**, com dados salvos no naveg
 | 30 | **Regras configuráveis**: prazo para retirar, limites e política de atraso mudam em Configurações (só a coordenação); cada mudança vai para a Auditoria | Configurações |
 | 32 | **Insumo pelo balcão, com código e QR**: requisição aprovada gera o código de retirada (ex.: Jumpers do Pedro, `J5P-7RQ`). No Balcão › Retirada a coordenação confere o código, entrega e o professor recebe o **código de devolução da sobra**. No Balcão › Devolução: "Sobrou" (volta ao estoque) ou "Usou tudo" | Meus pedidos › Insumos / Balcão |
 | 33 | **Prazos do insumo**: aprovada não retirada até o dia de uso (+ tolerância das regras) expira e libera a reserva; a sobra pode voltar por 7 dias, depois o consumo é considerado integral | Solicitações › Insumos |
+| 34 | **Separar antes da retirada**: Balcão › Separar mostra o que sai hoje e amanhã com o **roteiro por sala** (uma volta só). "Marcar como separado" deixa o material no balcão (o mapa mostra na Coordenação) e o professor vê "Pronto no balcão" | Balcão › Separar |
+| 35 | **Guardar depois da devolução**: o que volta em ordem entra em Balcão › Guardar, com o roteiro de volta; "Guardado" devolve o item ao local de origem no mapa. Pedido separado e cancelado/expirado também volta para guardar | Balcão › Guardar |
+| 36 | **Fica na sala**: impressora 3D e cortadora a laser não passam pelo balcão: entrega e devolução na própria sala, lendo o QR pelo celular | Inventário › Editar / Balcão |
 | 31 | **Modo escuro e fonte de leitura fácil**: Acessibilidade › Tema (Claro, Escuro ou Automático) e fonte Atkinson Hyperlegible. Tudo embutido: funciona sem internet | Todas |
 
 ## 2. Regras da realocação (transferência)

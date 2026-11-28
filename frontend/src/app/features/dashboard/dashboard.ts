@@ -8,6 +8,7 @@ import { InsumoService } from '../../core/services/insumo.service';
 import { ManutencaoService } from '../../core/services/manutencao.service';
 import { RequisicaoInsumoService } from '../../core/services/requisicao-insumo.service';
 import { UsuarioService } from '../../core/services/usuario.service';
+import { LogisticaService } from '../../core/services/logistica.service';
 import { formatarCodigo } from '../../core/utils/codigo.utils';
 import { diferencaEmDias, formatarData, hojeISO, somarDias } from '../../core/utils/date.utils';
 
@@ -45,6 +46,7 @@ export class Dashboard {
   private readonly requisicoes = inject(RequisicaoInsumoService);
   private readonly manutencoes = inject(ManutencaoService);
   private readonly usuarios = inject(UsuarioService);
+  private readonly logistica = inject(LogisticaService);
 
   readonly nomeStatus = NOME_STATUS_EMPRESTIMO;
   readonly data = formatarData;
@@ -109,6 +111,25 @@ export class Dashboard {
           sobrasAbertas.length ? `${n(sobrasAbertas.length, 'sobra', 'sobras')} de insumo a receber` : '',
         ].filter(Boolean).join(' · '),
         rota: '/admin/balcao', botao: 'Abrir balcão',
+      });
+    }
+    const separar = this.logistica.aSeparar();
+    if (separar.length) {
+      const paradas = this.logistica.roteiroSeparacao();
+      t.push({
+        icone: 'fa-solid fa-dolly', tom: separar.some((x) => x.data.slice(0, 10) <= this.hoje) ? 'alerta' : 'acao',
+        titulo: `${n(separar.length, 'pedido', 'pedidos')} para separar antes da retirada`,
+        detalhe: `Uma volta por ${paradas.map((p) => p.localNome).join(', ')} e fica tudo pronto no balcão`,
+        rota: '/admin/balcao', query: { aba: 'separacao' }, botao: 'Ver roteiro',
+      });
+    }
+    const guardar = this.logistica.guarda();
+    if (guardar.length) {
+      t.push({
+        icone: 'fa-solid fa-warehouse', tom: 'info',
+        titulo: `${n(guardar.length, 'devolução', 'devoluções')} no balcão para guardar`,
+        detalhe: this.logistica.roteiroGuarda().map((p) => p.localNome).join(' · '),
+        rota: '/admin/balcao', query: { aba: 'guarda' }, botao: 'Guardar',
       });
     }
     const transf = this.emprestimos.todas().filter((s) => !!s.transferenciaPendente).length;
@@ -183,9 +204,16 @@ export class Dashboard {
     }
     for (const s of meus.filter((x) => x.status === 'aprovado' && x.responsavel.id === eu)) {
       const prazo = this.emprestimos.prazoRetirada(s);
+      const sala = this.emprestimos.retiradaSoNoLocal(s)
+        ? this.equipamentos.buscarPorId(s.itens[0].equipamentoId)?.localizacao
+        : undefined;
       t.push({
         icone: 'fa-solid fa-qrcode', tom: prazo <= this.hoje ? 'alerta' : 'acao',
-        titulo: `Retire no balcão: ${this.itens(s)}`,
+        titulo: sala
+          ? `Retire na sala (${sala}): ${this.itens(s)}`
+          : s.separadoEm
+            ? `Pronto no balcão: ${this.itens(s)}`
+            : `Retire no balcão: ${this.itens(s)}`,
         detalhe: `Mostre o código ${s.codigoRetirada ? formatarCodigo(s.codigoRetirada) : ''} · retire até ${prazo === this.hoje ? 'hoje' : this.data(prazo)}, senão o pedido expira`,
         rota: `/pedidos/${s.id}`, botao: 'Ver QR',
       });
@@ -205,7 +233,7 @@ export class Dashboard {
       const prazo = this.requisicoes.prazoRetirada(r);
       t.push({
         icone: 'fa-solid fa-box-open', tom: prazo <= this.hoje ? 'alerta' : 'acao',
-        titulo: `Retire no balcão: ${r.insumo.nome}`,
+        titulo: r.separadaEm ? `Pronto no balcão: ${r.insumo.nome}` : `Retire no balcão: ${r.insumo.nome}`,
         detalhe: `Mostre o código ${r.codigoRetirada ? formatarCodigo(r.codigoRetirada) : ''} · retire até ${prazo === this.hoje ? 'hoje' : this.data(prazo)}, senão a requisição expira`,
         rota: '/meus-emprestimos', query: { aba: 'insumos' }, botao: 'Ver QR',
       });

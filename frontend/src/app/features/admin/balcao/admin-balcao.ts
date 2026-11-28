@@ -4,6 +4,8 @@ import { Component, DestroyRef, Injector, computed, inject, signal } from '@angu
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { nomeLocal } from '../../../core/constants/escola-modelo.constants';
 import { InsumoService, NOME_UNIDADE, formatarQuantidade } from '../../../core/services/insumo.service';
+import { LogisticaService, TarefaLogistica } from '../../../core/services/logistica.service';
+import { hojeISO, somarDias } from '../../../core/utils/date.utils';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription, finalize } from 'rxjs';
 import { LOCAIS_DE_USO } from '../../../core/constants/escola-modelo.constants';
@@ -20,7 +22,7 @@ import { normalizarCodigo } from '../../../core/utils/codigo.utils';
 import { formatarData } from '../../../core/utils/date.utils';
 import { AvariaCampos, DadosAvaria } from '../../../shared/components/avaria-campos/avaria-campos';
 
-type Aba = 'retirada' | 'devolucao';
+type Aba = 'retirada' | 'devolucao' | 'separacao' | 'guarda';
 
 /**
  * Balcão da coordenação: entrega e recebe o material usando o código (digitado, ditado ou lido
@@ -47,6 +49,10 @@ export class AdminBalcao {
   private readonly rota = inject(ActivatedRoute);
   readonly insumosParaEntregar = computed(() => this.requisicoes.aguardandoEntrega());
   readonly sobrasParaReceber = computed(() => this.requisicoes.aguardandoSobra());
+  /** Separação antes da retirada e guarda depois da devolução (uma volta pela escola). */
+  readonly logistica = inject(LogisticaService);
+  readonly hoje = hojeISO();
+  readonly amanha = somarDias(hojeISO(), 1);
   readonly nomeUnidade = NOME_UNIDADE;
   readonly qtd = formatarQuantidade;
   readonly nomeLocal = nomeLocal;
@@ -134,12 +140,39 @@ export class AdminBalcao {
     // Atalho vindo de Solicitações › Insumos: /admin/balcao?aba=retirada&codigo=XXXXXX
     const q = this.rota.snapshot.queryParamMap;
     const aba = q.get('aba');
-    if (aba === 'retirada' || aba === 'devolucao') this.aba.set(aba);
+    if (aba === 'retirada' || aba === 'devolucao' || aba === 'separacao' || aba === 'guarda') this.aba.set(aba);
     const codigo = q.get('codigo');
     if (codigo) {
       this.codigo.set(codigo);
       this.buscar();
     }
+  }
+
+  quando(data: string): string {
+    const d = data.slice(0, 10);
+    if (d < this.hoje) return `era ${formatarData(d)}`;
+    if (d === this.hoje) return 'hoje';
+    if (d === this.amanha) return 'amanhã';
+    return formatarData(d);
+  }
+
+  separar(t: TarefaLogistica, separado: boolean): void {
+    const erro = this.logistica.separar(t, separado);
+    if (erro) this.notificacoes.erro(erro);
+    else if (separado) this.notificacoes.sucesso(`${t.protocolo} separado: pronto no balcão para ${t.pessoa.nome.split(' ')[0]}.`);
+    else this.notificacoes.info(`Separação de ${t.protocolo} desfeita.`);
+  }
+
+  guardar(t: TarefaLogistica): void {
+    const erro = this.logistica.guardar(t);
+    if (erro) this.notificacoes.erro(erro);
+    else this.notificacoes.sucesso(`${t.protocolo}: material guardado no local de origem.`);
+  }
+
+  /** Equipamento que fica na sala: o painel de retirada/devolução avisa para atender lá. */
+  noLocal(equipamentoId: string): string | null {
+    const e = this.equipamentos.buscarPorId(equipamentoId);
+    return e?.retiradaNoLocal ? e.localizacao : null;
   }
 
   passoInsumo(): string {
@@ -188,7 +221,7 @@ export class AdminBalcao {
       this.notificacoes.sucesso(
         sobra === 0
           ? `${a.req.protocolo} encerrada: ${a.req.solicitante.nome} usou tudo.`
-          : `Sobra de ${a.req.protocolo} de volta ao estoque: ${formatarQuantidade(sobra)} ${unidade} de ${a.req.insumo.nome}.`,
+          : `Sobra de ${a.req.protocolo} de volta ao estoque: ${formatarQuantidade(sobra)} ${unidade} de ${a.req.insumo.nome}. Ela entrou na lista "Guardar".`,
       );
     }
     this.limpar();
@@ -271,6 +304,8 @@ export class AdminBalcao {
   /** Procura o pedido pelo código (não altera nada ainda). */
   buscar(): void {
     if (this.consultando() || this.salvando()) return;
+    const operacao = this.aba();
+    if (operacao !== 'retirada' && operacao !== 'devolucao') return;
     this.erro.set('');
     this.alvo.set(null);
     this.alvoInsumo.set(null);
@@ -309,7 +344,7 @@ export class AdminBalcao {
 
     this.consultando.set(true);
     this.consulta = this.service
-      .consultarCodigo(texto, this.aba())
+      .consultarCodigo(texto, operacao)
       .pipe(finalize(() => this.consultando.set(false)))
       .subscribe({
         next: (resposta) => {
@@ -431,6 +466,13 @@ export class AdminBalcao {
       this.notificacoes.aviso(`Devolução registrada: ${s.protocolo} com avaria. Veja em Manutenção.`, 8000);
     } else {
       this.notificacoes.sucesso(`Devolução registrada: ${s.protocolo}. Tudo de volta ao estoque.`);
+    }
+    // Logística: o que voltou fica no balcão até ser guardado.
+    if (devolucao && this.service.modoDemo) {
+      const atual = this.demo.buscarPorId(s.id);
+      if (atual?.aGuardar?.length) {
+        this.notificacoes.info('O material entrou na lista "Guardar": leve ao local de origem quando puder.', 6000);
+      }
     }
     // Política de atraso: a devolução atrasada pode ter suspendido o responsável.
     const suspensao = devolucao ? s.historico.find((e) => e.tipo === 'suspensao_aplicada') : undefined;

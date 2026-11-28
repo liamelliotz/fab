@@ -47,6 +47,8 @@ const GRAVIDADE_EVENTO: Partial<Record<TipoEventoEmprestimo, GravidadeAuditoria>
   transferencia_recusada: 'aviso',
   expirado: 'aviso',
   suspensao_aplicada: 'critico',
+  separado: 'info',
+  guardado: 'info',
 };
 
 /**

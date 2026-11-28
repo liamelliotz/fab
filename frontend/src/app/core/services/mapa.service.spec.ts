@@ -36,8 +36,8 @@ describe('Mapa de itens e auditoria', () => {
   });
 
   it('o local muda só com registro: retirada com outro local e transferência com local novo', () => {
-    const p41 = emprestimos.buscarPorId('p41')!; // aprovado, uso previsto no Lab. de Informática
-    expect(mapa.ondeEsta('3').find((i) => i.pedidoId === 'p41')).toMatchObject({ situacao: 'reservado', localId: 'almox-ti' });
+    const p41 = emprestimos.buscarPorId('p41')!; // aprovado e já separado: está no balcão (Coordenação)
+    expect(mapa.ondeEsta('3').find((i) => i.pedidoId === 'p41')).toMatchObject({ situacao: 'reservado', localId: 'coordenacao' });
 
     // Sem o termo aceito, o balcão não entrega.
     expect(emprestimos.confirmarRetirada(p41.codigoRetirada!, { termoAceito: false }).ok).toBe(false);
@@ -73,7 +73,9 @@ describe('Mapa de itens e auditoria', () => {
     expect(cancelado.status).toBe('cancelado');
     expect(cancelado.motivoCancelamento).toBe('Aula cancelada pela coordenação');
     expect(cancelado.historico.at(-1)!.detalhe).toContain('Aula cancelada pela coordenação');
-    expect(mapa.ondeEsta('3').some((i) => i.pedidoId === p41.id)).toBe(false);
+    // Não está mais reservado; como estava separado, as unidades ficam no balcão até alguém guardar
+    expect(mapa.ondeEsta('3').some((i) => i.pedidoId === p41.id && i.situacao === 'reservado')).toBe(false);
+    expect(mapa.ondeEsta('3').find((i) => i.pedidoId === p41.id)).toMatchObject({ situacao: 'guardado', localId: 'coordenacao', quantidade: 2 });
     const registro = TestBed.inject(AuditoriaService).registros().find((r) => r.alvo === p41.protocolo);
     expect(registro?.detalhe).toContain('Aula cancelada pela coordenação');
   });

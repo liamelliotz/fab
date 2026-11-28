@@ -18,6 +18,8 @@ export const ROTULO_EVENTO: Record<TipoEventoEmprestimo, string> = {
   manutencao_baixa: 'Baixa no acervo',
   expirado: 'Pedido expirado',
   suspensao_aplicada: 'Suspensão por atraso',
+  separado: 'Separado no balcão',
+  guardado: 'Guardado no local',
 };
 
 /** Ícone (Font Awesome) de cada acontecimento. */
@@ -38,6 +40,8 @@ export const ICONE_EVENTO: Record<TipoEventoEmprestimo, string> = {
   manutencao_baixa: 'fa-trash-can',
   expirado: 'fa-hourglass-end',
   suspensao_aplicada: 'fa-user-clock',
+  separado: 'fa-box',
+  guardado: 'fa-warehouse',
 };
 
 /** Tom de cor de cada acontecimento (vira a classe `tom-<valor>` na linha do tempo). */
@@ -58,4 +62,6 @@ export const TOM_EVENTO: Record<TipoEventoEmprestimo, 'ok' | 'erro' | 'info' | '
   manutencao_baixa: 'neutro',
   expirado: 'aviso',
   suspensao_aplicada: 'erro',
+  separado: 'info',
+  guardado: 'neutro',
 };

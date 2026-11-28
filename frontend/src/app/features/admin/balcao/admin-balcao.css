@@ -395,3 +395,76 @@ button:disabled, input:disabled { opacity: .55; cursor: wait; }
   outline: 2px solid var(--b-1b6b47);
   outline-offset: 1px;
 }
+
+.bal__contador--alerta {
+  background: var(--s-f59e0b);
+  color: var(--t-1f2937);
+}
+.bal__pronto {
+  margin: 6px 0;
+  color: var(--t-166534);
+  font-size: 14px;
+  font-weight: 600;
+}
+.bal__pronto--sala {
+  color: var(--t-1d4ed8);
+}
+.bal__pronto i {
+  margin-right: 6px;
+}
+
+.log { display: flex; flex-direction: column; gap: 12px; }
+.log__intro { margin: 0; color: var(--t-4b5563); font-size: 14px; line-height: 1.5; }
+.log__roteiro {
+  padding: 14px 16px;
+  border: 1px solid var(--b-a7f3d0);
+  border-radius: 12px;
+  background: var(--s-ecfdf5);
+}
+.log__roteiro h2 { margin: 0 0 8px; color: var(--t-065f46); font-size: 15px; }
+.log__roteiro h2 i { margin-right: 6px; }
+.log__roteiro ol { margin: 0; padding-left: 20px; color: var(--t-172b24); font-size: 14px; }
+.log__roteiro ol > li + li { margin-top: 8px; }
+.log__roteiro ul { margin: 4px 0 0; padding-left: 18px; color: var(--t-374151); font-size: 13px; }
+.log__item {
+  padding: 14px 16px;
+  border: 1px solid var(--b-e5ebe8);
+  border-radius: 12px;
+  background: var(--s-ffffff);
+}
+.log__item--feito { border-color: var(--b-a7f3d0); }
+.log__topo { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; color: var(--t-172b24); font-size: 14px; }
+.log__tipo {
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--s-f3f4f6);
+  color: var(--t-374151);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.log__quando { color: var(--t-4b5563); font-size: 13px; font-weight: 600; }
+.log__quando--hoje { color: var(--t-b45309); }
+.log__linhas { margin: 8px 0 0; padding-left: 18px; color: var(--t-374151); font-size: 14px; }
+.log__linhas li + li { margin-top: 4px; }
+.log__onde { margin-left: 6px; color: var(--t-6b7280); font-size: 13px; }
+.log__onde i { margin-right: 3px; }
+.log__prot { margin-left: 6px; color: var(--t-6b7280); font-size: 12px; font-weight: 600; }
+.log__acoes { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: flex-end; margin-top: 10px; }
+.log__ok { color: var(--t-166534); font-size: 14px; font-weight: 700; }
+.log__ok i, .log__info i { margin-right: 6px; }
+.log__info { color: var(--t-1d4ed8); font-size: 14px; font-weight: 600; }
+
+/* Quatro abas: no celular viram uma grade 2 × 2 */
+@media (max-width: 640px) {
+  .bal__abas {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .bal__aba {
+    justify-content: center;
+    min-width: 0;
+  }
+}

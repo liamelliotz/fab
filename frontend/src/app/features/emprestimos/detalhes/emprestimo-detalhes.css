@@ -330,3 +330,13 @@
 .det__oc-selo--grave { background: var(--s-fee2e2); color: var(--t-991b1b); }
 .det__oc-selo--leve { background: var(--s-d1fae5); color: var(--t-065f46); }
 .det__oc-selo--falta { background: var(--s-ede9fe); color: var(--t-5b21b6); }
+
+.pronto {
+  display: block;
+  margin-top: 6px;
+  color: var(--t-166534);
+  font-weight: 700;
+}
+.pronto i {
+  margin-right: 4px;
+}

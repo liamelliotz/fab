@@ -33,7 +33,112 @@
         <span class="bal__contador">{{ emUso().length + sobrasParaReceber().length }}</span>
       }
     </button>
+    <button
+      type="button"
+      role="tab"
+      class="bal__aba"
+      [class.bal__aba--ativa]="aba() === 'separacao'"
+      [attr.aria-selected]="aba() === 'separacao'"
+      [disabled]="salvando()" (click)="trocarAba('separacao')"
+    >
+      <i class="fa-solid fa-dolly" aria-hidden="true"></i>
+      Separar
+      @if (logistica.aSeparar().length > 0) {
+        <span class="bal__contador bal__contador--alerta">{{ logistica.aSeparar().length }}</span>
+      }
+    </button>
+    <button
+      type="button"
+      role="tab"
+      class="bal__aba"
+      [class.bal__aba--ativa]="aba() === 'guarda'"
+      [attr.aria-selected]="aba() === 'guarda'"
+      [disabled]="salvando()" (click)="trocarAba('guarda')"
+    >
+      <i class="fa-solid fa-warehouse" aria-hidden="true"></i>
+      Guardar
+      @if (logistica.guarda().length > 0) {
+        <span class="bal__contador bal__contador--alerta">{{ logistica.guarda().length }}</span>
+      }
+    </button>
   </div>
+
+  @if (aba() === 'separacao' || aba() === 'guarda') {
+    @let separacao = aba() === 'separacao';
+    @let roteiro = separacao ? logistica.roteiroSeparacao() : logistica.roteiroGuarda();
+    @let tarefas = separacao ? logistica.separacao() : logistica.guarda();
+    <div class="log">
+      <p class="log__intro">
+        @if (separacao) {
+          Busque antes o que vai ser retirado <strong>hoje e amanhã</strong> e deixe pronto no balcão. Quando o professor chegar,
+          é só conferir o código e entregar. O professor vê "pronto para retirar".
+        } @else {
+          O que voltou no balcão fica aqui até você levar de volta ao local de guarda. Faça uma volta só, no fim do turno.
+        }
+      </p>
+
+      @if (roteiro.length) {
+        <section class="log__roteiro" [attr.aria-label]="separacao ? 'Roteiro da separação' : 'Roteiro da guarda'">
+          <h2><i class="fa-solid fa-route" aria-hidden="true"></i> Roteiro: {{ roteiro.length === 1 ? '1 parada' : roteiro.length + ' paradas' }}</h2>
+          <ol>
+            @for (p of roteiro; track p.localId) {
+              <li>
+                <strong>{{ p.localNome }}</strong>
+                <ul>
+                  @for (l of p.linhas; track $index) {
+                    <li>{{ separacao ? 'Buscar' : 'Levar' }} {{ l.nome }} × {{ l.quantidadeTexto }} <span class="log__onde">{{ l.localizacao }}</span> <span class="log__prot">{{ l.protocolo }}</span></li>
+                  }
+                </ul>
+              </li>
+            }
+          </ol>
+        </section>
+      }
+
+      @for (t of tarefas; track t.tipo + t.id) {
+        <article class="log__item" [class.log__item--feito]="t.feito">
+          <div class="log__topo">
+            <div>
+              <strong>{{ t.protocolo }}</strong> · {{ t.pessoa.nome }}
+              <span class="log__tipo">{{ t.tipo === 'insumo' ? 'Insumo' : 'Equipamento' }}</span>
+            </div>
+            <span class="log__quando" [class.log__quando--hoje]="separacao && t.data.slice(0, 10) <= hoje">
+              {{ separacao ? 'Retirada ' + quando(t.data) : 'Voltou ' + quando(t.data) }}
+            </span>
+          </div>
+          <ul class="log__linhas">
+            @for (l of t.linhas; track $index) {
+              <li>
+                {{ l.nome }} × {{ l.quantidadeTexto }}
+                <span class="log__onde"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> {{ l.localizacao }}</span>
+                @if (l.noLocal) { <span class="bal__tag">fica na sala</span> }
+              </li>
+            }
+          </ul>
+          <div class="log__acoes">
+            @if (!separacao) {
+              <button type="button" class="bal__btn bal__btn--ok" (click)="guardar(t)">
+                <i class="fa-solid fa-check" aria-hidden="true"></i> Guardado
+              </button>
+            } @else if (t.soNoLocal) {
+              <span class="log__info"><i class="fa-solid fa-mobile-screen" aria-hidden="true"></i> Entrega na própria sala: leia o QR pelo celular lá.</span>
+            } @else if (t.feito) {
+              <span class="log__ok"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Pronto no balcão</span>
+              <button type="button" class="bal__btn" (click)="separar(t, false)" [attr.aria-label]="'Desfazer separação de ' + t.protocolo">Desfazer</button>
+            } @else {
+              <button type="button" class="bal__btn bal__btn--ok" (click)="separar(t, true)">
+                <i class="fa-solid fa-box" aria-hidden="true"></i> Marcar como separado
+              </button>
+            }
+          </div>
+        </article>
+      } @empty {
+        <p class="bal__vazio">
+          {{ separacao ? 'Nenhuma retirada aprovada para separar.' : 'Nada para guardar: tudo está no lugar.' }}
+        </p>
+      }
+    </div>
+  } @else {
 
   <div class="bal__painel">
     @if (alvoInsumo(); as a) {
@@ -48,6 +153,9 @@
           <strong>{{ r.protocolo }}</strong>
         </div>
         <p class="bal__itens"><i class="fa-solid fa-box-open" aria-hidden="true"></i> {{ r.insumo.nome }}</p>
+        @if (a.tipo === 'retirada' && r.separadaEm) {
+          <p class="bal__pronto"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Separado: o insumo já está no balcão.</p>
+        }
         <p class="bal__info">
           {{ r.finalidade }} · uso em {{ nomeLocal(r.localId) }} no dia {{ data(r.dataUso) }}@if (r.turma) { · {{ r.turma }}}
         </p>
@@ -141,6 +249,14 @@
           </div>
 
           <p class="bal__itens">{{ itens(s) }}</p>
+          @if (aba() === 'retirada' && s.separadoEm) {
+            <p class="bal__pronto"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Separado: o material já está no balcão.</p>
+          }
+          @for (i of s.itens; track i.equipamentoId) {
+            @if (noLocal(i.equipamentoId); as sala) {
+              <p class="bal__pronto bal__pronto--sala"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> {{ nomeItem(i.equipamentoId) }} fica em <strong>{{ sala }}</strong>: {{ aba() === 'retirada' ? 'entregue' : 'receba' }} lá.</p>
+            }
+          }
           <p class="bal__info">
             Retirada prevista {{ data(s.dataPrevistaRetirada) }} · devolução até
             <strong [class.bal__atraso]="atrasado(s)">{{ data(s.dataPrevistaDevolucao) }}</strong>
@@ -334,5 +450,6 @@
         }
       }
     </div>
+  }
   }
 </section>

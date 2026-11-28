@@ -164,8 +164,8 @@ export function criarEmprestimosDemo(): Emprestimo[] {
       itens: [{ equipamentoId: '3', quantidade: 2 }],
       status: 'aprovado', justificativa: 'Oficina de desenvolvimento web.',
       dataSolicitacao: d(-2), dataPrevistaRetirada: d(0), dataPrevistaDevolucao: d(5),
-      responsavelAprovacao: admin, codigoRetirada: 'K7M4PX',
-      historico: [ev('solicitado', ana, 2), ev('aprovado', admin, 2, undefined, 3)],
+      responsavelAprovacao: admin, codigoRetirada: 'K7M4PX', separadoEm: new Date(Date.now() - 2 * 3600_000).toISOString(), separadoPor: admin,
+      historico: [ev('solicitado', ana, 2), ev('aprovado', admin, 2, undefined, 3), { id: 'ev-p41-sep', tipo: 'separado', por: admin, em: new Date(Date.now() - 2 * 3600_000).toISOString(), detalhe: 'Notebook Lenovo IdeaPad 3 × 2 pronto(s) no balcão para a retirada' }],
     },
     // Em andamento com Carlos, com transferência PENDENTE para o professor (ele aceita ou recusa)
     {
@@ -478,12 +478,87 @@ export class EmprestimoService {
     s.itens.forEach((i) => this.equipamentos.liberar(i.equipamentoId, i.quantidade));
     this.atualizarPedido(s.id, (p) => ({
       ...p,
+      ...this.desfazerSeparacao(p),
       status: 'cancelado',
       codigoRetirada: undefined,
       motivoCancelamento: `Expirou: ${texto.charAt(0).toLowerCase()}${texto.slice(1)}`,
       historico: [...p.historico, this.evento('expirado', SISTEMA, texto)],
     }));
     this.avisar(`${s.protocolo} de ${s.responsavel.nome} expirou: não foi retirado até ${prazo}.`, s.id);
+  }
+
+  // ===========================================================================================
+  // Logística do balcão: separar antes da retirada e guardar depois da devolução
+  // ===========================================================================================
+
+  /** Itens do pedido que precisam ser buscados no local de guarda (os que "ficam na sala", não). */
+  itensParaSeparar(s: Emprestimo): ItemEmprestimo[] {
+    return s.itens.filter((i) => !this.equipamentos.buscarPorId(i.equipamentoId)?.retiradaNoLocal);
+  }
+
+  /** Todos os itens ficam na sala: a entrega é feita lá, sem passar pelo balcão. */
+  retiradaSoNoLocal(s: Emprestimo): boolean {
+    return s.itens.length > 0 && this.itensParaSeparar(s).length === 0;
+  }
+
+  /** Pedidos com unidades devolvidas esperando ir para o local de guarda. */
+  readonly paraGuardar = computed(() => this.todas().filter((s) => !!s.aGuardar?.length));
+
+  /**
+   * Marca (ou desfaz) a separação de um pedido aprovado: o material foi buscado no local de
+   * guarda e está pronto no balcão. O professor vê "pronto para retirar".
+   */
+  marcarSeparado(id: string, separado: boolean): string | null {
+    const eu = this.ator();
+    if (eu.perfil !== 'admin') return 'Só a coordenação separa material.';
+    const s = this.buscarPorId(id);
+    if (!s || s.status !== 'aprovado') return 'Só pedidos aprovados, ainda não retirados, são separados.';
+    if (this.retiradaSoNoLocal(s)) return 'Este material fica na sala: a entrega é feita lá, sem separar.';
+    if (separado === !!s.separadoEm) return null;
+    const itens = this.itensParaSeparar(s).map((i) => `${this.nomeEquipamento(i.equipamentoId)} × ${i.quantidade}`).join(', ');
+    this.atualizarPedido(id, (p) => ({
+      ...p,
+      separadoEm: separado ? agoraISO() : undefined,
+      separadoPor: separado ? eu : undefined,
+      historico: [
+        ...p.historico,
+        this.evento('separado', eu, separado ? `${itens} pronto(s) no balcão para a retirada` : 'Separação desfeita: o material voltou ao local de guarda'),
+      ],
+    }));
+    return null;
+  }
+
+  /** As unidades devolvidas foram levadas de volta ao local de guarda. */
+  marcarGuardado(id: string): string | null {
+    const eu = this.ator();
+    if (eu.perfil !== 'admin') return 'Só a coordenação guarda material.';
+    const s = this.buscarPorId(id);
+    if (!s?.aGuardar?.length) return 'Não há material deste pedido esperando para ser guardado.';
+    const texto = s.aGuardar
+      .map((i) => {
+        const e = this.equipamentos.buscarPorId(i.equipamentoId);
+        return `${e?.nome ?? 'Item'} × ${i.quantidade} → ${e?.localizacao ?? 'local de guarda'}`;
+      })
+      .join(' · ');
+    this.atualizarPedido(id, (p) => ({
+      ...p,
+      aGuardar: undefined,
+      guardadoEm: agoraISO(),
+      guardadoPor: eu,
+      historico: [...p.historico, this.evento('guardado', eu, texto)],
+    }));
+    return null;
+  }
+
+  /** Pedido aprovado e separado que não vai mais ser retirado: o material volta a ser guardado. */
+  private desfazerSeparacao(s: Emprestimo): Partial<Emprestimo> {
+    if (!s.separadoEm) return {};
+    const itens = this.itensParaSeparar(s).map((i) => ({ equipamentoId: i.equipamentoId, quantidade: i.quantidade }));
+    return { separadoEm: undefined, separadoPor: undefined, aGuardar: itens.length ? itens : undefined };
+  }
+
+  private nomeEquipamento(id: string): string {
+    return this.equipamentos.buscarPorId(id)?.nome ?? 'Item';
   }
 
   // ===========================================================================================
@@ -615,6 +690,7 @@ export class EmprestimoService {
     }
     this.atualizarPedido(id, (s) => ({
       ...s,
+      ...this.desfazerSeparacao(s),
       status: 'cancelado',
       codigoRetirada: undefined,
       motivoCancelamento: justificativa,
@@ -844,9 +920,15 @@ export class EmprestimoService {
     alvo.itens.forEach((i) =>
       this.equipamentos.liberar(i.equipamentoId, i.quantidade - (foraDoEstoque.get(i.equipamentoId) ?? 0)),
     );
+    // 4) Logística: o que voltou em ordem fica no balcão até alguém levar ao local de guarda
+    //    (equipamento que "fica na sala" é devolvido lá mesmo, não entra aqui).
+    const aGuardar = alvo.itens
+      .map((i) => ({ equipamentoId: i.equipamentoId, quantidade: i.quantidade - (foraDoEstoque.get(i.equipamentoId) ?? 0) }))
+      .filter((i) => i.quantidade > 0 && !this.equipamentos.buscarPorId(i.equipamentoId)?.retiradaNoLocal);
     const atualizado: Emprestimo = {
       ...alvo,
       status: 'devolvido',
+      aGuardar: aGuardar.length ? aGuardar : undefined,
       dataDevolucaoEfetiva: hojeISO(),
       observacoesDevolucao: opcoes.observacoes.trim() || undefined,
       codigoDevolucao: undefined,
