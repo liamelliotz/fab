@@ -51,13 +51,15 @@ e perdas não deixavam registro.
 | 📋 **Painel "O que fazer agora"** | Cada perfil abre o sistema e vê as pendências do dia, da mais urgente para a menos urgente, com o botão que leva direto à ação. |
 | 📦 **Inventário único** | Equipamentos (usa e devolve) e insumos (consumo) na mesma aba, com estoque, valor de cada item e histórico. |
 | 🔁 **Ciclo do empréstimo** | O professor pede e a coordenação aprova, reservando o estoque. Na retirada, o balcão confere o código ou o QR. A devolução registra avarias e faltas, e o material pode passar a um colega com aceite. |
-| 🧪 **Insumos** | Entradas e saídas com responsável, saldo que nunca fica negativo, alerta de estoque baixo e previsão de quando acaba. Itens perecíveis têm validade obrigatória. O professor pede pela requisição, com a quantidade prevista, e a sobra volta ao estoque. |
+| ⚖️ **Regras configuráveis** | Pedido aprovado e não retirado **expira** e libera a reserva. **Limite por categoria** por pessoa. **Política de atraso**: só avisar, bloquear ou **suspender automaticamente** (dias de atraso × fator). Tudo ajustável pela coordenação e registrado na auditoria. |
+| 🧪 **Insumos** | Entradas e saídas com responsável, saldo que nunca fica negativo, alerta de estoque baixo e previsão de quando acaba. Itens perecíveis têm validade obrigatória. O professor pede pela requisição, com a quantidade prevista; retira no **balcão com código e QR** e devolve a sobra (ou diz que usou tudo) do mesmo jeito. Requisição não retirada expira. |
+| 📦 **Balcão sem espera** | **Separar** antes da retirada (roteiro por sala, uma volta só) e **guardar** depois da devolução. Máquinas que não saem da sala são entregues lá, pelo celular. O mapa mostra onde cada item está de verdade. |
 | 🛠️ **Manutenção** | O conserto só vai para **assistências técnicas credenciadas** (CNPJ validado, especialidade e prazo). Dá para consertar ou dar baixa em **parte das unidades**, dizendo quais. |
 | 🧾 **Baixa patrimonial** | Termo numerado para imprimir. O valor vem do cadastro (ninguém digita), e furto ou roubo exige o número do B.O. |
 | 🗺️ **Mapa de itens** | Onde está cada material, sala por sala, com exportação do inventário por sala em CSV. |
 | 🛡️ **Auditoria** | Toda ação fica gravada, sem edição nem exclusão, com filtros e exportação. |
 | 📊 **Relatórios** | Retiradas e consumo por período, a partir dos registros reais. |
-| ♿ **Acessibilidade** | Tradutor de Libras **VLibras**, suporte ao leitor de tela **NVDA**, alto contraste, fonte maior, foco reforçado e navegação completa pelo teclado. |
+| ♿ **Acessibilidade** | **Modo escuro** (ou automático), fonte de leitura fácil **Atkinson Hyperlegible**, tradutor de Libras **VLibras**, suporte ao leitor de tela **NVDA**, alto contraste, fonte maior, foco reforçado e navegação completa pelo teclado. Fontes e ícones vêm embutidos: funcionam sem internet. |
 
 **Perfis.** O **professor** consulta o inventário, pede empréstimos e insumos e acompanha os próprios pedidos.
 A **coordenação** (administrador) aprova pedidos, opera o balcão e cuida do acervo, da manutenção, dos usuários e
@@ -201,6 +203,9 @@ fab/
 | Documento | Para quê |
 | :--- | :--- |
 | [`docs/contrato-api.md`](docs/contrato-api.md) | Contrato único da API: rotas, entradas, saídas, erros e situação de cada rota |
+| [`docs/contrato-regras-emprestimo.md`](docs/contrato-regras-emprestimo.md) | Expiração do pedido aprovado, limite por categoria, política de atraso e suspensão |
+| [`docs/contrato-requisicao-insumo.md`](docs/contrato-requisicao-insumo.md) | Requisição de insumo com código e QR no balcão, sobra e prazos |
+| [`docs/contrato-logistica-balcao.md`](docs/contrato-logistica-balcao.md) | Separar antes da retirada, guardar depois da devolução e itens que ficam na sala |
 | [`docs/contrato-patrimonio-assistencias.md`](docs/contrato-patrimonio-assistencias.md) | Valor do patrimônio, perecíveis, assistências credenciadas e baixa parcial |
 | [`docs/banco.md`](docs/banco.md) | Diagrama do banco, regras garantidas pelo PostgreSQL e como criar uma migration |
 | [`docs/demo-fab.md`](docs/demo-fab.md) | Roteiro da demonstração, passo a passo |

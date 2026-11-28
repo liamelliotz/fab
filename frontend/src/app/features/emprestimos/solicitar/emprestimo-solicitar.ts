@@ -6,6 +6,7 @@ import { LOCAIS_DE_USO } from '../../../core/constants/escola-modelo.constants';
 import { AuthService } from '../../../core/services/auth.service';
 import { EmprestimoService } from '../../../core/services/emprestimo.service';
 import { EquipamentoService } from '../../../core/services/equipamento.service';
+import { RegrasEmprestimoService, nomeCategoria } from '../../../core/services/regras-emprestimo.service';
 import { UsuarioService } from '../../../core/services/usuario.service';
 import { formatarData, hojeISO } from '../../../core/utils/date.utils';
 
@@ -21,6 +22,7 @@ export class EmprestimoSolicitar {
   private readonly emprestimos = inject(EmprestimoService);
   private readonly auth = inject(AuthService);
   private readonly usuarios = inject(UsuarioService);
+  private readonly regras = inject(RegrasEmprestimoService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly fb = inject(FormBuilder).nonNullable;
@@ -70,6 +72,25 @@ export class EmprestimoSolicitar {
     return !!item && item.requerTreinamento && !this.usuarios.habilitado(this.auth.usuarioAtual().id, item.id);
   });
 
+  /** Suspensão ou material atrasado: a pessoa não pode pedir agora (a tela explica e trava o envio). */
+  readonly impedimento = computed(() => this.emprestimos.impedimentoParaPedir(this.auth.usuarioAtual().id));
+
+  /** Limite por categoria do material escolhido e quanto a pessoa já tem em pedidos abertos. */
+  readonly limiteCategoria = computed(() => {
+    const item = this.selecionado();
+    if (!item) return null;
+    const limite = this.regras.limite(item.categoria);
+    if (limite === null) return null;
+    const ja = this.emprestimos.unidadesAbertasPorCategoria(this.auth.usuarioAtual().id).get(item.categoria) ?? 0;
+    return { limite, ja, nome: nomeCategoria(item.categoria), resta: Math.max(0, limite - ja) };
+  });
+
+  /** Depois de aprovado, até quando o pedido espera a retirada. */
+  readonly prazoRetiradaTexto = computed(() => formatarData(this.regras.prazoRetirada(this.retirada() || hojeISO())));
+  readonly diasParaRetirar = computed(() => this.regras.regras().diasParaRetirar);
+
+  readonly un = (n: number) => (n === 1 ? '1 unidade' : `${n} unidades`);
+
   constructor() {
     // Vindo do botão "Solicitar empréstimo" do catálogo: já deixa o item escolhido
     const id = this.route.snapshot.queryParamMap.get('equipamento');
@@ -97,6 +118,11 @@ export class EmprestimoSolicitar {
 
   enviar(): void {
     this.erro.set('');
+    const bloqueio = this.impedimento();
+    if (bloqueio) {
+      this.erro.set(bloqueio);
+      return;
+    }
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;

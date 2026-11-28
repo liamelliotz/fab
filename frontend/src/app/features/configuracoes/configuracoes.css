@@ -13,20 +13,20 @@
 
 .cabecalho h1 {
   margin: 0 0 6px;
-  color: #172b24;
+  color: var(--t-172b24);
   font-size: 30px;
   font-weight: 700;
 }
 
 .cabecalho p {
   margin: 0;
-  color: #6b7280;
+  color: var(--t-6b7280);
   font-size: 14px;
 }
 
 .titulo {
   margin: 0 0 16px;
-  color: #172b24;
+  color: var(--t-172b24);
   font-size: 18px;
   font-weight: 650;
 }
@@ -39,7 +39,7 @@
 }
 
 .dados dt {
-  color: #6b7280;
+  color: var(--t-6b7280);
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.5px;
@@ -48,33 +48,33 @@
 
 .dados dd {
   margin: 4px 0 0;
-  color: #172b24;
+  color: var(--t-172b24);
   font-size: 15px;
   overflow-wrap: anywhere;
 }
 
 .btn-sair {
   padding: 10px 16px;
-  border: 1px solid #fecaca;
+  border: 1px solid var(--b-fecaca);
   border-radius: 10px;
-  background: #fff;
-  color: #b91c1c;
+  background: var(--s-ffffff);
+  color: var(--t-b91c1c);
   font-size: 14px;
   font-weight: 600;
 }
 
 .btn-sair:hover {
-  background: #fef2f2;
+  background: var(--s-fef2f2);
 }
 
 .texto {
   margin: 0 0 10px;
-  color: #374151;
+  color: var(--t-374151);
   font-size: 14px;
   line-height: 1.6;
 }
 
 .texto--suave {
-  color: #6b7280;
+  color: var(--t-6b7280);
   font-size: 13px;
 }

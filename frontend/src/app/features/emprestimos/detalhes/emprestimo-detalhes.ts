@@ -139,6 +139,12 @@ export class EmprestimoDetalhes {
     return p?.codigoDevolucao ? montarPayloadQr('D', p.protocolo, p.codigoDevolucao) : '';
   });
 
+  /** Último dia para retirar (regra de expiração do pedido aprovado). */
+  readonly prazoRetirada = computed(() => {
+    const p = this.pedido();
+    return p ? this.service.prazoRetirada(p) : '';
+  });
+
   /** Etapas que ainda vão acontecer, mostradas tracejadas no fim da linha do tempo. */
   readonly passosFuturos = computed<PassoFuturo[]>(() => {
     const p = this.pedido();
@@ -157,7 +163,10 @@ export class EmprestimoDetalhes {
         ];
       case 'aprovado':
         return [
-          { titulo: 'Retirada no balcão', detalhe: `Prevista para ${formatarData(p.dataPrevistaRetirada)}` },
+          {
+            titulo: 'Retirada no balcão',
+            detalhe: `Prevista para ${formatarData(p.dataPrevistaRetirada)} · expira se não for retirado até ${formatarData(this.prazoRetirada())}`,
+          },
           devolucao,
         ];
       case 'em_andamento':

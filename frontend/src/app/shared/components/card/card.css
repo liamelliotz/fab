@@ -10,8 +10,8 @@
   height: 100%;
   padding: 24px;
 
-  background-color: #ffffff;
-  border: 1px solid #e5e7eb;
+  background-color: var(--s-ffffff);
+  border: 1px solid var(--b-e5e7eb);
   border-radius: 16px;
 
   box-shadow: 0 2px 8px rgb(15 23 42 / 4%);

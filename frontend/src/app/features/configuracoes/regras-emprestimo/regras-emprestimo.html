@@ -1,0 +1,116 @@
+@let r = rascunho();
+<form class="regras" (submit)="$event.preventDefault(); salvar()" novalidate>
+  <header class="regras__topo">
+    <div>
+      <h2 class="regras__titulo">Regras de empréstimo</h2>
+      <p class="regras__sub">Valem para todos os professores. Mudanças passam a valer na hora e ficam na auditoria.</p>
+    </div>
+    <span class="regras__selo"><i class="fa-solid fa-lock" aria-hidden="true"></i> Só a coordenação</span>
+  </header>
+
+  <fieldset class="regras__bloco">
+    <legend><i class="fa-solid fa-hourglass-end" aria-hidden="true"></i> Prazo para retirar</legend>
+    <p class="regras__ajuda">
+      Depois de aprovado, o pedido espera a retirada até este prazo, contado da data de retirada pedida.
+      Passou disso, ele expira sozinho e a reserva volta ao estoque.
+    </p>
+    <label class="regras__campo regras__campo--curto">
+      <span>Retirar</span>
+      <select (change)="mudar('diasParaRetirar', numero($event))">
+        @for (d of opcoesRetirada; track d) {
+          <option [value]="d" [selected]="d === r.diasParaRetirar">{{ textoDias(d) }}</option>
+        }
+      </select>
+    </label>
+  </fieldset>
+
+  <fieldset class="regras__bloco">
+    <legend><i class="fa-solid fa-layer-group" aria-hidden="true"></i> Limite por categoria</legend>
+    <p class="regras__ajuda">
+      Quantas unidades de cada categoria uma pessoa pode ter ao mesmo tempo, somando pedidos pendentes, aprovados
+      e em uso. Deixe vazio para não limitar.
+    </p>
+    <div class="regras__limites">
+      @for (c of categorias; track c.valor) {
+        <label class="regras__campo">
+          <span>{{ c.nome }}</span>
+          <input
+            type="text"
+            inputmode="numeric"
+            maxlength="2"
+            placeholder="Sem limite"
+            [value]="r.limites[c.valor]"
+            (input)="mudarLimite(c.valor, texto($event))"
+          />
+        </label>
+      }
+    </div>
+  </fieldset>
+
+  <fieldset class="regras__bloco">
+    <legend><i class="fa-solid fa-user-clock" aria-hidden="true"></i> Política de atraso</legend>
+    <div class="regras__politicas">
+      @for (p of politicas; track p.valor) {
+        <label class="regras__politica" [class.regras__politica--sel]="r.politicaAtraso === p.valor">
+          <input type="radio" name="politica" [value]="p.valor" [checked]="r.politicaAtraso === p.valor" (change)="mudar('politicaAtraso', p.valor)" />
+          <span>
+            <strong>{{ p.nome }}</strong>
+            <small>{{ p.descricao }}</small>
+          </span>
+        </label>
+      }
+    </div>
+    @if (r.politicaAtraso === 'suspensao') {
+      <div class="regras__suspensao">
+        <label class="regras__campo regras__campo--curto">
+          <span>Dias de suspensão por dia de atraso</span>
+          <input type="number" [min]="L.fatorSuspensao.min" [max]="L.fatorSuspensao.max" [value]="r.fatorSuspensao" (input)="mudar('fatorSuspensao', numero($event))" />
+        </label>
+        <label class="regras__campo regras__campo--curto">
+          <span>Suspensão máxima (dias)</span>
+          <input type="number" [min]="L.maximoSuspensaoDias.min" [max]="L.maximoSuspensaoDias.max" [value]="r.maximoSuspensaoDias" (input)="mudar('maximoSuspensaoDias', numero($event))" />
+        </label>
+        <p class="regras__exemplo">
+          <i class="fa-solid fa-calculator" aria-hidden="true"></i>
+          Exemplo: devolveu com 3 dias de atraso → fica {{ exemplo() }} {{ exemplo() === 1 ? 'dia' : 'dias' }} sem fazer pedidos novos.
+        </p>
+      </div>
+    }
+  </fieldset>
+
+  @if (erro()) {
+    <p class="regras__erro" role="alert">{{ erro() }}</p>
+  }
+
+  <div class="regras__rodape">
+    <p class="regras__carimbo">
+      @if (atuais().atualizadoPor; as por) {
+        Última alteração por {{ por.nome }} em {{ dataHora(atuais().atualizadoEm) }}.
+      } @else {
+        Regras de fábrica, ainda não alteradas.
+      }
+    </p>
+    <div class="regras__botoes">
+      <button type="button" class="regras__btn" (click)="descartar()" [disabled]="!alterado()">Descartar</button>
+      <button type="submit" class="regras__btn regras__btn--principal" [disabled]="!alterado()">Salvar regras</button>
+    </div>
+  </div>
+
+  @if (ultimas().length) {
+    <details class="regras__historico">
+      <summary>Alterações recentes ({{ ultimas().length }})</summary>
+      <ul>
+        @for (a of ultimas(); track a.id) {
+          <li>
+            <time>{{ dataHora(a.em) }}</time> · {{ a.por.nome }}
+            <ul>
+              @for (m of a.mudancas; track $index) {
+                <li>{{ m }}</li>
+              }
+            </ul>
+          </li>
+        }
+      </ul>
+    </details>
+  }
+</form>

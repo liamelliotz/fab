@@ -80,15 +80,36 @@ export class MapaService {
     const lista: ItemNoLocal[] = [];
     const un = (q: number) => `${q} unidade(s)`;
 
+    // Devolvido (ou separação desfeita) e ainda no balcão: está na Coordenação até alguém guardar.
+    const noBalcao = new Map<string, { quantidade: number; pedidos: Emprestimo[] }>();
+    for (const s of this.emprestimos.paraGuardar()) {
+      for (const i of s.aGuardar ?? []) {
+        const atual = noBalcao.get(i.equipamentoId) ?? { quantidade: 0, pedidos: [] };
+        noBalcao.set(i.equipamentoId, { quantidade: atual.quantidade + i.quantidade, pedidos: [...atual.pedidos, s] });
+      }
+    }
+
     for (const e of this.equipamentos.itens()) {
       if (e.status === 'descartado' && e.quantidadeTotal === 0) continue;
       const guarda = localDeGuarda(e.localizacao).id;
-      if (e.quantidadeDisponivel > 0) {
+      const aGuardar = Math.min(e.quantidadeDisponivel, noBalcao.get(e.id)?.quantidade ?? 0);
+      const naGuarda = e.quantidadeDisponivel - aGuardar;
+      if (naGuarda > 0) {
         const inativo = e.status === 'inativo';
         lista.push({
           situacao: inativo ? 'inativo' : 'guardado', localId: guarda, equipamentoId: e.id, nome: e.nome,
-          patrimonio: e.codigoPatrimonio, quantidade: e.quantidadeDisponivel, quantidadeTexto: un(e.quantidadeDisponivel),
+          patrimonio: e.codigoPatrimonio, quantidade: naGuarda, quantidadeTexto: un(naGuarda),
           detalhe: inativo ? 'Inativo: fora do catálogo por decisão da coordenação' : e.localizacao,
+        });
+      }
+      if (aGuardar > 0) {
+        const pedidos = noBalcao.get(e.id)!.pedidos;
+        lista.push({
+          situacao: 'guardado', localId: 'coordenacao', equipamentoId: e.id, nome: e.nome,
+          patrimonio: e.codigoPatrimonio, quantidade: aGuardar, quantidadeTexto: un(aGuardar),
+          detalhe: `No balcão, a guardar em ${e.localizacao} (${pedidos.map((p) => p.protocolo).join(', ')})`,
+          pedidoId: pedidos[0]?.id, protocolo: pedidos[0]?.protocolo,
+          desde: pedidos[0]?.historico.at(-1)?.em,
         });
       }
     }
@@ -102,10 +123,13 @@ export class MapaService {
           pedidoId: s.id, protocolo: s.protocolo,
         };
         if (s.status === 'aprovado') {
+          const separado = !!s.separadoEm && !e?.retiradaNoLocal;
           lista.push({
-            ...base, situacao: 'reservado', localId: localDeGuarda(e?.localizacao).id,
-            detalhe: `Reservado para retirada · uso previsto: ${descreverLocalUso(s.localUso)}`,
-            desde: this.quando(s, 'aprovado'),
+            ...base, situacao: 'reservado', localId: separado ? 'coordenacao' : localDeGuarda(e?.localizacao).id,
+            detalhe: separado
+              ? `Separado no balcão para a retirada · uso previsto: ${descreverLocalUso(s.localUso)}`
+              : `Reservado para retirada · uso previsto: ${descreverLocalUso(s.localUso)}`,
+            desde: separado ? s.separadoEm : this.quando(s, 'aprovado'),
           });
         } else {
           lista.push({

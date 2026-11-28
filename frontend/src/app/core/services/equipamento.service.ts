@@ -7,7 +7,7 @@ import {
 } from '../models/equipamento.model';
 import { gravarJson, lerJson, ouvirOutrasAbas } from '../utils/armazenamento.utils';
 
-const CHAVE_EQUIPAMENTOS = 'fab_demo_v8_equipamentos';
+const CHAVE_EQUIPAMENTOS = 'fab_demo_v9_equipamentos';
 
 export const CATEGORIAS: { valor: CategoriaEquipamento; nome: string }[] = [
   { valor: 'ferramenta', nome: 'Ferramenta' },
@@ -146,6 +146,7 @@ export function criarEquipamentosDemo(): Equipamento[] {
       status: 'disponivel',
       localizacao: 'Sala de prototipagem',
       requerTreinamento: true,
+      retiradaNoLocal: true,
       prazoMaximoDias: 5,
       valorUnitario: 1499,
       quantidadeDisponivel: 1,
@@ -161,6 +162,7 @@ export function criarEquipamentosDemo(): Equipamento[] {
       status: 'inativo',
       localizacao: 'Sala de corte',
       requerTreinamento: true,
+      retiradaNoLocal: true,
       prazoMaximoDias: 3,
       valorUnitario: 7900,
       quantidadeDisponivel: 1,

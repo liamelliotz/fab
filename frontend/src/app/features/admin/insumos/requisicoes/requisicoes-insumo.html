@@ -1,13 +1,14 @@
 <div class="req">
   <div class="req__topo">
     <p>
-      O professor informa a quantidade prevista. <strong>Aprovar</strong> reserva o insumo; <strong>Entregar</strong> registra a
-      saída do estoque. Recusar exige motivo.
+      <strong>Aprovar</strong> reserva o insumo e gera o código de retirada. A <strong>entrega</strong> e a
+      <strong>sobra</strong> são feitas no Balcão, conferindo o código ou o QR do professor. Recusar exige motivo.
     </p>
     <select aria-label="Filtrar requisições" (change)="mudarFiltro($event)">
       <option value="abertas" [selected]="filtro() === 'abertas'">Em aberto</option>
       <option value="pendente" [selected]="filtro() === 'pendente'">Aguardando aprovação</option>
       <option value="aprovada" [selected]="filtro() === 'aprovada'">Aprovadas, a entregar</option>
+      <option value="sobra" [selected]="filtro() === 'sobra'">Entregues, sobra a receber</option>
       <option value="entregue" [selected]="filtro() === 'entregue'">Entregues</option>
       <option value="recusada" [selected]="filtro() === 'recusada'">Recusadas</option>
       <option value="cancelada" [selected]="filtro() === 'cancelada'">Canceladas</option>
@@ -38,6 +39,14 @@
             <td>
               <span class="status status--{{ r.status }}">{{ nomeStatus[r.status] }}</span>
               @if (r.motivo) {<span class="sub">{{ r.motivo }}</span>}
+              @if (r.status === 'aprovada') {
+                <span class="req__codigo" title="Código de retirada">{{ codigo(r.codigoRetirada) }}</span>
+                <span class="sub">retirar até {{ data(service.prazoRetirada(r)) }}</span>
+              }
+              @if (r.codigoDevolucao && r.prazoSobra) {
+                <span class="req__codigo" title="Código de devolução da sobra">{{ codigo(r.codigoDevolucao) }}</span>
+                <span class="sub">sobra até {{ data(r.prazoSobra) }}</span>
+              }
             </td>
             <td class="req__acoes">
               @switch (r.status) {
@@ -46,12 +55,18 @@
                   <button type="button" class="btn" (click)="abrir('recusar', r)">Recusar</button>
                 }
                 @case ('aprovada') {
-                  <button type="button" class="btn btn--ok" (click)="abrir('entregar', r)">Entregar</button>
+                  <a class="btn btn--ok" routerLink="/admin/balcao" [queryParams]="{ aba: 'retirada', codigo: r.codigoRetirada }"
+                    [attr.aria-label]="'Entregar ' + r.protocolo + ' no balcão'">
+                    <i class="fa-solid fa-qrcode" aria-hidden="true"></i> Entregar
+                  </a>
                   <button type="button" class="btn" (click)="abrir('recusar', r)">Recusar</button>
                 }
                 @case ('entregue') {
-                  @if (r.quantidadeDevolvida === undefined) {
-                    <button type="button" class="btn" (click)="abrir('sobra', r)">Registrar sobra</button>
+                  @if (r.codigoDevolucao) {
+                    <a class="btn" routerLink="/admin/balcao" [queryParams]="{ aba: 'devolucao', codigo: r.codigoDevolucao }"
+                      [attr.aria-label]="'Receber a sobra de ' + r.protocolo + ' no balcão'">
+                      <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Sobra no balcão
+                    </a>
                   }
                 }
               }
@@ -79,26 +94,6 @@
             <small>O professor verá este motivo. Mínimo de {{ minimo }} caracteres.</small>
           </label>
         }
-        @case ('entregar') {
-          <h2 id="req-dialogo-titulo">Entregar {{ d.req.protocolo }}</h2>
-          <p class="resumo">
-            Para <strong>{{ d.req.solicitante.nome }}</strong>, uso em {{ local(d.req.localId) }} no dia {{ data(d.req.dataUso) }}.
-            A saída entra no estoque com o protocolo.
-          </p>
-          <label class="campo">
-            <span>Quantidade entregue ({{ nomeUnidade[d.req.insumo.unidadeMedida] }}) <span class="obrig">*</span></span>
-            <input type="number" min="0" [max]="d.req.quantidade" [step]="passo(d.req)" [value]="texto()" (input)="escrever($event)" />
-            <small>Aprovado: {{ qtd(d.req.quantidade) }}. Pode entregar menos, nunca mais.</small>
-          </label>
-        }
-        @case ('sobra') {
-          <h2 id="req-dialogo-titulo">Sobra de {{ d.req.protocolo }}</h2>
-          <p class="resumo">Entregue: {{ qtd(d.req.quantidadeEntregue ?? 0) }} {{ nomeUnidade[d.req.insumo.unidadeMedida] }}. A sobra volta ao estoque e o consumo real é ajustado.</p>
-          <label class="campo">
-            <span>Quantidade que voltou ({{ nomeUnidade[d.req.insumo.unidadeMedida] }}) <span class="obrig">*</span></span>
-            <input type="number" min="0" [max]="d.req.quantidadeEntregue ?? 0" [step]="passo(d.req)" [value]="texto()" (input)="escrever($event)" />
-          </label>
-        }
         @case ('historico') {
           <h2 id="req-dialogo-titulo">Histórico de {{ d.req.protocolo }}</h2>
           <p class="resumo">{{ d.req.insumo.nome }} · {{ d.req.finalidade }}</p>
@@ -121,9 +116,8 @@
       <div class="acoes">
         <button type="button" class="btn" (click)="dialogo.set(null)">{{ d.acao === 'historico' ? 'Fechar' : 'Voltar' }}</button>
         @if (d.acao !== 'historico') {
-          <button type="button" class="btn" [class.btn--ok]="d.acao !== 'recusar'" [class.btn--perigo]="d.acao === 'recusar'"
-            [disabled]="d.acao === 'recusar' && texto().trim().length < minimo" (click)="confirmar()">
-            {{ d.acao === 'recusar' ? 'Confirmar recusa' : d.acao === 'entregar' ? 'Confirmar entrega' : 'Registrar sobra' }}
+          <button type="button" class="btn btn--perigo" [disabled]="texto().trim().length < minimo" (click)="confirmar()">
+            Confirmar recusa
           </button>
         }
       </div>

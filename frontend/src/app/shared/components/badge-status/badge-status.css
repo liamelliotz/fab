@@ -15,21 +15,21 @@
 }
 
 .disponivel {
-  background-color: #dcfce7;
-  color: #166534;
+  background-color: var(--s-dcfce7);
+  color: var(--t-166534);
 }
 
 .emprestado {
-  background-color: #dbeafe;
-  color: #1d4ed8;
+  background-color: var(--s-dbeafe);
+  color: var(--t-1d4ed8);
 }
 
 .manutencao {
-  background-color: #fef3c7;
-  color: #92400e;
+  background-color: var(--s-fef3c7);
+  color: var(--t-92400e);
 }
 
 .pendente {
-  background-color: #f3e8ff;
-  color: #6b21a8;
+  background-color: var(--s-f3e8ff);
+  color: var(--t-6b21a8);
 }

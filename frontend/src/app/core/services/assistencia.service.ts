@@ -5,7 +5,7 @@ import { Resultado, falha, sucesso } from '../models/resultado.model';
 import { gravarJson, lerJson, ouvirOutrasAbas } from '../utils/armazenamento.utils';
 import { agoraISO, hojeISO, somarDias } from '../utils/date.utils';
 
-const CHAVE = 'fab_demo_v8_assistencias';
+const CHAVE = 'fab_demo_v9_assistencias';
 
 /** "12345678000195" → "12.345.678/0001-95" */
 export function formatarCnpj(cnpj: string): string {

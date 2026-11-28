@@ -6,8 +6,13 @@ import { UsuarioResumo } from './usuario.model';
  * (filamento, papel, jumpers...). Diferente do empréstimo, o insumo não volta: só a sobra,
  * quando houver, é devolvida ao estoque.
  *
- * pendente → aprovada (quantidade reservada) → entregue (saída do estoque) → [sobra devolvida]
- *          ↘ recusada (com motivo)      ↘ cancelada (pelo professor, com motivo)
+ * pendente → aprovada (reserva + CÓDIGO/QR de retirada) → entregue no balcão (saída do estoque
+ *            + CÓDIGO/QR de devolução da sobra) → sobra devolvida no balcão, ou "usou tudo"
+ *          ↘ recusada (com motivo)  ↘ cancelada (pelo professor, com motivo, ou expirada pelo sistema)
+ *
+ * Prazos (rotina automática): a aprovada que não é retirada até o dia de uso + a tolerância das
+ * regras de empréstimo expira e libera a reserva; a sobra pode voltar até DIAS_PARA_SOBRA depois
+ * do dia de uso; depois disso o consumo é considerado integral e o código de devolução deixa de valer.
  */
 export type StatusRequisicaoInsumo = 'pendente' | 'aprovada' | 'entregue' | 'recusada' | 'cancelada';
 
@@ -17,7 +22,15 @@ export type AcaoRequisicaoInsumo =
   | 'recusada'
   | 'cancelada'
   | 'entregue'
-  | 'sobra_devolvida';
+  | 'sobra_devolvida'
+  /** Não foi retirada no prazo: o sistema cancelou e liberou a reserva. */
+  | 'expirada'
+  /** Fechada sem sobra: o professor usou tudo, ou o prazo para devolver a sobra terminou. */
+  | 'encerrada'
+  /** Quantidade buscada no local de guarda e deixada pronta no balcão. */
+  | 'separada'
+  /** Sobra (ou separação desfeita) levada de volta ao local de guarda. */
+  | 'guardada';
 
 /** Linha do histórico da requisição. Só cresce: nada é editado nem apagado. */
 export interface EventoRequisicaoInsumo {
@@ -37,8 +50,21 @@ export interface RequisicaoInsumo {
   quantidade: number;
   /** Quantidade que de fato saiu do estoque no balcão. */
   quantidadeEntregue?: number;
-  /** Sobra devolvida depois do uso (consumo real = entregue − sobra). */
+  /** Sobra devolvida depois do uso (consumo real = entregue − sobra). 0 = usou tudo. */
   quantidadeDevolvida?: number;
+  /** Código de 6 caracteres (e QR) para retirar no balcão. Existe só enquanto está aprovada. */
+  codigoRetirada?: string;
+  /** Código (e QR) para devolver a sobra no balcão. Existe da entrega até a sobra ser registrada. */
+  codigoDevolucao?: string;
+  /** Último dia para devolver a sobra (AAAA-MM-DD). */
+  prazoSobra?: string;
+  /** SEPARAÇÃO: a quantidade aprovada já foi buscada no local de guarda e está pronta no balcão. */
+  separadaEm?: string;
+  separadaPor?: UsuarioResumo;
+  /** A GUARDAR: quantidade no balcão esperando voltar ao local de guarda (sobra, ou separação desfeita). */
+  aGuardar?: number;
+  guardadaEm?: string;
+  guardadaPor?: UsuarioResumo;
   /** Dia em que o insumo será usado (AAAA-MM-DD). */
   dataUso: string;
   /** Sala ou laboratório onde será usado (alimenta o mapa e a auditoria). */

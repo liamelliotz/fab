@@ -65,6 +65,16 @@ Esta parte vale para a apresentação **sem backend**, com dados salvos no naveg
 | 24 | **Insumo perecível**: marcar como perecível obriga a validade no cadastro e em cada compra | Inventário › Insumos |
 | 25 | **Assistências credenciadas**: cadastro com CNPJ validado, especialidades e prazo; o conserto só vai para quem está em dia e conserta aquela categoria | Manutenção › Assistências credenciadas |
 | 26 | **VLibras e NVDA**: tradutor de Libras do Governo Federal (liga e desliga em Acessibilidade) e anúncio de troca de página para leitores de tela | Todas |
+| 27 | **Pedido aprovado expira**: se não for retirado até o prazo (padrão: 1 dia depois da data de retirada), o sistema cancela e devolve a reserva ao estoque. Exemplo: EMP-2026-0033 | Solicitações / Pedido |
+| 28 | **Limite por categoria**: o Pedro já está com a impressora 3D e o limite é 1; ao pedir outra, o formulário avisa e não envia | Nova solicitação |
+| 29 | **Política de atraso**: a Maria está com a caixa de som atrasada e não consegue fazer pedidos. Ao devolver o EMP-2026-0037 no balcão (código `M2N9QD`), ela fica **suspensa por 6 dias** (3 de atraso × 2) automaticamente | Balcão / Usuários |
+| 30 | **Regras configuráveis**: prazo para retirar, limites e política de atraso mudam em Configurações (só a coordenação); cada mudança vai para a Auditoria | Configurações |
+| 32 | **Insumo pelo balcão, com código e QR**: requisição aprovada gera o código de retirada (ex.: Jumpers do Pedro, `J5P-7RQ`). No Balcão › Retirada a coordenação confere o código, entrega e o professor recebe o **código de devolução da sobra**. No Balcão › Devolução: "Sobrou" (volta ao estoque) ou "Usou tudo" | Meus pedidos › Insumos / Balcão |
+| 33 | **Prazos do insumo**: aprovada não retirada até o dia de uso (+ tolerância das regras) expira e libera a reserva; a sobra pode voltar por 7 dias, depois o consumo é considerado integral | Solicitações › Insumos |
+| 34 | **Separar antes da retirada**: Balcão › Separar mostra o que sai hoje e amanhã com o **roteiro por sala** (uma volta só). "Marcar como separado" deixa o material no balcão (o mapa mostra na Coordenação) e o professor vê "Pronto no balcão" | Balcão › Separar |
+| 35 | **Guardar depois da devolução**: o que volta em ordem entra em Balcão › Guardar, com o roteiro de volta; "Guardado" devolve o item ao local de origem no mapa. Pedido separado e cancelado/expirado também volta para guardar | Balcão › Guardar |
+| 36 | **Fica na sala**: impressora 3D e cortadora a laser não passam pelo balcão: entrega e devolução na própria sala, lendo o QR pelo celular | Inventário › Editar / Balcão |
+| 31 | **Modo escuro e fonte de leitura fácil**: Acessibilidade › Tema (Claro, Escuro ou Automático) e fonte Atkinson Hyperlegible. Tudo embutido: funciona sem internet | Todas |
 
 ## 2. Regras da realocação (transferência)
 

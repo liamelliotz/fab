@@ -6,8 +6,9 @@ import { EmprestimoService } from './emprestimo.service';
 import { InsumoService, NOME_MOTIVO_INSUMO, NOME_UNIDADE, formatarQuantidade } from './insumo.service';
 import { ManutencaoService, NOME_MOTIVO_BAIXA } from './manutencao.service';
 import { NOME_ACAO_REQUISICAO, RequisicaoInsumoService } from './requisicao-insumo.service';
+import { RegrasEmprestimoService } from './regras-emprestimo.service';
 
-export type ModuloAuditoria = 'emprestimos' | 'manutencao' | 'baixa' | 'insumos';
+export type ModuloAuditoria = 'emprestimos' | 'manutencao' | 'baixa' | 'insumos' | 'regras';
 export type GravidadeAuditoria = 'info' | 'aviso' | 'critico';
 
 export const NOME_MODULO_AUDITORIA: Record<ModuloAuditoria, string> = {
@@ -15,6 +16,7 @@ export const NOME_MODULO_AUDITORIA: Record<ModuloAuditoria, string> = {
   manutencao: 'Manutenção',
   baixa: 'Baixa patrimonial',
   insumos: 'Insumos',
+  regras: 'Regras de empréstimo',
 };
 
 /** Uma linha da trilha de auditoria. Só leitura: vem dos históricos que nunca são editados. */
@@ -43,6 +45,10 @@ const GRAVIDADE_EVENTO: Partial<Record<TipoEventoEmprestimo, GravidadeAuditoria>
   rejeitado: 'aviso',
   cancelado: 'aviso',
   transferencia_recusada: 'aviso',
+  expirado: 'aviso',
+  suspensao_aplicada: 'critico',
+  separado: 'info',
+  guardado: 'info',
 };
 
 /**
@@ -57,6 +63,7 @@ export class AuditoriaService {
   private readonly manutencoes = inject(ManutencaoService);
   private readonly insumos = inject(InsumoService);
   private readonly requisicoes = inject(RequisicaoInsumoService);
+  private readonly regras = inject(RegrasEmprestimoService);
 
   readonly registros = computed<RegistroAuditoria[]>(() => {
     const lista: RegistroAuditoria[] = [];
@@ -127,6 +134,16 @@ export class AuditoriaService {
           detalhe: [ev.detalhe ?? '', ev.acao === 'solicitada' ? r.finalidade : ''].filter(Boolean).join(' · '),
           link: ['/admin/inventario/insumos'],
         });
+      });
+    }
+
+    // Regras de empréstimo: cada alteração e cada suspensão encerrada antes do prazo.
+    for (const a of this.regras.alteracoes()) {
+      lista.push({
+        id: `reg-${a.id}`, em: a.em, modulo: 'regras', gravidade: 'aviso',
+        acao: a.mudancas.length === 1 && a.mudancas[0].startsWith('Suspensão de') ? 'Suspensão encerrada' : 'Regras alteradas',
+        alvo: 'Regras de empréstimo', por: a.por.nome, detalhe: a.mudancas.join(' · '),
+        link: ['/configuracoes'],
       });
     }
 

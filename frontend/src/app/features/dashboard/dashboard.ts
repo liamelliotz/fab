@@ -7,6 +7,8 @@ import { EquipamentoService } from '../../core/services/equipamento.service';
 import { InsumoService } from '../../core/services/insumo.service';
 import { ManutencaoService } from '../../core/services/manutencao.service';
 import { RequisicaoInsumoService } from '../../core/services/requisicao-insumo.service';
+import { UsuarioService } from '../../core/services/usuario.service';
+import { LogisticaService } from '../../core/services/logistica.service';
 import { formatarCodigo } from '../../core/utils/codigo.utils';
 import { diferencaEmDias, formatarData, hojeISO, somarDias } from '../../core/utils/date.utils';
 
@@ -43,6 +45,8 @@ export class Dashboard {
   private readonly insumos = inject(InsumoService);
   private readonly requisicoes = inject(RequisicaoInsumoService);
   private readonly manutencoes = inject(ManutencaoService);
+  private readonly usuarios = inject(UsuarioService);
+  private readonly logistica = inject(LogisticaService);
 
   readonly nomeStatus = NOME_STATUS_EMPRESTIMO;
   readonly data = formatarData;
@@ -96,15 +100,36 @@ export class Dashboard {
     }
     const retiradas = this.emprestimos.todas().filter((s) => s.status === 'aprovado' && s.dataPrevistaRetirada <= this.hoje);
     const entregas = this.requisicoes.aguardandoEntrega().filter((r) => r.dataUso <= this.hoje);
-    if (retiradas.length || entregas.length) {
+    const sobrasAbertas = this.requisicoes.aguardandoSobra();
+    if (retiradas.length || entregas.length || sobrasAbertas.length) {
       t.push({
         icone: 'fa-solid fa-qrcode', tom: 'acao',
-        titulo: `${n(retiradas.length + entregas.length, 'atendimento', 'atendimentos')} no balcão hoje`,
+        titulo: `${n(retiradas.length + entregas.length + sobrasAbertas.length, 'atendimento', 'atendimentos')} no balcão`,
         detalhe: [
-          retiradas.length ? `${n(retiradas.length, 'retirada', 'retiradas')} de equipamento` : '',
-          entregas.length ? `${n(entregas.length, 'entrega', 'entregas')} de insumo` : '',
+          retiradas.length ? `${n(retiradas.length, 'retirada', 'retiradas')} de equipamento hoje` : '',
+          entregas.length ? `${n(entregas.length, 'entrega', 'entregas')} de insumo hoje` : '',
+          sobrasAbertas.length ? `${n(sobrasAbertas.length, 'sobra', 'sobras')} de insumo a receber` : '',
         ].filter(Boolean).join(' · '),
         rota: '/admin/balcao', botao: 'Abrir balcão',
+      });
+    }
+    const separar = this.logistica.aSeparar();
+    if (separar.length) {
+      const paradas = this.logistica.roteiroSeparacao();
+      t.push({
+        icone: 'fa-solid fa-dolly', tom: separar.some((x) => x.data.slice(0, 10) <= this.hoje) ? 'alerta' : 'acao',
+        titulo: `${n(separar.length, 'pedido', 'pedidos')} para separar antes da retirada`,
+        detalhe: `Uma volta por ${paradas.map((p) => p.localNome).join(', ')} e fica tudo pronto no balcão`,
+        rota: '/admin/balcao', query: { aba: 'separacao' }, botao: 'Ver roteiro',
+      });
+    }
+    const guardar = this.logistica.guarda();
+    if (guardar.length) {
+      t.push({
+        icone: 'fa-solid fa-warehouse', tom: 'info',
+        titulo: `${n(guardar.length, 'devolução', 'devoluções')} no balcão para guardar`,
+        detalhe: this.logistica.roteiroGuarda().map((p) => p.localNome).join(' · '),
+        rota: '/admin/balcao', query: { aba: 'guarda' }, botao: 'Guardar',
       });
     }
     const transf = this.emprestimos.todas().filter((s) => !!s.transferenciaPendente).length;
@@ -126,6 +151,15 @@ export class Dashboard {
         rota: '/admin/manutencao', botao: 'Acompanhar',
       });
     }
+    const suspensos = this.usuarios.todos().filter((u) => !!this.usuarios.suspensao(u.id));
+    if (suspensos.length) {
+      t.push({
+        icone: 'fa-solid fa-user-clock', tom: 'info',
+        titulo: `${n(suspensos.length, 'professor suspenso', 'professores suspensos')} por atraso`,
+        detalhe: suspensos.map((u) => `${u.nome.split(' ')[0]} até ${this.data(u.suspensaoAte)}`).join(' · '),
+        rota: '/admin/usuarios', botao: 'Ver usuários',
+      });
+    }
     const repor = this.insumos.aRepor();
     if (repor.length) {
       t.push({
@@ -142,11 +176,20 @@ export class Dashboard {
     const t: Tarefa[] = [];
     const eu = this.eu();
     const meus = this.meus();
+    const suspensao = this.usuarios.suspensao(eu);
+    if (suspensao) {
+      t.push({
+        icone: 'fa-solid fa-user-clock', tom: 'alerta',
+        titulo: `Pedidos novos suspensos até ${this.data(suspensao.ate)}`,
+        detalhe: `${suspensao.motivo}. Os materiais que já estão com você não mudam.`,
+        rota: '/meus-emprestimos', botao: 'Meus pedidos',
+      });
+    }
     for (const s of meus.filter((x) => this.emprestimos.estaAtrasado(x) && x.responsavel.id === eu)) {
       t.push({
         icone: 'fa-solid fa-triangle-exclamation', tom: 'alerta',
         titulo: `Devolução atrasada: ${this.itens(s)}`,
-        detalhe: `Era para ${this.data(s.dataPrevistaDevolucao)}. Devolva no balcão com o código.`,
+        detalhe: `Era para ${this.data(s.dataPrevistaDevolucao)}. Devolva no balcão com o código.${this.emprestimos.impedimentoParaPedir(eu) && !suspensao ? ' Enquanto isso, pedidos novos ficam bloqueados.' : ''}`,
         rota: `/pedidos/${s.id}`, botao: 'Ver código',
       });
     }
@@ -160,10 +203,18 @@ export class Dashboard {
       });
     }
     for (const s of meus.filter((x) => x.status === 'aprovado' && x.responsavel.id === eu)) {
+      const prazo = this.emprestimos.prazoRetirada(s);
+      const sala = this.emprestimos.retiradaSoNoLocal(s)
+        ? this.equipamentos.buscarPorId(s.itens[0].equipamentoId)?.localizacao
+        : undefined;
       t.push({
-        icone: 'fa-solid fa-qrcode', tom: 'acao',
-        titulo: `Retire no balcão: ${this.itens(s)}`,
-        detalhe: `Mostre o código ${s.codigoRetirada ? formatarCodigo(s.codigoRetirada) : ''} · retirada em ${this.data(s.dataPrevistaRetirada)}`,
+        icone: 'fa-solid fa-qrcode', tom: prazo <= this.hoje ? 'alerta' : 'acao',
+        titulo: sala
+          ? `Retire na sala (${sala}): ${this.itens(s)}`
+          : s.separadoEm
+            ? `Pronto no balcão: ${this.itens(s)}`
+            : `Retire no balcão: ${this.itens(s)}`,
+        detalhe: `Mostre o código ${s.codigoRetirada ? formatarCodigo(s.codigoRetirada) : ''} · retire até ${prazo === this.hoje ? 'hoje' : this.data(prazo)}, senão o pedido expira`,
         rota: `/pedidos/${s.id}`, botao: 'Ver QR',
       });
     }
@@ -178,13 +229,22 @@ export class Dashboard {
         rota: `/pedidos/${s.id}`, botao: 'Ver código',
       });
     }
-    const insumos = this.requisicoes.requisicoes().filter((r) => r.solicitante.id === eu && r.status === 'aprovada');
-    if (insumos.length) {
+    for (const r of this.requisicoes.requisicoes().filter((x) => x.solicitante.id === eu && x.status === 'aprovada')) {
+      const prazo = this.requisicoes.prazoRetirada(r);
       t.push({
-        icone: 'fa-solid fa-box-open', tom: 'acao',
-        titulo: `${n(insumos.length, 'insumo aprovado', 'insumos aprovados')} para retirar`,
-        detalhe: insumos.map((r) => `${r.insumo.nome} (${r.protocolo})`).join(' · '),
-        rota: '/meus-emprestimos', query: { aba: 'insumos' }, botao: 'Ver',
+        icone: 'fa-solid fa-box-open', tom: prazo <= this.hoje ? 'alerta' : 'acao',
+        titulo: r.separadaEm ? `Pronto no balcão: ${r.insumo.nome}` : `Retire no balcão: ${r.insumo.nome}`,
+        detalhe: `Mostre o código ${r.codigoRetirada ? formatarCodigo(r.codigoRetirada) : ''} · retire até ${prazo === this.hoje ? 'hoje' : this.data(prazo)}, senão a requisição expira`,
+        rota: '/meus-emprestimos', query: { aba: 'insumos' }, botao: 'Ver QR',
+      });
+    }
+    const sobras = this.requisicoes.requisicoes().filter((x) => x.solicitante.id === eu && !!x.codigoDevolucao);
+    if (sobras.length) {
+      t.push({
+        icone: 'fa-solid fa-rotate-left', tom: 'info',
+        titulo: `Sobrou insumo? ${n(sobras.length, 'devolução', 'devoluções')} no balcão`,
+        detalhe: sobras.map((r) => `${r.insumo.nome} até ${this.data(r.prazoSobra)}`).join(' · ') + '. Se usou tudo, avise com o código.',
+        rota: '/meus-emprestimos', query: { aba: 'insumos' }, botao: 'Ver código',
       });
     }
     const aguardando =

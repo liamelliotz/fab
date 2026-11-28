@@ -11,9 +11,9 @@
   align-items: center;
   justify-content: center;
   padding: 48px;
-  color: #fff;
+  color: var(--t-ffffff);
   /* Degradê de verde: troque pelas cores exatas do protótipo do Figma */
-  background: linear-gradient(160deg, #2e7d32 0%, #1b5e20 100%);
+  background: linear-gradient(160deg, var(--s-2e7d32) 0%, var(--s-1b5e20) 100%);
 }
 .login__brand-content { max-width: 380px; }
 .login__logo { font-size: 4rem; font-weight: 800; margin: 0 0 8px; }
@@ -26,7 +26,7 @@
   align-items: center;
   justify-content: center;
   padding: 48px 24px;
-  background: #fff;
+  background: var(--s-ffffff);
 }
 
 /* Formulário: campos empilhados, com espaço entre eles */
@@ -38,21 +38,21 @@
   gap: 16px;
 }
 .login__title { font-size: 1.8rem; margin: 0; }
-.login__subtitle { color: #666; margin: 0 0 8px; }
+.login__subtitle { color: var(--t-666666); margin: 0 0 8px; }
 
 /* Mensagem de erro vinda da API */
 .login__error {
   margin: 0;
   padding: 10px 12px;
   border-radius: 8px;
-  background: #fdecea;
-  color: #b71c1c;
+  background: var(--s-fdecea);
+  color: var(--t-b71c1c);
   font-size: 0.9rem;
 }
 
 /* Texto com link para o registro */
-.login__register { text-align: center; color: #555; margin: 8px 0 0; }
-.login__register a { color: #2e7d32; font-weight: 600; text-decoration: none; }
+.login__register { text-align: center; color: var(--t-555555); margin: 8px 0 0; }
+.login__register a { color: var(--t-2e7d32); font-weight: 600; text-decoration: none; }
 .login__register a:hover { text-decoration: underline; }
 
 /* Indicador de carregamento no botão Entrar */
@@ -63,7 +63,7 @@
   margin-right: 6px;
   vertical-align: -0.15em;
   border: 2px solid rgba(255, 255, 255, 0.45);
-  border-top-color: #fff;
+  border-top-color: var(--b-ffffff);
   border-radius: 50%;
   animation: fab-girar 0.7s linear infinite;
 }
@@ -84,7 +84,7 @@
   margin-top: -6px;
   font-size: 0.85rem;
   font-weight: 600;
-  color: #1b5e20;
+  color: var(--t-1b5e20);
   text-decoration: none;
 }
 .login__esqueci:hover,
@@ -95,8 +95,8 @@
   margin: 0;
   padding: 10px 12px;
   border-radius: 10px;
-  background: #ecfdf5;
-  color: #065f46;
+  background: var(--s-ecfdf5);
+  color: var(--t-065f46);
   font-size: 0.9rem;
 }
 
@@ -107,7 +107,7 @@
   margin: 28px 0 0;
   padding: 0;
   list-style: none;
-  color: #ffffff;
+  color: var(--t-ffffff);
   font-size: 15px;
 }
 
@@ -130,14 +130,14 @@
 .login__demo {
   margin-top: 8px;
   padding: 14px;
-  border: 1px dashed #7d8984;
+  border: 1px dashed var(--b-7d8984);
   border-radius: 12px;
-  background: #f7faf8;
+  background: var(--s-f7faf8);
 }
 
 .login__demo-titulo {
   margin: 0 0 10px;
-  color: #374151;
+  color: var(--t-374151);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -156,22 +156,22 @@
   align-items: flex-start;
   gap: 2px;
   padding: 10px 12px;
-  border: 1px solid #7d8984;
+  border: 1px solid var(--b-7d8984);
   border-radius: 10px;
-  background: #fff;
-  color: #172b24;
+  background: var(--s-ffffff);
+  color: var(--t-172b24);
   font: inherit;
   text-align: left;
   cursor: pointer;
 }
 
 .login__demo-conta:hover {
-  border-color: #24845c;
-  background: #f0fdf4;
+  border-color: var(--b-24845c);
+  background: var(--s-f0fdf4);
 }
 
 .login__demo-conta:focus-visible {
-  outline: 3px solid #24845c;
+  outline: 3px solid var(--b-24845c);
   outline-offset: 2px;
 }
 
@@ -180,7 +180,7 @@
 }
 
 .login__demo-conta span {
-  color: #4b5563;
+  color: var(--t-4b5563);
   font-size: 12px;
 }
 

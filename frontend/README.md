@@ -98,9 +98,9 @@ src/
 - Textos da interface em português do Brasil, sem jargão técnico.
 - Toda tela nova precisa funcionar só com o teclado, ter rótulos nos campos e passar no axe (WCAG AA).
 
-## Acessibilidade
+## Acessibilidade e tema escuro
 
-O botão **Acessibilidade** (no menu e na tela de login) liga alto contraste, fonte maior, mais espaço no texto,
+O botão **Acessibilidade** (no menu e na tela de login) escolhe o tema (claro, escuro ou automático) e liga fonte de leitura fácil, alto contraste, fonte maior, mais espaço no texto,
 links sublinhados, foco reforçado, menos animação e o tradutor de Libras **VLibras**. O VLibras é carregado de
 `vlibras.gov.br`; sem internet, ele não aparece e o resto do sistema segue funcionando. Para leitores de tela
 como o **NVDA**, cada troca de página é anunciada e o link *Pular para o conteúdo* leva direto ao conteúdo.
@@ -155,3 +155,16 @@ npm run serve:ssr:frontend     # servidor Express na porta 4000 (ou em PORT)
 Para publicar, configure `apiUrl` em `src/environments/environment.ts` com a URL HTTPS do backend
 (terminando em `/api`), gere um novo build e cadastre a origem do frontend em `CORS_ORIGINS` no backend.
 Se publicar em outro domínio, inclua-o em `security.allowedHosts` no `angular.json`.
+
+### Cores e tema escuro
+
+As cores dos componentes ficam em tokens (`var(--t-…)` texto, `var(--s-…)` fundo, `var(--b-…)` borda),
+definidos em `src/styles/tema-cores.css` com a versão clara e a escura. **Criou CSS com cor fixa (`#1f6f4c`)?**
+Rode dentro de `frontend/`:
+
+```bash
+python3 tools/gerar-tema.py
+```
+
+O script troca as cores fixas por tokens e calcula a versão escura. O tema claro não muda.
+A fonte Inter, a Atkinson Hyperlegible e os ícones vêm pelo npm: nada depende de internet, exceto o VLibras.

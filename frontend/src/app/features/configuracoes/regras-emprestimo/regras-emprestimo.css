@@ -1,0 +1,46 @@
+:host { display: block; }
+.regras { display: flex; flex-direction: column; gap: 18px; }
+.regras__topo { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; flex-wrap: wrap; }
+.regras__titulo { margin: 0; color: var(--t-172b24); font-size: 18px; font-weight: 650; }
+.regras__sub { margin: 4px 0 0; color: var(--t-6b7280); font-size: 13px; }
+.regras__selo {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px;
+  background: var(--s-f0fdf4); color: var(--t-166534); font-size: 12px; font-weight: 600; white-space: nowrap;
+}
+.regras__bloco { margin: 0; padding: 14px 16px 16px; border: 1px solid var(--b-e5ebe8); border-radius: 12px; min-width: 0; }
+.regras__bloco legend { padding: 0 6px; color: var(--t-172b24); font-size: 15px; font-weight: 650; }
+.regras__bloco legend i { margin-right: 4px; color: var(--t-1f6f4c); }
+.regras__ajuda { margin: 0 0 12px; color: var(--t-4b5563); font-size: 13px; line-height: 1.5; }
+.regras__campo { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.regras__campo > span { color: var(--t-374151); font-size: 13px; font-weight: 600; }
+.regras__campo--curto { max-width: 260px; }
+.regras__campo input, .regras__campo select {
+  width: 100%; min-width: 0; padding: 9px 11px; border: 1px solid var(--b-d5ddd9); border-radius: 10px;
+  background: var(--s-ffffff); color: var(--t-172b24); font-size: 14px;
+}
+.regras__limites { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+.regras__politicas { display: grid; gap: 8px; }
+.regras__politica {
+  display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--b-e5ebe8);
+  border-radius: 10px; cursor: pointer;
+}
+.regras__politica input { margin-top: 3px; accent-color: var(--t-1f6f4c); }
+.regras__politica strong { display: block; color: var(--t-172b24); font-size: 14px; }
+.regras__politica small { color: var(--t-4b5563); font-size: 13px; }
+.regras__politica--sel { border-color: var(--b-24845c); background: var(--s-f0fdf4); }
+.regras__suspensao { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: flex-end; margin-top: 12px; }
+.regras__exemplo { flex-basis: 100%; margin: 0; color: var(--t-166534); font-size: 13px; }
+.regras__exemplo i { margin-right: 4px; }
+.regras__erro { margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--s-fef2f2); color: var(--t-b91c1c); font-size: 13px; }
+.regras__rodape { display: flex; justify-content: space-between; gap: 12px; align-items: center; flex-wrap: wrap; }
+.regras__carimbo { margin: 0; color: var(--t-6b7280); font-size: 12px; }
+.regras__botoes { display: flex; gap: 8px; }
+.regras__btn {
+  padding: 9px 16px; border: 1px solid var(--b-d5ddd9); border-radius: 10px; background: var(--s-ffffff); color: var(--t-172b24);
+  font-size: 14px; font-weight: 600;
+}
+.regras__btn--principal { border-color: var(--b-1f6f4c); background: var(--s-1f6f4c); color: var(--t-ffffff); }
+.regras__btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.regras__historico summary { cursor: pointer; color: var(--t-1f6f4c); font-size: 13px; font-weight: 600; }
+.regras__historico ul { margin: 8px 0 0; padding-left: 18px; color: var(--t-4b5563); font-size: 13px; }
+.regras__historico time { font-weight: 600; color: var(--t-374151); }

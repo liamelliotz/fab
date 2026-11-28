@@ -1,7 +1,11 @@
 import { LeitorQr } from '../../../shared/components/leitor-qr/leitor-qr';
-import { RequisicaoInsumoService } from '../../../core/services/requisicao-insumo.service';
+import { CodigoInsumo, RequisicaoInsumoService, aceitaFracao } from '../../../core/services/requisicao-insumo.service';
 import { Component, DestroyRef, Injector, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { nomeLocal } from '../../../core/constants/escola-modelo.constants';
+import { InsumoService, NOME_UNIDADE, formatarQuantidade } from '../../../core/services/insumo.service';
+import { LogisticaService, TarefaLogistica } from '../../../core/services/logistica.service';
+import { hojeISO, somarDias } from '../../../core/utils/date.utils';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription, finalize } from 'rxjs';
 import { LOCAIS_DE_USO } from '../../../core/constants/escola-modelo.constants';
@@ -18,7 +22,7 @@ import { normalizarCodigo } from '../../../core/utils/codigo.utils';
 import { formatarData } from '../../../core/utils/date.utils';
 import { AvariaCampos, DadosAvaria } from '../../../shared/components/avaria-campos/avaria-campos';
 
-type Aba = 'retirada' | 'devolucao';
+type Aba = 'retirada' | 'devolucao' | 'separacao' | 'guarda';
 
 /**
  * Balcão da coordenação: entrega e recebe o material usando o código (digitado, ditado ou lido
@@ -39,9 +43,34 @@ type Aba = 'retirada' | 'devolucao';
 export class AdminBalcao {
   readonly service = inject(EmprestimoAdminService);
   private readonly notificacoes = inject(NotificationService);
-  /** Requisições de insumo aprovadas: o professor retira no mesmo balcão. */
-  private readonly requisicoes = inject(RequisicaoInsumoService);
-  readonly insumosParaEntregar = computed(() => this.requisicoes.aguardandoEntrega().length);
+  /** Requisições de insumo: retirada e sobra também passam por este balcão, com código. */
+  readonly requisicoes = inject(RequisicaoInsumoService);
+  private readonly insumos = inject(InsumoService);
+  private readonly rota = inject(ActivatedRoute);
+  readonly insumosParaEntregar = computed(() => this.requisicoes.aguardandoEntrega());
+  readonly sobrasParaReceber = computed(() => this.requisicoes.aguardandoSobra());
+  /** Separação antes da retirada e guarda depois da devolução (uma volta pela escola). */
+  readonly logistica = inject(LogisticaService);
+  readonly hoje = hojeISO();
+  readonly amanha = somarDias(hojeISO(), 1);
+  readonly nomeUnidade = NOME_UNIDADE;
+  readonly qtd = formatarQuantidade;
+  readonly nomeLocal = nomeLocal;
+
+  /** Requisição de insumo encontrada pelo código (em vez de um empréstimo). */
+  readonly alvoInsumo = signal<CodigoInsumo | null>(null);
+  /** Quantidade entregue (retirada) ou sobra (devolução), como texto do campo. */
+  readonly qtdInsumo = signal('');
+  /** Devolução de insumo: true = usou tudo (nada volta). */
+  readonly usouTudo = signal(false);
+
+  /** Máximo que dá para entregar agora: o aprovado, limitado ao saldo do estoque. */
+  readonly maximoEntrega = computed(() => {
+    const a = this.alvoInsumo();
+    if (!a) return 0;
+    const saldo = this.insumos.buscarPorId(a.req.insumo.id)?.quantidadeAtual ?? 0;
+    return Math.min(a.req.quantidade, saldo);
+  });
   private readonly equipamentos = inject(EquipamentoService);
   private readonly injector = inject(Injector);
   private readonly destroy = inject(DestroyRef);
@@ -108,6 +137,94 @@ export class AdminBalcao {
   constructor() {
     this.destroy.onDestroy(() => this.consulta?.unsubscribe());
     this.carregarListas();
+    // Atalho vindo de Solicitações › Insumos: /admin/balcao?aba=retirada&codigo=XXXXXX
+    const q = this.rota.snapshot.queryParamMap;
+    const aba = q.get('aba');
+    if (aba === 'retirada' || aba === 'devolucao' || aba === 'separacao' || aba === 'guarda') this.aba.set(aba);
+    const codigo = q.get('codigo');
+    if (codigo) {
+      this.codigo.set(codigo);
+      this.buscar();
+    }
+  }
+
+  quando(data: string): string {
+    const d = data.slice(0, 10);
+    if (d < this.hoje) return `era ${formatarData(d)}`;
+    if (d === this.hoje) return 'hoje';
+    if (d === this.amanha) return 'amanhã';
+    return formatarData(d);
+  }
+
+  separar(t: TarefaLogistica, separado: boolean): void {
+    const erro = this.logistica.separar(t, separado);
+    if (erro) this.notificacoes.erro(erro);
+    else if (separado) this.notificacoes.sucesso(`${t.protocolo} separado: pronto no balcão para ${t.pessoa.nome.split(' ')[0]}.`);
+    else this.notificacoes.info(`Separação de ${t.protocolo} desfeita.`);
+  }
+
+  guardar(t: TarefaLogistica): void {
+    const erro = this.logistica.guardar(t);
+    if (erro) this.notificacoes.erro(erro);
+    else this.notificacoes.sucesso(`${t.protocolo}: material guardado no local de origem.`);
+  }
+
+  /** Equipamento que fica na sala: o painel de retirada/devolução avisa para atender lá. */
+  noLocal(equipamentoId: string): string | null {
+    const e = this.equipamentos.buscarPorId(equipamentoId);
+    return e?.retiradaNoLocal ? e.localizacao : null;
+  }
+
+  passoInsumo(): string {
+    const a = this.alvoInsumo();
+    return a && aceitaFracao(a.req.insumo.unidadeMedida) ? '0.1' : '1';
+  }
+
+  atualizarQtdInsumo(evento: Event): void {
+    this.qtdInsumo.set((evento.target as HTMLInputElement).value);
+    this.erro.set('');
+  }
+
+  definirUsouTudo(valor: boolean): void {
+    this.usouTudo.set(valor);
+    this.erro.set('');
+  }
+
+  /** Entrega o insumo ou recebe a sobra, com o código já conferido. */
+  confirmarInsumo(): void {
+    const a = this.alvoInsumo();
+    if (!a || this.salvando()) return;
+    const unidade = NOME_UNIDADE[a.req.insumo.unidadeMedida];
+    const texto = this.qtdInsumo().trim().replace(',', '.');
+    const numero = texto === '' ? NaN : Number(texto);
+    if (a.tipo === 'retirada') {
+      const erro = this.requisicoes.entregar(a.req.id, numero, this.codigoConferido);
+      if (erro) {
+        this.erro.set(erro);
+        return;
+      }
+      const r = this.requisicoes.buscarPorId(a.req.id)!;
+      this.notificacoes.sucesso(
+        `${r.protocolo} entregue a ${r.solicitante.nome}: ${formatarQuantidade(numero)} ${unidade} de ${r.insumo.nome}. A sobra volta com o código de devolução.`,
+      );
+    } else {
+      const sobra = this.usouTudo() ? 0 : numero;
+      if (!this.usouTudo() && !(sobra > 0)) {
+        this.erro.set('Informe quanto sobrou, ou marque que usou tudo.');
+        return;
+      }
+      const erro = this.requisicoes.devolverSobra(a.req.id, sobra, this.codigoConferido);
+      if (erro) {
+        this.erro.set(erro);
+        return;
+      }
+      this.notificacoes.sucesso(
+        sobra === 0
+          ? `${a.req.protocolo} encerrada: ${a.req.solicitante.nome} usou tudo.`
+          : `Sobra de ${a.req.protocolo} de volta ao estoque: ${formatarQuantidade(sobra)} ${unidade} de ${a.req.insumo.nome}. Ela entrou na lista "Guardar".`,
+      );
+    }
+    this.limpar();
   }
 
   /** Serviço dos dados do navegador (modo demonstração e resumo da devolução). */
@@ -187,8 +304,11 @@ export class AdminBalcao {
   /** Procura o pedido pelo código (não altera nada ainda). */
   buscar(): void {
     if (this.consultando() || this.salvando()) return;
+    const operacao = this.aba();
+    if (operacao !== 'retirada' && operacao !== 'devolucao') return;
     this.erro.set('');
     this.alvo.set(null);
+    this.alvoInsumo.set(null);
     this.codigoConferido = '';
 
     const texto = this.codigo().trim();
@@ -204,9 +324,27 @@ export class AdminBalcao {
       return;
     }
 
+    // Requisição de insumo? (os códigos nunca se repetem entre insumos e empréstimos)
+    const insumo = this.requisicoes.buscarPorCodigo(texto);
+    if (insumo) {
+      if (insumo.tipo !== this.aba()) {
+        this.erro.set(
+          insumo.tipo === 'retirada'
+            ? 'Este é um código de RETIRADA de insumo. Use a aba Retirada.'
+            : 'Este é um código de DEVOLUÇÃO de sobra de insumo. Use a aba Devolução.',
+        );
+        return;
+      }
+      this.codigoConferido = codigo;
+      this.alvoInsumo.set(insumo);
+      this.usouTudo.set(false);
+      this.qtdInsumo.set(insumo.tipo === 'retirada' ? String(Math.min(insumo.req.quantidade, this.maximoEntrega())) : '');
+      return;
+    }
+
     this.consultando.set(true);
     this.consulta = this.service
-      .consultarCodigo(texto, this.aba())
+      .consultarCodigo(texto, operacao)
       .pipe(finalize(() => this.consultando.set(false)))
       .subscribe({
         next: (resposta) => {
@@ -234,6 +372,9 @@ export class AdminBalcao {
     this.codigo.set('');
     this.erro.set('');
     this.alvo.set(null);
+    this.alvoInsumo.set(null);
+    this.qtdInsumo.set('');
+    this.usouTudo.set(false);
     this.comProblema.set(false);
     this.registros.set({});
     this.observacoes.set('');
@@ -326,6 +467,16 @@ export class AdminBalcao {
     } else {
       this.notificacoes.sucesso(`Devolução registrada: ${s.protocolo}. Tudo de volta ao estoque.`);
     }
+    // Logística: o que voltou fica no balcão até ser guardado.
+    if (devolucao && this.service.modoDemo) {
+      const atual = this.demo.buscarPorId(s.id);
+      if (atual?.aGuardar?.length) {
+        this.notificacoes.info('O material entrou na lista "Guardar": leve ao local de origem quando puder.', 6000);
+      }
+    }
+    // Política de atraso: a devolução atrasada pode ter suspendido o responsável.
+    const suspensao = devolucao ? s.historico.find((e) => e.tipo === 'suspensao_aplicada') : undefined;
+    if (suspensao?.detalhe) this.notificacoes.aviso(suspensao.detalhe, 9000);
   }
 
   /** Com a API, busca os pedidos aprovados e em uso. No modo demonstração não precisa. */

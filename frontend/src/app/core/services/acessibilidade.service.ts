@@ -1,10 +1,17 @@
-import { Injectable, effect, signal } from '@angular/core';
+import { Injectable, computed, effect, signal } from '@angular/core';
 import { gravarJson, lerJson } from '../utils/armazenamento.utils';
+
+/** `sistema` segue a configuração do computador ou celular (claro de dia, escuro à noite etc.). */
+export type TemaVisual = 'claro' | 'escuro' | 'sistema';
 
 /** Preferências de leitura. Ficam salvas neste navegador e valem também na tela de login. */
 export interface PreferenciasAcessibilidade {
   /** Tamanho do texto, em %. */
   tamanho: 100 | 115 | 130;
+  /** Claro, escuro ou igual ao do sistema. */
+  tema: TemaVisual;
+  /** Fonte Atkinson Hyperlegible (letras fáceis de distinguir), embutida no app. */
+  fonteLegivel: boolean;
   /** Reforça o contraste de textos, bordas e ícones. */
   contraste: boolean;
   /** Mais espaço entre linhas, letras e palavras (WCAG 1.4.12). */
@@ -21,6 +28,8 @@ export interface PreferenciasAcessibilidade {
 
 export const PREFERENCIAS_PADRAO: PreferenciasAcessibilidade = {
   tamanho: 100,
+  tema: 'claro',
+  fonteLegivel: false,
   contraste: false,
   espacamento: false,
   sublinharLinks: false,
@@ -37,6 +46,7 @@ interface JanelaComVLibras extends Window {
   VLibras?: { Widget: new (url: string) => unknown };
 }
 
+/** A mesma chave é lida pelo script do index.html, para o tema já abrir certo (sem piscar). */
 const CHAVE = 'fab_acessibilidade';
 
 /**
@@ -50,12 +60,30 @@ export class AcessibilidadeService {
     ...lerJson<Partial<PreferenciasAcessibilidade>>(CHAVE),
   });
 
+  /** O sistema operacional está no modo escuro? (vale quando o tema é "sistema") */
+  private readonly sistemaEscuro = signal(false);
+
+  /** Tema que está valendo agora (resolve o "sistema"). */
+  readonly temaAtual = computed<'claro' | 'escuro'>(() => {
+    const t = this.preferencias().tema;
+    return t === 'sistema' ? (this.sistemaEscuro() ? 'escuro' : 'claro') : t;
+  });
+
   constructor() {
+    if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+      const consulta = window.matchMedia('(prefers-color-scheme: dark)');
+      this.sistemaEscuro.set(consulta.matches);
+      consulta.addEventListener?.('change', (e) => this.sistemaEscuro.set(e.matches));
+    }
     effect(() => {
       const p = this.preferencias();
+      const escuro = this.temaAtual() === 'escuro';
       gravarJson(CHAVE, p);
       if (typeof document === 'undefined') return;
       const raiz = document.documentElement.classList;
+      raiz.toggle('tema-escuro', escuro);
+      raiz.toggle('a11y-fonte-legivel', p.fonteLegivel);
+      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', escuro ? '#173d24' : '#2e7d32');
       raiz.toggle('a11y-texto-115', p.tamanho === 115);
       raiz.toggle('a11y-texto-130', p.tamanho === 130);
       raiz.toggle('a11y-contraste', p.contraste);

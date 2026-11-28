@@ -8,6 +8,15 @@
    O builder do Angular resolve o caminho em node_modules e copia as fontes (webfonts) sozinho. */
 @import '@fortawesome/fontawesome-free/css/all.min.css';
 
+/* Fonte de leitura fácil (opção do painel Acessibilidade): Atkinson Hyperlegible, criada pelo
+   Braille Institute para baixa visão. Também vem pelo npm: funciona sem internet. */
+@import '@fontsource/atkinson-hyperlegible/400.css';
+@import '@fontsource/atkinson-hyperlegible/700.css';
+
+/* Cores dos componentes em tokens, com o tema claro (igual ao original) e o escuro.
+   Arquivo gerado por tools/gerar-tema.py. */
+@import './styles/tema-cores.css';
+
 /* Animações e feedback visual (entrada das telas, cliques, diálogos). */
 @import './styles/animacoes.css';
 
@@ -45,6 +54,33 @@
   --radius-sm: 8px;                /* Bordas arredondadas padrão (cards, tabelas) */
   --radius-md: 16px;               /* Bordas médias (painéis e modais) */
   --radius-pill: 9999px;           /* Efeito cápsula arredondada (botões e inputs do protótipo) */
+}
+
+/* 2b. TEMA ESCURO (painel Acessibilidade › Tema). A classe `tema-escuro` vai no <html>:
+   aplicada antes do Angular carregar (script no index.html), então a tela não pisca em branco.
+   Só vale na tela: a impressão sai sempre clara. */
+@media screen {
+  html.tema-escuro {
+    color-scheme: dark;            /* calendário, rolagem e campos nativos também escuros */
+    --primary-light: #16302a;
+    --bg-light: #101311;
+    --bg-white: #1b1f1d;
+    --border-color: #353937;
+    --text-primary: #e4ece8;
+    --text-secondary: #aab4ae;
+    --text-muted: #aab4ae;
+  }
+  /* Menu lateral: verde mais fechado para não ofuscar no escuro (texto branco continua com 9:1) */
+  html.tema-escuro app-navbar .navbar {
+    --navbar-bg: #173d24;
+  }
+  /* Lado verde do login: mesmo verde fechado do menu */
+  html.tema-escuro .login__brand {
+    background: linear-gradient(160deg, #1d4a2b 0%, #143520 100%);
+  }
+  html.tema-escuro img:not([src$='.svg']) {
+    filter: brightness(0.92);       /* fotos um pouco mais suaves no escuro */
+  }
 }
 
 /* 3. RESET VISUAL E BOX MODEL
@@ -96,19 +132,19 @@ a {
   display: inline-block;
   padding: 3px 10px;
   border-radius: 999px;
-  background: #e5e7eb;
-  color: #374151;
+  background: var(--s-e5e7eb);
+  color: var(--t-374151);
   font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
 }
-.chip--pendente { background: #fef3c7; color: #92400e; }
-.chip--aprovado { background: #dcfce7; color: #166534; }
-.chip--em_andamento { background: #dbeafe; color: #1d4ed8; }
-.chip--devolvido { background: #e0f2fe; color: #075985; }
+.chip--pendente { background: var(--s-fef3c7); color: var(--t-92400e); }
+.chip--aprovado { background: var(--s-dcfce7); color: var(--t-166534); }
+.chip--em_andamento { background: var(--s-dbeafe); color: var(--t-1d4ed8); }
+.chip--devolvido { background: var(--s-e0f2fe); color: var(--t-075985); }
 .chip--rejeitado,
-.chip--atrasado { background: #fee2e2; color: #991b1b; }
-.chip--cancelado { background: #e5e7eb; color: #4b5563; }
+.chip--atrasado { background: var(--s-fee2e2); color: var(--t-991b1b); }
+.chip--cancelado { background: var(--s-e5e7eb); color: var(--t-4b5563); }
 
 /* Texto só para leitores de tela (legendas de tabelas, rótulos de ícones). */
 .sr-only {
@@ -141,6 +177,15 @@ html.a11y-texto-130 [role='dialog'] { max-height: calc(92vh / 1.3) !important; o
 /* Alto contraste: escurece textos cinza, bordas e ícones de todas as telas */
 html.a11y-contraste app-root { display: block; filter: contrast(1.35) saturate(1.1); }
 
+/* Fonte de leitura fácil: letras bem diferentes entre si (I, l, 1; O, 0; b, d) */
+html.a11y-fonte-legivel body,
+html.a11y-fonte-legivel input,
+html.a11y-fonte-legivel button,
+html.a11y-fonte-legivel select,
+html.a11y-fonte-legivel textarea {
+  font-family: 'Atkinson Hyperlegible', 'Inter Variable', sans-serif !important;
+}
+
 /* Espaçamento de texto (WCAG 1.4.12) */
 html.a11y-espacamento body * { line-height: 1.6 !important; letter-spacing: 0.04em !important; word-spacing: 0.12em !important; }
 
@@ -148,7 +193,7 @@ html.a11y-espacamento body * { line-height: 1.6 !important; letter-spacing: 0.04
 html.a11y-links a { text-decoration: underline !important; text-underline-offset: 3px; }
 
 /* Foco reforçado para navegação por teclado */
-html.a11y-foco :focus-visible { outline: 4px solid #f59e0b !important; outline-offset: 3px !important; box-shadow: 0 0 0 7px #1f2937 !important; }
+html.a11y-foco :focus-visible { outline: 4px solid var(--b-f59e0b) !important; outline-offset: 3px !important; box-shadow: 0 0 0 7px var(--b-1f2937) !important; }
 
 /* Menos animação: pelo painel ou pela preferência do sistema operacional */
 html.a11y-sem-animacao *, html.a11y-sem-animacao *::before, html.a11y-sem-animacao *::after {
@@ -170,7 +215,7 @@ html.a11y-sem-animacao *, html.a11y-sem-animacao *::before, html.a11y-sem-animac
 html input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not(:focus):not([aria-invalid='true']):not(.ng-invalid.ng-touched),
 html select:not(:focus):not([aria-invalid='true']):not(.ng-invalid.ng-touched),
 html textarea:not(:focus):not([aria-invalid='true']):not(.ng-invalid.ng-touched) {
-  border-color: #7d8984 !important;
+  border-color: var(--b-7d8984) !important;
 }
 
 /* VLibras não sai na impressão (termos de baixa, relatórios) */

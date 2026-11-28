@@ -4,84 +4,84 @@
 
 /* Topo */
 .topo { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 12px; }
-.topo__data { margin: 0 0 4px; color: #6b7280; font-size: 14px; }
+.topo__data { margin: 0 0 4px; color: var(--t-6b7280); font-size: 14px; }
 .topo__data::first-letter { text-transform: uppercase; }
-.topo h1 { margin: 0; color: #172b24; font-size: 30px; font-weight: 700; }
+.topo h1 { margin: 0; color: var(--t-172b24); font-size: 30px; font-weight: 700; }
 .topo__acoes { display: flex; flex-wrap: wrap; gap: 8px; }
 
 .btn {
-  display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border: 1px solid #24845c; border-radius: 8px;
-  background: #24845c; color: #fff; font-size: 14px; font-weight: 600; text-decoration: none;
+  display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border: 1px solid var(--b-24845c); border-radius: 8px;
+  background: var(--s-24845c); color: var(--t-ffffff); font-size: 14px; font-weight: 600; text-decoration: none;
 }
-.btn:hover { background: #1f6f4c; }
-.btn--sec { border-color: #d5ddd9; background: #fff; color: #172b24; }
-.btn--sec:hover { background: #f7faf8; }
-.btn:focus-visible { outline: 3px solid #24845c; outline-offset: 2px; }
+.btn:hover { background: var(--s-1f6f4c); }
+.btn--sec { border-color: var(--b-d5ddd9); background: var(--s-ffffff); color: var(--t-172b24); }
+.btn--sec:hover { background: var(--s-f7faf8); }
+.btn:focus-visible { outline: 3px solid var(--b-24845c); outline-offset: 2px; }
 
 /* Grade principal */
 .grade { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; align-items: start; }
 
-.cartao { min-width: 0; padding: 20px; border: 1px solid #e5ebe8; border-radius: 12px; background: #fff; }
-.cartao h2 { margin: 0; color: #172b24; font-size: 18px; }
+.cartao { min-width: 0; padding: 20px; border: 1px solid var(--b-e5ebe8); border-radius: 12px; background: var(--s-ffffff); }
+.cartao h2 { margin: 0; color: var(--t-172b24); font-size: 18px; }
 .cartao__topo { margin-bottom: 14px; }
-.cartao__topo p { margin: 4px 0 0; color: #6b7280; font-size: 13px; }
+.cartao__topo p { margin: 4px 0 0; color: var(--t-6b7280); font-size: 13px; }
 .cartao__topo p:empty { display: none; }
 .cartao__topo--linha { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 
 /* Tarefas */
 .tarefas { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
-.tarefa { display: flex; align-items: center; gap: 14px; padding: 14px 4px; border-top: 1px solid #f0f2f1; }
+.tarefa { display: flex; align-items: center; gap: 14px; padding: 14px 4px; border-top: 1px solid var(--b-f0f2f1); }
 .tarefa:first-child { border-top: 0; padding-top: 4px; }
 .tarefa__icone {
   display: grid; width: 38px; height: 38px; flex: none; place-items: center; border-radius: 10px;
-  background: #f0fdf4; color: #1f6f4c; font-size: 15px;
+  background: var(--s-f0fdf4); color: var(--t-1f6f4c); font-size: 15px;
 }
-.tarefa--alerta .tarefa__icone { background: #fef2f2; color: #b91c1c; }
-.tarefa--info .tarefa__icone { background: #f3f4f6; color: #4b5563; }
+.tarefa--alerta .tarefa__icone { background: var(--s-fef2f2); color: var(--t-b91c1c); }
+.tarefa--info .tarefa__icone { background: var(--s-f3f4f6); color: var(--t-4b5563); }
 .tarefa__texto { display: flex; flex: 1; flex-direction: column; gap: 2px; min-width: 0; }
-.tarefa__texto strong { color: #172b24; font-size: 15px; }
-.tarefa--alerta .tarefa__texto strong { color: #991b1b; }
-.tarefa__texto span { color: #6b7280; font-size: 13px; line-height: 1.4; }
+.tarefa__texto strong { color: var(--t-172b24); font-size: 15px; }
+.tarefa--alerta .tarefa__texto strong { color: var(--t-991b1b); }
+.tarefa__texto span { color: var(--t-6b7280); font-size: 13px; line-height: 1.4; }
 .tarefa__acao {
-  display: inline-flex; align-items: center; gap: 6px; flex: none; padding: 8px 12px; border: 1px solid #d5ddd9;
-  border-radius: 8px; color: #172b24; font-size: 13px; font-weight: 600; text-decoration: none; white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 6px; flex: none; padding: 8px 12px; border: 1px solid var(--b-d5ddd9);
+  border-radius: 8px; color: var(--t-172b24); font-size: 13px; font-weight: 600; text-decoration: none; white-space: nowrap;
 }
-.tarefa--acao .tarefa__acao, .tarefa--alerta .tarefa__acao { border-color: #24845c; background: #24845c; color: #fff; }
-.tarefa__acao:hover { filter: brightness(0.95); background-color: #f7faf8; }
-.tarefa--acao .tarefa__acao:hover, .tarefa--alerta .tarefa__acao:hover { background: #1f6f4c; }
-.tarefa__acao:focus-visible { outline: 3px solid #24845c; outline-offset: 2px; }
+.tarefa--acao .tarefa__acao, .tarefa--alerta .tarefa__acao { border-color: var(--b-24845c); background: var(--s-24845c); color: var(--t-ffffff); }
+.tarefa__acao:hover { filter: brightness(0.95); background-color: var(--s-f7faf8); }
+.tarefa--acao .tarefa__acao:hover, .tarefa--alerta .tarefa__acao:hover { background: var(--s-1f6f4c); }
+.tarefa__acao:focus-visible { outline: 3px solid var(--b-24845c); outline-offset: 2px; }
 
 .vazio { display: flex; align-items: center; gap: 14px; padding: 8px 4px; }
-.vazio i { color: #24845c; font-size: 28px; }
+.vazio i { color: var(--t-24845c); font-size: 28px; }
 .vazio div { display: flex; flex-direction: column; }
-.vazio strong { color: #172b24; font-size: 15px; }
-.vazio span { color: #6b7280; font-size: 13px; }
+.vazio strong { color: var(--t-172b24); font-size: 15px; }
+.vazio span { color: var(--t-6b7280); font-size: 13px; }
 
 /* Resumo */
 .resumo { display: flex; flex-direction: column; gap: 12px; }
-.resumo__grande { margin: 4px 0 0; color: #4b5563; font-size: 14px; }
-.resumo__grande strong { display: block; color: #172b24; font-size: 34px; line-height: 1.1; }
-.barra { height: 8px; border-radius: 999px; background: #eef2f0; overflow: hidden; }
-.barra__valor { display: block; height: 100%; border-radius: 999px; background: #24845c; }
+.resumo__grande { margin: 4px 0 0; color: var(--t-4b5563); font-size: 14px; }
+.resumo__grande strong { display: block; color: var(--t-172b24); font-size: 34px; line-height: 1.1; }
+.barra { height: 8px; border-radius: 999px; background: var(--s-eef2f0); overflow: hidden; }
+.barra__valor { display: block; height: 100%; border-radius: 999px; background: var(--s-24845c); }
 .resumo__lista { display: flex; flex-direction: column; gap: 8px; margin: 4px 0 0; }
-.resumo__lista div { display: flex; justify-content: space-between; padding-top: 8px; border-top: 1px solid #f0f2f1; font-size: 14px; }
-.resumo__lista dt { color: #6b7280; }
-.resumo__lista dd { margin: 0; color: #172b24; font-weight: 700; }
-.resumo__link { display: inline-flex; align-items: center; gap: 6px; color: #1f6f4c; font-size: 14px; font-weight: 600; text-decoration: none; }
+.resumo__lista div { display: flex; justify-content: space-between; padding-top: 8px; border-top: 1px solid var(--b-f0f2f1); font-size: 14px; }
+.resumo__lista dt { color: var(--t-6b7280); }
+.resumo__lista dd { margin: 0; color: var(--t-172b24); font-weight: 700; }
+.resumo__link { display: inline-flex; align-items: center; gap: 6px; color: var(--t-1f6f4c); font-size: 14px; font-weight: 600; text-decoration: none; }
 .resumo__link:hover { text-decoration: underline; }
 
 /* Recentes */
 .recentes { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
 .recente {
   display: grid; grid-template-columns: 140px minmax(0, 1fr) auto auto; align-items: center; gap: 16px;
-  padding: 12px 4px; border-top: 1px solid #f0f2f1; font-size: 14px;
+  padding: 12px 4px; border-top: 1px solid var(--b-f0f2f1); font-size: 14px;
 }
 .recente:first-child { border-top: 0; }
-.recente__protocolo { color: #1f6f4c; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.recente__protocolo { color: var(--t-1f6f4c); font-weight: 700; text-decoration: none; white-space: nowrap; }
 .recente__protocolo:hover { text-decoration: underline; }
-.recente__itens { overflow: hidden; color: #374151; text-overflow: ellipsis; white-space: nowrap; }
-.recente__data { color: #6b7280; white-space: nowrap; }
-.recentes__vazio { margin: 0; color: #6b7280; }
+.recente__itens { overflow: hidden; color: var(--t-374151); text-overflow: ellipsis; white-space: nowrap; }
+.recente__data { color: var(--t-6b7280); white-space: nowrap; }
+.recentes__vazio { margin: 0; color: var(--t-6b7280); }
 
 @media (max-width: 1000px) {
   .grade { grid-template-columns: minmax(0, 1fr); }

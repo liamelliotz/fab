@@ -52,6 +52,7 @@ export class AdminEquipamentosForm {
     // Impede que alguém fique com o material o ano todo (a solicitação respeita este limite)
     prazoMaximoDias: [7, [Validators.required, Validators.min(1), Validators.max(365)]],
     requerTreinamento: [false],
+    retiradaNoLocal: [false],
   });
 
   constructor() {
@@ -71,6 +72,7 @@ export class AdminEquipamentosForm {
         valorUnitario: moedaParaCampo(item.valorUnitario),
         prazoMaximoDias: item.prazoMaximoDias,
         requerTreinamento: item.requerTreinamento,
+        retiradaNoLocal: !!item.retiradaNoLocal,
       });
     }
   }

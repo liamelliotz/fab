@@ -7,20 +7,20 @@
 /* Campo de digitação */
 .field__input {
   padding: 12px 16px;
-  border: 1px solid #c4c4c4;
+  border: 1px solid var(--b-c4c4c4);
   border-radius: 12px;  /* cantos arredondados (confira o valor no Figma) */
   font-size: 1rem;
 }
 
 /* Ao focar: borda verde e leve brilho (o "33" no final do hex é a transparência) */
-.field__input:focus { border-color: #2e7d32; box-shadow: 0 0 0 3px #2e7d3233; }
+.field__input:focus { border-color: var(--b-2e7d32); box-shadow: 0 0 0 3px #2e7d3233; }
 /* Pelo teclado, o contorno global (styles/animacoes.css) também aparece. */
 
 /* Estado de erro/validação: borda vermelha */
-.field__input--error { border-color: #d32f2f; }
+.field__input--error { border-color: var(--b-d32f2f); }
 
 /* Texto de contexto em cinza */
-.field__hint { color: #666; }
+.field__hint { color: var(--t-666666); }
 
 /* Mensagem de erro em vermelho */
-.field__error { color: #d32f2f; }
+.field__error { color: var(--t-d32f2f); }

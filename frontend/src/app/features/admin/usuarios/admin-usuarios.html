@@ -158,6 +158,11 @@
                 <span class="status" [class.ativo]="u.status === 'ativo'" [class.inativo]="u.status !== 'ativo'">
                   {{ nomeStatus(u.status) }}
                 </span>
+                @if (suspensaoAte(u); as ate) {
+                  <span class="suspenso" [title]="u.motivoSuspensao ?? ''">
+                    <i class="fa-solid fa-user-clock" aria-hidden="true"></i> Suspenso até {{ data(ate) }}
+                  </span>
+                }
               </td>
               <td class="habilitacoes">{{ habilitacoes(u) }}</td>
               <td>
@@ -166,6 +171,11 @@
                     <button type="button" class="botao-perfil" (click)="abrirHabilitacoes(u)">
                       <i class="fa-solid fa-certificate" aria-hidden="true"></i>
                       Habilitações
+                    </button>
+                  }
+                  @if (suspensaoAte(u) && podeEncerrarSuspensao) {
+                    <button type="button" class="botao-perfil" [disabled]="salvando()" (click)="encerrarSuspensao(u)">
+                      Encerrar suspensão
                     </button>
                   }
                   @if (!ehEu(u)) {

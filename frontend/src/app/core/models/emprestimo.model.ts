@@ -59,7 +59,15 @@ export type TipoEventoEmprestimo =
   | 'avaria_registrada'
   | 'falta_registrada'
   | 'manutencao_concluida'
-  | 'manutencao_baixa';
+  | 'manutencao_baixa'
+  /** O pedido aprovado não foi retirado no prazo: a reserva volta ao estoque (feito pelo sistema). */
+  | 'expirado'
+  /** A devolução atrasou e a política de atraso suspendeu o responsável (feito pelo sistema). */
+  | 'suspensao_aplicada'
+  /** Material buscado no local de guarda e deixado pronto no balcão. */
+  | 'separado'
+  /** Material devolvido levado de volta ao local de guarda. */
+  | 'guardado';
 
 /** Um registro da linha do tempo. Nunca é apagado nem alterado depois de criado. */
 export interface EventoEmprestimo {
@@ -124,6 +132,21 @@ export interface Emprestimo {
 
   /** Transferência aguardando a resposta do destinatário (no máximo uma por vez). */
   transferenciaPendente?: TransferenciaEmprestimo;
+
+  /**
+   * SEPARAÇÃO: a coordenação já buscou o material no local de guarda e deixou pronto no balcão
+   * (só para pedidos aprovados; itens que "ficam na sala" não precisam).
+   */
+  separadoEm?: string;
+  separadoPor?: UsuarioResumo;
+
+  /**
+   * A GUARDAR: unidades que voltaram em ordem e estão no balcão esperando ir para o local de
+   * guarda. Já contam como disponíveis; o mapa mostra na Coordenação até alguém guardar.
+   */
+  aGuardar?: { equipamentoId: string; quantidade: number }[];
+  guardadoEm?: string;
+  guardadoPor?: UsuarioResumo;
 
   /** Dia em que o equipamento saiu do laboratório (YYYY-MM-DD). */
   dataRetiradaEfetiva?: string;

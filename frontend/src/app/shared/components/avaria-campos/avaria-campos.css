@@ -13,7 +13,7 @@
   border: 1px solid var(--border-color);
   border-radius: 10px;
   font: inherit;
-  background: #fff;
+  background: var(--s-ffffff);
   color: var(--text-primary);
 }
 .av textarea { resize: vertical; }
@@ -23,16 +23,16 @@
   padding: 9px 6px;
   border-radius: 10px;
   border: 1px solid var(--border-color);
-  background: #fff;
+  background: var(--s-ffffff);
   font-weight: 600;
   font-size: 0.86rem;
   cursor: pointer;
   color: var(--text-secondary);
 }
-.av__grav:hover { border-color: #9ca3af; }
-.av__grav--leve.av__grav--ativa { background: #ecfdf5; border-color: #10b981; color: #065f46; }
-.av__grav--moderada.av__grav--ativa { background: #fffbeb; border-color: #f59e0b; color: #92400e; }
-.av__grav--grave.av__grav--ativa { background: #fef2f2; border-color: #ef4444; color: #991b1b; }
+.av__grav:hover { border-color: var(--b-9ca3af); }
+.av__grav--leve.av__grav--ativa { background: var(--s-ecfdf5); border-color: var(--b-10b981); color: var(--t-065f46); }
+.av__grav--moderada.av__grav--ativa { background: var(--s-fffbeb); border-color: var(--b-f59e0b); color: var(--t-92400e); }
+.av__grav--grave.av__grav--ativa { background: var(--s-fef2f2); border-color: var(--b-ef4444); color: var(--t-991b1b); }
 
 .av__efeito {
   display: flex;
@@ -43,9 +43,9 @@
   animation: fab-surgir 200ms ease-out;
 }
 .av__efeito i { margin-top: 2px; }
-.av__efeito--leve { color: #047857; }
-.av__efeito--moderada { color: #b45309; }
-.av__efeito--grave { color: #b91c1c; }
+.av__efeito--leve { color: var(--t-047857); }
+.av__efeito--moderada { color: var(--t-b45309); }
+.av__efeito--grave { color: var(--t-b91c1c); }
 
 .av__enviar {
   display: inline-flex;
@@ -61,7 +61,7 @@
   cursor: pointer;
   background: var(--bg-light);
 }
-.av__enviar:hover { border-color: #1f6f4c; color: #1f6f4c; }
+.av__enviar:hover { border-color: var(--b-1f6f4c); color: var(--t-1f6f4c); }
 .av__enviar--ocupado { pointer-events: none; opacity: 0.75; }
 .av__enviar input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 .av__girando {
@@ -84,12 +84,12 @@
 .av__foto-remover {
   border: 0;
   background: none;
-  color: #b91c1c;
+  color: var(--t-b91c1c);
   font-weight: 600;
   font-size: 0.85rem;
   cursor: pointer;
 }
-.av__erro { color: #b91c1c; font-size: 0.8rem; }
+.av__erro { color: var(--t-b91c1c); font-size: 0.8rem; }
 
 @media (max-width: 700px) {
   .av { grid-template-columns: 1fr; }

@@ -2,6 +2,7 @@ import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { Card } from '../../shared/components/card/card';
+import { RegrasEmprestimoForm } from './regras-emprestimo/regras-emprestimo';
 import { Usuario } from '../../core/models/usuario.model';
 import { AuthService } from '../../core/services/auth.service';
 import { UsuarioService } from '../../core/services/usuario.service';
@@ -15,7 +16,7 @@ import { formatarTelefone } from '../../core/utils/validation.utils';
 @Component({
   selector: 'app-configuracoes',
   standalone: true,
-  imports: [Card],
+  imports: [Card, RegrasEmprestimoForm],
   templateUrl: './configuracoes.html',
   styleUrl: './configuracoes.css',
 })
@@ -32,6 +33,7 @@ export class Configuracoes {
   readonly perfil = computed(() =>
     (this.conta()?.perfil ?? this.auth.perfilAtual()) === 'admin' ? 'Administrador' : 'Professor',
   );
+  readonly ehAdmin = computed(() => (this.conta()?.perfil ?? this.auth.perfilAtual()) === 'admin');
   readonly departamento = computed(() => this.conta()?.departamento || '—');
   readonly matricula = computed(() => this.conta()?.matricula || '—');
   readonly telefone = computed(() => {
